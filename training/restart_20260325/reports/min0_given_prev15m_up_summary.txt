@@ -1,0 +1,47 @@
+Conditional minute-0 analysis: previous 15-minute candle up
+===========================================================
+
+Definition of previous 15m candle up:
+  previous block close - previous block open > 0
+
+All blocks with previous block available        : 16745
+Blocks where previous 15m candle was up         : 8683
+Blocks where previous 15m candle was not up     : 8062
+
+Metric 1: minute 0 closes below its own open
+  overall                                       : 48.49%
+  if previous 15m candle was up                 : 48.67%
+  uplift vs overall                             : +0.18 pct-pts
+
+Metric 2: minute 0 closes below previous minute close
+  overall                                       : 48.61%
+  if previous 15m candle was up                 : 48.51%
+  uplift vs overall                             : -0.10 pct-pts
+
+Metric 3: minute 0 low breaks below previous minute close
+  overall                                       : 92.88%
+  if previous 15m candle was up                 : 92.59%
+
+Average minute-0 change (close - open)
+  overall                                       : 0.0094
+  if previous 15m candle was up                 : 0.0125
+
+Average minute-0 open - low
+  overall                                       : 1.0542
+  if previous 15m candle was up                 : 0.9786
+
+NY session (broad: 06:00-17:00 America/New_York)
+  rows in NY session                            : 8053
+  avg minute-0 open-low overall                 : 1.1314
+  avg minute-0 open-low if previous 15m up      : 1.0431
+  pct minute-0 close<open overall               : 48.59%
+  pct minute-0 close<open if previous 15m up    : 49.02%
+
+NY session (config-filtered hours from ml_config.json)
+  rows in config NY session                     : 3075
+  avg minute-0 open-low overall                 : 1.2103
+  avg minute-0 open-low if previous 15m up      : 1.1502
+  pct minute-0 close<open overall               : 48.42%
+  pct minute-0 close<open if previous 15m up    : 48.47%
+
+Conclusion: yes, minute 0 is more likely to be down after an up 15m candle by the close<open definition.

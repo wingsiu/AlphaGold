@@ -1,0 +1,44 @@
+Loading and aggregating raw data to 15-minute candles...
+Data successfully loaded: 253687 rows.
+Loaded 15-minute candles: 16,932
+Generating LSTM signals...
+Signal rows: 16,777
+Sweeping cutoffs...
+  cutoff=0.05 -> trades=4553, profit=$-290.12
+  cutoff=0.10 -> trades=4455, profit=$-136.07
+  cutoff=0.15 -> trades=4259, profit=$-151.47
+  cutoff=0.20 -> trades=4013, profit=$15.10
+  cutoff=0.25 -> trades=3723, profit=$19.24
+  cutoff=0.30 -> trades=3392, profit=$-125.05
+  cutoff=0.35 -> trades=3062, profit=$-18.23
+  cutoff=0.40 -> trades=2712, profit=$-26.13
+  cutoff=0.45 -> trades=2396, profit=$-83.95
+  cutoff=0.50 -> trades=2108, profit=$-92.57
+  cutoff=0.55 -> trades=1852, profit=$-367.42
+  cutoff=0.60 -> trades=1582, profit=$-301.55
+  cutoff=0.65 -> trades=1315, profit=$-430.82
+  cutoff=0.70 -> trades=1074, profit=$-489.43
+  cutoff=0.75 -> trades=917, profit=$-623.00
+  cutoff=0.80 -> trades=777, profit=$-596.43
+  cutoff=0.85 -> trades=607, profit=$-622.94
+  cutoff=0.90 -> trades=416, profit=$-881.42
+================================================================================
+CUTOFF OPTIMIZATION
+================================================================================
+Best cutoff: 0.25
+Best total profit (USD): $19.24
+Trades at best cutoff: 3723
+Using cutoff: 0.25
+Running backtest...
+================================================================================
+BACKTEST SUMMARY
+================================================================================
+Trades: 3723
+Win rate: 50.55%
+Average PnL per trade (USD, 1 unit): $0.0052
+Total profit (USD, 1 unit): $19.24
+exit_reason
+timeout        2919
+stop_loss       599
+take_profit     205
+Saved trades: /Users/alpha/Desktop/python/AlphaGold/training/backtest_trades_lstm_15m_v2_fullperiod.csv

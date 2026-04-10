@@ -1,0 +1,4 @@
+means (3, 3)
+covars (3, 3, 3)
+trans (3, 3)
+post (3,)

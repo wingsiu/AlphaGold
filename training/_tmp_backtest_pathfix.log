@@ -1,0 +1,17 @@
+Loading and aggregating raw data to 15-minute candles...
+Data successfully loaded: 5516 rows.
+Loaded 15-minute candles: 368
+Generating model signals...
+Signal rows: 248
+Using cutoff: 0.20
+Running backtest...
+================================================================================
+BACKTEST SUMMARY
+================================================================================
+Trades: 2
+Win rate: 100.00%
+Average PnL per trade (USD, 1 unit): $19.8499
+Total profit (USD, 1 unit): $39.70
+exit_reason
+take_profit    2
+Saved trades: /Users/alpha/Desktop/python/AlphaGold/training/_tmp_backtest_pathfix.csv

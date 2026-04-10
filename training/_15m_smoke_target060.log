@@ -1,0 +1,42 @@
+Loading raw data...
+Data successfully loaded: 5516 rows.
+15-minute candles: 368
+Range: 2025-05-19 22:00:00+00:00 -> 2025-05-23 20:45:00+00:00
+Extracting features from 248 candles...
+  Progress: 0% (1/248 candles)
+  Progress: 10% (24/248 candles)
+  Progress: 19% (48/248 candles)
+  Progress: 29% (72/248 candles)
+  Progress: 39% (96/248 candles)
+  Progress: 48% (120/248 candles)
+  Progress: 58% (144/248 candles)
+  Progress: 68% (168/248 candles)
+  Progress: 77% (192/248 candles)
+  Progress: 87% (216/248 candles)
+  Progress: 97% (240/248 candles)
+✅ Extracted 116 features from 248 candles
+Creating next-4-bar labels for 248 samples...
+  Progress: 0% (1/248 samples)
+  Progress: 10% (24/248 samples)
+  Progress: 19% (48/248 samples)
+  Progress: 29% (72/248 samples)
+  Progress: 39% (96/248 samples)
+  Progress: 48% (120/248 samples)
+  Progress: 58% (144/248 samples)
+  Progress: 68% (168/248 samples)
+  Progress: 77% (192/248 samples)
+  Progress: 87% (216/248 samples)
+  Progress: 97% (240/248 samples)
+✅ Created labels for 244 samples
+  Positives: 8 (3.28%)
+  Negatives: 236 (96.72%)
+Feature rows: 248
+Label rows: 244
+Merged rows: 244
+Positive rate: 3.28%
+ idx  is_uptrend  future_gain_pct  future_drawdown_pct
+ 120           1         0.600004            -0.028182
+ 121           0         0.515631            -0.067217
+ 122           0         0.233651            -0.051319
+ 123           0         0.128451            -0.165841
+ 124           0         0.182221            -0.100161

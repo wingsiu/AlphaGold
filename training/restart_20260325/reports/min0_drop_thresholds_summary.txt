@@ -1,0 +1,46 @@
+Minute-0 drop threshold analysis
+===============================
+
+Definition:
+  minute-0 drop = minute0 open - minute0 low
+  full 15m drop = block close < block open
+
+all_data
+  baseline blocks                  : 16745
+  baseline pct full-15m down       : 48.01%
+  baseline avg minute0 open-low    : 1.0542
+  minute0 open-low > 5 rows          : 412
+  minute0 open-low > 5 pct full-15m down : 61.41%
+  minute0 open-low > 5 pct continue down : 43.20%
+  minute0 open-low > 5 avg block change : -5.4660
+  minute0 open-low > 10 rows          : 103
+  minute0 open-low > 10 pct full-15m down : 68.93%
+  minute0 open-low > 10 pct continue down : 52.43%
+  minute0 open-low > 10 avg block change : -17.9038
+
+ny_session_broad
+  baseline blocks                  : 8053
+  baseline pct full-15m down       : 47.92%
+  baseline avg minute0 open-low    : 1.1314
+  minute0 open-low > 5 rows          : 253
+  minute0 open-low > 5 pct full-15m down : 64.82%
+  minute0 open-low > 5 pct continue down : 46.25%
+  minute0 open-low > 5 avg block change : -6.5846
+  minute0 open-low > 10 rows          : 61
+  minute0 open-low > 10 pct full-15m down : 72.13%
+  minute0 open-low > 10 pct continue down : 52.46%
+  minute0 open-low > 10 avg block change : -18.3438
+
+ny_session_config
+  baseline blocks                  : 3075
+  baseline pct full-15m down       : 46.60%
+  baseline avg minute0 open-low    : 1.2103
+  minute0 open-low > 5 rows          : 117
+  minute0 open-low > 5 pct full-15m down : 66.67%
+  minute0 open-low > 5 pct continue down : 47.01%
+  minute0 open-low > 5 avg block change : -4.4295
+  minute0 open-low > 10 rows          : 25
+  minute0 open-low > 10 pct full-15m down : 68.00%
+  minute0 open-low > 10 pct continue down : 44.00%
+  minute0 open-low > 10 avg block change : -9.3100
+

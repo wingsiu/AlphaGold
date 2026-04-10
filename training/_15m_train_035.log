@@ -1,0 +1,252 @@
+================================================================================
+TRAIN 15-MINUTE NEXT-BAR-HIGH MODEL
+================================================================================
+Configuration:
+  Candle timeframe: 15 minutes
+  Target: next bar high >= current close + 0.35%
+  Validation split: chronological 80/20
+
+Loading raw gold data...
+Data successfully loaded: 253687 rows.
+✅ Prepared 16,932 aggregated 15-minute candles
+
+================================================================================
+PREPARING DATA
+================================================================================
+
+Extracting candlestick features...
+Extracting features from 16,812 candles...
+  Progress: 0% (1/16,812 candles)
+  Progress: 10% (1,681/16,812 candles)
+  Progress: 20% (3,362/16,812 candles)
+  Progress: 30% (5,043/16,812 candles)
+  Progress: 40% (6,724/16,812 candles)
+  Progress: 50% (8,405/16,812 candles)
+  Progress: 60% (10,086/16,812 candles)
+  Progress: 70% (11,767/16,812 candles)
+  Progress: 80% (13,448/16,812 candles)
+  Progress: 90% (15,129/16,812 candles)
+  Progress: 100% (16,810/16,812 candles)
+✅ Extracted 116 features from 16812 candles
+✅ Extracted 116 features from 16812 candles
+
+Creating uptrend labels...
+Creating next-bar labels for 16,812 samples...
+  Progress: 0% (1/16,812 samples)
+  Progress: 10% (1,681/16,812 samples)
+  Progress: 20% (3,362/16,812 samples)
+  Progress: 30% (5,043/16,812 samples)
+  Progress: 40% (6,724/16,812 samples)
+  Progress: 50% (8,405/16,812 samples)
+  Progress: 60% (10,086/16,812 samples)
+  Progress: 70% (11,767/16,812 samples)
+  Progress: 80% (13,448/16,812 samples)
+  Progress: 90% (15,129/16,812 samples)
+  Progress: 100% (16,810/16,812 samples)
+✅ Created labels for 16,811 samples
+  Positives: 430 (2.56%)
+  Negatives: 16,381 (97.44%)
+✅ Created labels for 16811 samples
+
+Label distribution:
+  Uptrends: 430 (2.6%)
+  No uptrends: 16381 (97.4%)
+
+================================================================================
+TRAINING MODELS
+================================================================================
+
+Train size: 13448
+Test size: 3363
+Chronological split: train idx 120->13567, test idx 13568->16930
+
+--------------------------------------------------------------------------------
+Training random_forest model...
+Training samples: 13,448
+Positive class (uptrend): 194 (1.4%)
+Running 3-fold cross-validation...
+  CV fold 1/3: training...
+  CV fold 1/3: ROC-AUC=0.889
+  CV fold 2/3: training...
+  CV fold 2/3: ROC-AUC=0.858
+  CV fold 3/3: training...
+  CV fold 3/3: ROC-AUC=0.694
+Cross-validation ROC-AUC: 0.814 (+/- 0.105)
+
+--------------------------------------------------------------------------------
+Training gradient_boosting model...
+Training samples: 13,448
+Positive class (uptrend): 194 (1.4%)
+      Iter       Train Loss      OOB Improve   Remaining Time 
+         1           0.1351           0.0053           34.71s
+         2           0.1375           0.0270           33.22s
+         3           0.1327          -0.0028           32.46s
+         4           0.1271          -0.0060           31.87s
+         5           0.1278           0.0123           31.49s
+         6           0.1334           0.0354           31.25s
+         7           0.1189          -0.0501           30.90s
+         8           0.1264           0.0386           30.61s
+         9           0.1179          -0.0249           30.30s
+        10           0.1185           0.0078           30.01s
+        20           0.1063          -0.0133           27.67s
+        30           0.1092          -0.0067           25.27s
+        40           0.1000           0.0078           22.97s
+        50           0.0998           0.0044           20.66s
+        60           0.0960          -0.0061           18.35s
+        70           0.0951           0.0054           16.05s
+        80           0.0949           0.0041           13.74s
+        90           0.0874          -0.0061           11.46s
+       100           0.0852           0.0265            9.15s
+Running 3-fold cross-validation...
+  CV fold 1/3: training...
+      Iter       Train Loss      OOB Improve   Remaining Time 
+         1           0.0811           0.0086            6.82s
+         2           0.0829           0.0367            6.87s
+         3           0.0808           0.0066            6.85s
+         4           0.0706          -0.0298            6.84s
+         5           0.0731           0.0158            6.79s
+         6           0.0764           0.0269            6.72s
+         7           0.0600          -0.0574            6.67s
+         8           0.0656           0.0310            6.61s
+         9           0.0582          -0.0250            6.58s
+        10           0.0675           0.0411            6.54s
+        20           0.0537           0.0128            6.04s
+        30           0.0460          -0.0025            5.54s
+        40           0.0463          -0.0159            5.03s
+        50           0.0382          -0.0216            4.53s
+        60           0.0377          -0.0091            4.03s
+        70           0.0344          -0.0138            3.52s
+        80           0.0311           0.0054            3.02s
+        90           0.0213          -0.0095            2.51s
+       100           0.0172          -0.0130            2.01s
+  CV fold 1/3: ROC-AUC=0.868
+  CV fold 2/3: training...
+      Iter       Train Loss      OOB Improve   Remaining Time 
+         1           0.0643           0.0020           14.82s
+         2           0.0649           0.0166           14.80s
+         3           0.0599          -0.0163           14.71s
+         4           0.0622           0.0181           14.57s
+         5           0.0622           0.0027           14.56s
+         6           0.0568          -0.0171           14.43s
+         7           0.0524          -0.0155           14.32s
+         8           0.0491          -0.0093           14.22s
+         9           0.0558           0.0391           14.08s
+        10           0.0514          -0.0152           13.97s
+        20           0.0569           0.0016           12.99s
+        30           0.0539           0.0254           11.88s
+        40           0.0466           0.0093           10.78s
+        50           0.0365          -0.0275            9.70s
+        60           0.0402           0.0078            8.62s
+        70           0.0434           0.0318            7.54s
+        80           0.0342          -0.0304            6.55s
+        90           0.0357          -0.0204            5.45s
+       100           0.0385           0.0223            4.35s
+  CV fold 2/3: ROC-AUC=0.791
+  CV fold 3/3: training...
+      Iter       Train Loss      OOB Improve   Remaining Time 
+         1           0.0945           0.0067           23.33s
+         2           0.1054           0.0619           23.13s
+         3           0.0938          -0.0288           22.93s
+         4           0.0962           0.0247           22.72s
+         5           0.0938           0.0025           22.55s
+         6           0.0873          -0.0208           22.38s
+         7           0.0837          -0.0066           22.19s
+         8           0.0861           0.0155           22.02s
+         9           0.0816          -0.0115           21.87s
+        10           0.0836           0.0136           21.69s
+        20           0.0790          -0.0020           20.05s
+        30           0.0707          -0.0008           18.34s
+        40           0.0684          -0.0031           16.67s
+        50           0.0713           0.0140           15.00s
+        60           0.0679           0.0185           13.41s
+        70           0.0648           0.0090           11.80s
+        80           0.0614           0.0286           10.13s
+        90           0.0621           0.0048            8.43s
+       100           0.0621           0.0164            6.74s
+  CV fold 3/3: ROC-AUC=0.620
+Cross-validation ROC-AUC: 0.760 (+/- 0.127)
+
+================================================================================
+RANDOM FOREST RESULTS
+
+================================================================================
+MODEL EVALUATION
+================================================================================
+
+Test samples: 3363
+Actual uptrends: 236 (7.0%)
+Predicted uptrends: 5 (0.1%)
+
+Classification Report:
+              precision    recall  f1-score   support
+
+  No Uptrend       0.93      1.00      0.96      3127
+     Uptrend       1.00      0.02      0.04       236
+
+    accuracy                           0.93      3363
+   macro avg       0.97      0.51      0.50      3363
+weighted avg       0.94      0.93      0.90      3363
+
+
+Confusion Matrix:
+[[3127    0]
+ [ 231    5]]
+
+ROC-AUC Score: 0.896
+
+================================================================================
+GRADIENT BOOSTING RESULTS
+
+================================================================================
+MODEL EVALUATION
+================================================================================
+
+Test samples: 3363
+Actual uptrends: 236 (7.0%)
+Predicted uptrends: 70 (2.1%)
+
+Classification Report:
+              precision    recall  f1-score   support
+
+  No Uptrend       0.94      0.99      0.97      3127
+     Uptrend       0.60      0.18      0.27       236
+
+    accuracy                           0.93      3363
+   macro avg       0.77      0.58      0.62      3363
+weighted avg       0.92      0.93      0.92      3363
+
+
+Confusion Matrix:
+[[3099   28]
+ [ 194   42]]
+
+ROC-AUC Score: 0.774
+
+================================================================================
+PREDICTION ACCURACY ANALYSIS
+================================================================================
+✅ Saved ROC analysis to /Users/alpha/Desktop/python/AlphaGold/training/artifacts_15m_nextbar_035/roc_analysis_15m_nextbar.png
+
+================================================================================
+FEATURE IMPORTANCE VISUALIZATION
+================================================================================
+✅ Saved Random Forest feature importance to /Users/alpha/Desktop/python/AlphaGold/training/artifacts_15m_nextbar_035/feature_importance_rf_15m_nextbar.png
+✅ Saved Gradient Boosting feature importance to /Users/alpha/Desktop/python/AlphaGold/training/artifacts_15m_nextbar_035/feature_importance_gb_15m_nextbar.png
+
+================================================================================
+TESTING ON RECENT 15-MINUTE DATA
+================================================================================
+✅ Saved recent predictions to /Users/alpha/Desktop/python/AlphaGold/training/artifacts_15m_nextbar_035/recent_predictions_15m_nextbar.csv
+⚠️ No recent RF signals found on the selected period
+✅ Saved signal cache to /Users/alpha/Desktop/python/AlphaGold/training/test_period_signals_15m_nextbar_035.csv (3,363 rows)
+✅ Saved signal cache to /Users/alpha/Desktop/python/AlphaGold/training/full_period_signals_15m_nextbar_035.csv (16,811 rows)
+Model saved to /Users/alpha/Desktop/python/AlphaGold/training/ml_models_15m_nextbar_035/random_forest_alpha_15m_nextbar_model.pkl
+Model saved to /Users/alpha/Desktop/python/AlphaGold/training/ml_models_15m_nextbar_035/gradient_boosting_alpha_15m_nextbar_model.pkl
+✅ Saved models to /Users/alpha/Desktop/python/AlphaGold/training/ml_models_15m_nextbar_035
+
+Training complete.
+Generated:
+  - Models: /Users/alpha/Desktop/python/AlphaGold/training/ml_models_15m_nextbar_035
+  - Artifacts: /Users/alpha/Desktop/python/AlphaGold/training/artifacts_15m_nextbar_035
+  - Test cache: /Users/alpha/Desktop/python/AlphaGold/training/test_period_signals_15m_nextbar_035.csv
+  - Full cache: /Users/alpha/Desktop/python/AlphaGold/training/full_period_signals_15m_nextbar_035.csv

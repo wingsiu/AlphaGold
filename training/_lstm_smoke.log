@@ -1,0 +1,19 @@
+Data successfully loaded: 5516 rows.
+Extracting features from 248 candles...
+  Progress: 0% (1/248 candles)
+  Progress: 10% (24/248 candles)
+  Progress: 19% (48/248 candles)
+  Progress: 29% (72/248 candles)
+  Progress: 39% (96/248 candles)
+  Progress: 48% (120/248 candles)
+  Progress: 58% (144/248 candles)
+  Progress: 68% (168/248 candles)
+  Progress: 77% (192/248 candles)
+  Progress: 87% (216/248 candles)
+  Progress: 97% (240/248 candles)
+✅ Extracted 116 features from 248 candles
+15m candles: 368
+Labeled rows: 244
+Positive rate: 3.28%
+Sequence tensor: X=(213, 32, 116), y=(213,)
+Sequence positive rate: 3.29%
