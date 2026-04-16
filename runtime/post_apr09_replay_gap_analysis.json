@@ -1,0 +1,264 @@
+{
+  "bot_status_snapshot": {
+    "mode": "signal_only",
+    "signal_model_family": "best_base_state",
+    "signal_model_path": "training/_tmp_feature_single_split_aligned_state_stop_sweep/w150_h25_thr0.008_d15_lt0.006_st0.008_ls12_ss18_r0_f2.5_p10.48_p20.5_sf.joblib",
+    "open_position": null,
+    "market_data_enabled": false,
+    "prediction_cache_last_bucket_utc": "2026-04-15T09:41:00+00:00",
+    "prediction_cache_last_bucket_hkt": "2026-04-15 17:41:00 HKT",
+    "cached_rows": 10351,
+    "candidate_samples": 3624
+  },
+  "saved_backtest_coverage": {
+    "corrected_single_split_trade_coverage": {
+      "rows": 1415,
+      "signal_start": "2025-11-28T05:24:00+00:00",
+      "signal_start_hkt": "2025-11-28 13:24:00 HKT",
+      "signal_end": "2026-04-08T18:26:00+00:00",
+      "signal_end_hkt": "2026-04-09 02:26:00 HKT",
+      "entry_start": "2025-11-28T05:25:00+00:00",
+      "entry_start_hkt": "2025-11-28 13:25:00 HKT",
+      "entry_end": "2026-04-08T18:27:00+00:00",
+      "entry_end_hkt": "2026-04-09 02:27:00 HKT",
+      "exit_end": "2026-04-08T18:47:00+00:00",
+      "exit_end_hkt": "2026-04-09 02:47:00 HKT"
+    },
+    "saved_corrected_report_total_pnl": 6504.070000000004,
+    "saved_fixed_wf_total_pnl": 3743.6399999999985,
+    "saved_fixed_wf_profit_factor": 1.4853832938964695,
+    "saved_prob_wf_total_pnl": 3213.640000000002,
+    "saved_prob_wf_profit_factor": 1.426561257686994,
+    "saved_backtests_overlap_post_apr09_replay_window": false
+  },
+  "pre_replay_window_from_corrected_backtest": {
+    "window_start_utc": "2026-04-02T00:00:00+00:00",
+    "window_end_utc": "2026-04-09T00:00:00+00:00",
+    "stats": {
+      "trades": 67,
+      "total_pnl": 127.67999999999665,
+      "avg_trade": 1.905671641790995,
+      "profit_factor": 1.316462598522769,
+      "wins": 29,
+      "losses": 38,
+      "side_counts": {
+        "up": 37,
+        "down": 30
+      },
+      "exit_reason_counts": {
+        "timeout": 23,
+        "stop_loss": 22,
+        "reverse_signal": 18,
+        "target_hit": 4
+      },
+      "entry_signal_prob_mean": 0.8916817709218255,
+      "entry_signal_prob_median": 0.9675149821052575,
+      "coverage": {
+        "rows": 67,
+        "signal_start": "2026-04-02T01:03:00+00:00",
+        "signal_start_hkt": "2026-04-02 09:03:00 HKT",
+        "signal_end": "2026-04-08T18:26:00+00:00",
+        "signal_end_hkt": "2026-04-09 02:26:00 HKT",
+        "entry_start": "2026-04-02T01:04:00+00:00",
+        "entry_start_hkt": "2026-04-02 09:04:00 HKT",
+        "entry_end": "2026-04-08T18:27:00+00:00",
+        "entry_end_hkt": "2026-04-09 02:27:00 HKT",
+        "exit_end": "2026-04-08T18:47:00+00:00",
+        "exit_end_hkt": "2026-04-09 02:47:00 HKT"
+      }
+    }
+  },
+  "replay_window": {
+    "window_start_utc": "2026-04-09T00:00:00+00:00",
+    "window_start_hkt": "2026-04-09 08:00:00 HKT",
+    "window_end_utc": "2026-04-15T23:59:59+00:00",
+    "window_end_hkt": "2026-04-16 07:59:59 HKT",
+    "models": [
+      {
+        "label": "promoted_single_split",
+        "signal_model_path": "training/_tmp_feature_single_split_aligned_state_stop_sweep/w150_h25_thr0.008_d15_lt0.006_st0.008_ls12_ss18_r0_f2.5_p10.48_p20.5_sf.joblib",
+        "prediction_counts": {
+          "down": 0,
+          "flat": 1184,
+          "up": 28,
+          "risky": 0,
+          "tradable": 28
+        },
+        "avg_signal_prob_tradable": 0.9955227669850057,
+        "trades_summary": {
+          "trades": 8,
+          "total_pnl": -15.50999999999749,
+          "avg_trade": -1.9387499999996862,
+          "profit_factor": 0.6365127724397048,
+          "side_split": {
+            "long_trades": 8,
+            "short_trades": 0
+          },
+          "exit_reason_counts": {
+            "timeout": 5,
+            "stop_loss": 3
+          }
+        },
+        "trade_file_stats": {
+          "trades": 8,
+          "total_pnl": -15.50999999999749,
+          "avg_trade": -1.9387499999996862,
+          "profit_factor": 0.6365127724397048,
+          "wins": 4,
+          "losses": 4,
+          "side_counts": {
+            "up": 8
+          },
+          "exit_reason_counts": {
+            "timeout": 5,
+            "stop_loss": 3
+          },
+          "entry_signal_prob_mean": 0.9934377360458512,
+          "entry_signal_prob_median": 0.9994552361167148,
+          "coverage": {
+            "rows": 8,
+            "signal_start": "2026-04-12T22:05:00+00:00",
+            "signal_start_hkt": "2026-04-13 06:05:00 HKT",
+            "signal_end": "2026-04-15T01:21:00+00:00",
+            "signal_end_hkt": "2026-04-15 09:21:00 HKT",
+            "entry_start": "2026-04-12T22:06:00+00:00",
+            "entry_start_hkt": "2026-04-13 06:06:00 HKT",
+            "entry_end": "2026-04-15T01:22:00+00:00",
+            "entry_end_hkt": "2026-04-15 09:22:00 HKT",
+            "exit_end": "2026-04-15T01:57:00+00:00",
+            "exit_end_hkt": "2026-04-15 09:57:00 HKT"
+          }
+        }
+      },
+      {
+        "label": "walk_forward_fixed_cycle10",
+        "signal_model_path": "training/backtest_model_best_base_wf_10cycles_cycles/cycle_10.joblib",
+        "prediction_counts": {
+          "down": 8,
+          "flat": 1182,
+          "up": 22,
+          "risky": 0,
+          "tradable": 30
+        },
+        "avg_signal_prob_tradable": 0.747029939447293,
+        "trades_summary": {
+          "trades": 9,
+          "total_pnl": -13.269999999999527,
+          "avg_trade": -1.4744444444443918,
+          "profit_factor": 0.7218029350104911,
+          "side_split": {
+            "long_trades": 7,
+            "short_trades": 2
+          },
+          "exit_reason_counts": {
+            "timeout": 5,
+            "stop_loss": 2,
+            "reverse_signal": 2
+          }
+        },
+        "trade_file_stats": {
+          "trades": 9,
+          "total_pnl": -13.269999999999529,
+          "avg_trade": -1.474444444444392,
+          "profit_factor": 0.7218029350104911,
+          "wins": 3,
+          "losses": 6,
+          "side_counts": {
+            "up": 7,
+            "down": 2
+          },
+          "exit_reason_counts": {
+            "timeout": 5,
+            "stop_loss": 2,
+            "reverse_signal": 2
+          },
+          "entry_signal_prob_mean": 0.6949145587512443,
+          "entry_signal_prob_median": 0.6863598907489432,
+          "coverage": {
+            "rows": 9,
+            "signal_start": "2026-04-12T22:07:00+00:00",
+            "signal_start_hkt": "2026-04-13 06:07:00 HKT",
+            "signal_end": "2026-04-15T01:21:00+00:00",
+            "signal_end_hkt": "2026-04-15 09:21:00 HKT",
+            "entry_start": "2026-04-12T22:08:00+00:00",
+            "entry_start_hkt": "2026-04-13 06:08:00 HKT",
+            "entry_end": "2026-04-15T01:22:00+00:00",
+            "entry_end_hkt": "2026-04-15 09:22:00 HKT",
+            "exit_end": "2026-04-15T01:46:00+00:00",
+            "exit_end_hkt": "2026-04-15 09:46:00 HKT"
+          }
+        }
+      },
+      {
+        "label": "walk_forward_prob_cycle10",
+        "signal_model_path": "training/backtest_model_best_base_wf_10cycles_prob_sweep_cycles/cycle_10.joblib",
+        "prediction_counts": {
+          "down": 6,
+          "flat": 1186,
+          "up": 20,
+          "risky": 0,
+          "tradable": 26
+        },
+        "avg_signal_prob_tradable": 0.7429021702914559,
+        "trades_summary": {
+          "trades": 7,
+          "total_pnl": -8.719999999999345,
+          "avg_trade": -1.245714285714192,
+          "profit_factor": 0.7114493712773152,
+          "side_split": {
+            "long_trades": 5,
+            "short_trades": 2
+          },
+          "exit_reason_counts": {
+            "timeout": 4,
+            "stop_loss": 2,
+            "reverse_signal": 1
+          }
+        },
+        "trade_file_stats": {
+          "trades": 7,
+          "total_pnl": -8.719999999999345,
+          "avg_trade": -1.245714285714192,
+          "profit_factor": 0.7114493712773152,
+          "wins": 4,
+          "losses": 3,
+          "side_counts": {
+            "up": 5,
+            "down": 2
+          },
+          "exit_reason_counts": {
+            "timeout": 4,
+            "stop_loss": 2,
+            "reverse_signal": 1
+          },
+          "entry_signal_prob_mean": 0.7615927711511397,
+          "entry_signal_prob_median": 0.7940216623205567,
+          "coverage": {
+            "rows": 7,
+            "signal_start": "2026-04-12T22:07:00+00:00",
+            "signal_start_hkt": "2026-04-13 06:07:00 HKT",
+            "signal_end": "2026-04-15T01:20:00+00:00",
+            "signal_end_hkt": "2026-04-15 09:20:00 HKT",
+            "entry_start": "2026-04-12T22:08:00+00:00",
+            "entry_start_hkt": "2026-04-13 06:08:00 HKT",
+            "entry_end": "2026-04-15T01:21:00+00:00",
+            "entry_end_hkt": "2026-04-15 09:21:00 HKT",
+            "exit_end": "2026-04-15T01:46:00+00:00",
+            "exit_end_hkt": "2026-04-15 09:46:00 HKT"
+          }
+        }
+      }
+    ]
+  },
+  "recommendation": {
+    "practical_choice_now": "keep_current_promoted_artifact_as_bot_default_but_not_as_live_validated_model",
+    "robustness_preference": "fixed_gate_walk_forward_methodology_over_probability_sweep",
+    "rationale": [
+      "The saved corrected and walk-forward training backtests do not directly cover the weak post-2026-04-09 replay window.",
+      "On the aligned post-2026-04-09 replay slice, the currently promoted artifact is negative, and the latest fixed-gate/probability-sweep walk-forward cycle alternatives are also negative.",
+      "The fixed-gate walk-forward family remains the stronger robustness benchmark across saved reports, but it does not clearly beat the promoted artifact on the recent replay slice.",
+      "That means the recent weakness looks more like genuine regime degradation than a simple promoted-model-only bug."
+    ],
+    "next_step": "extend aligned comparison tooling or training coverage through the same recent slice before any live-execution promotion"
+  }
+}

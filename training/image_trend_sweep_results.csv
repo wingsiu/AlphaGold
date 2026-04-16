@@ -1,0 +1,4 @@
+run_id,window,horizon,trend_threshold,long_target_threshold,short_target_threshold,long_adverse_limit,short_adverse_limit,min_15m_drop,min_15m_rise,stage1_min_prob,stage2_min_prob,status
+w150_h25_thr0.008_d15_lt0.006_st0.008_ls12_ss15_r15_p10.6_p20.6,150,25,0.008,0.006,0.008,12.0,15.0,15.0,15.0,0.6,0.6,DRY_RUN
+w150_h25_thr0.008_d15_lt0.006_st0.008_ls12_ss18_r15_p10.6_p20.6,150,25,0.008,0.006,0.008,12.0,18.0,15.0,15.0,0.6,0.6,DRY_RUN
+w150_h25_thr0.008_d15_lt0.006_st0.008_ls15_ss15_r15_p10.6_p20.6,150,25,0.008,0.006,0.008,15.0,15.0,15.0,15.0,0.6,0.6,DRY_RUN

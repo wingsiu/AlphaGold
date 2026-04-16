@@ -1,0 +1,2 @@
+signal_idx,ts,entry_time,exit_time,pred,side,entry_price,exit_price,pnl,entry_signal_prob,last_signal_prob,target_updates,last_target_signal_idx,last_target_time,last_target_price,exit_reason
+430,2025-12-12T15:24:00+00:00,2025-12-12T15:25:00+00:00,2025-12-12T15:59:00+00:00,0,down,4309.44,4286.18,23.25999999999931,0.9982907515316091,0.9786647163683128,8,462,2025-12-12T16:21:00+00:00,4273.72,reverse_signal

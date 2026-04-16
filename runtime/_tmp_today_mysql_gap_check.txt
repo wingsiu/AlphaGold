@@ -1,0 +1,14 @@
+utc_now=2026-04-16T10:52:16.492716+00:00
+today_start_utc=2026-04-16T00:00:00+00:00
+[gold] rows_today=652
+[gold] first_utc=2026-04-16T00:00:00+00:00 last_utc=2026-04-16T10:51:00+00:00
+[gold] duplicate_adjacent_pairs=0
+[gold] gaps_gt_1m=0
+[aud] rows_today=652
+[aud] first_utc=2026-04-16T00:00:00+00:00 last_utc=2026-04-16T10:51:00+00:00
+[aud] duplicate_adjacent_pairs=0
+[aud] gaps_gt_1m=0
+[oil] rows_today=652
+[oil] first_utc=2026-04-16T00:00:00+00:00 last_utc=2026-04-16T10:51:00+00:00
+[oil] duplicate_adjacent_pairs=0
+[oil] gaps_gt_1m=0

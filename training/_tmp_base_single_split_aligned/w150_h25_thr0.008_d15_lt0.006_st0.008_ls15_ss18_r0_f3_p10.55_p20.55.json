@@ -1,0 +1,506 @@
+{
+  "config": {
+    "table": "gold_prices",
+    "start_date": "2025-05-20",
+    "end_date": "2026-04-10",
+    "timeframe": "1min",
+    "disable_time_filter": true,
+    "window": 150,
+    "window_15m": 0,
+    "min_window_range": 40.0,
+    "min_15m_drop": 15.0,
+    "min_15m_rise": 0.0,
+    "horizon": 25,
+    "trend_threshold": 0.008,
+    "adverse_limit": 15.0,
+    "long_target_threshold": 0.006,
+    "short_target_threshold": 0.008,
+    "long_adverse_limit": 15.0,
+    "short_adverse_limit": 18.0,
+    "test_start_date": "2025-11-25T17:02:00+00:00",
+    "test_size": 0.4,
+    "max_samples": null,
+    "optimize": false,
+    "optimize_prob": false,
+    "two_branch": false,
+    "two_branch_stage": "both",
+    "max_flat_ratio": 3.0,
+    "classifier": "gradient_boosting",
+    "stage1_min_prob": 0.55,
+    "stage2_min_prob": 0.55,
+    "stage2_min_prob_up": null,
+    "stage2_min_prob_down": null,
+    "stage1_min_prob_1m": null,
+    "stage1_min_prob_15m": null,
+    "stage2_min_prob_1m": null,
+    "stage2_min_prob_15m": null,
+    "use_state_features": false,
+    "state_oof_splits": 5,
+    "pred_history_len": 150,
+    "allow_overlap_backtest": false,
+    "reverse_exit_prob": 0.7,
+    "eval_mode": "single_split",
+    "wf_init_train_months": 6,
+    "wf_retrain_days": 14,
+    "wf_max_train_days": 365,
+    "wf_min_train_samples": 300,
+    "wf_disable_sweep": false,
+    "wf_sweep_flat_ratios": [
+      3.0,
+      4.0,
+      5.0
+    ],
+    "wf_sweep_stage1_probs": [],
+    "wf_sweep_stage2_probs": [],
+    "wf_sweep_stage2_long_probs": [],
+    "wf_sweep_stage2_short_probs": [],
+    "wf_sweep_val_ratio": 0.2,
+    "wf_sweep_min_val_samples": 50,
+    "wf_anchor_mode": "weekend_fri_close",
+    "wf_cycle_model_dir": null,
+    "wf_save_cycle_models": true,
+    "prep_cache_dir": "training/_prep_cache_single_split_aligned",
+    "refresh_prep_cache": false,
+    "random_state": 42,
+    "model_in": "/Users/alpha/Desktop/python/AlphaGold/training/_tmp_base_single_split_aligned/w150_h25_thr0.008_d15_lt0.006_st0.008_ls15_ss18_r0_f3_p10.48_p20.5.joblib",
+    "model_out": "training/_tmp_base_single_split_aligned/w150_h25_thr0.008_d15_lt0.006_st0.008_ls15_ss18_r0_f3_p10.55_p20.55.joblib",
+    "report_out": "training/_tmp_base_single_split_aligned/w150_h25_thr0.008_d15_lt0.006_st0.008_ls15_ss18_r0_f3_p10.55_p20.55.json",
+    "trades_out": null
+  },
+  "execution_semantics": {
+    "signal_reference": "signal_bar_close",
+    "entry_execution": "next_bar_open",
+    "signal_price_field": "curr_close",
+    "entry_price_field": "next_bar_open",
+    "signal_time_field": "ts",
+    "entry_time_field": "entry_time",
+    "notes": "Labels and features stay anchored to the signal bar close, while simulated trade entries execute on the next bar open."
+  },
+  "threshold_used": 0.008,
+  "horizon_used": 25,
+  "long_target_threshold_used": 0.006,
+  "short_target_threshold_used": 0.008,
+  "long_adverse_limit_used": 15.0,
+  "short_adverse_limit_used": 18.0,
+  "min_window_range_used": 40.0,
+  "window_15m": 0,
+  "min_15m_drop": 15.0,
+  "min_15m_rise": 0.0,
+  "two_branch": false,
+  "two_branch_stage": "both",
+  "n_1m_feats": 1350,
+  "use_state_features": false,
+  "allow_overlap_backtest": false,
+  "reverse_exit_prob": 0.7,
+  "state_feature_names": [],
+  "stage1_min_prob": 0.55,
+  "stage2_min_prob": 0.55,
+  "stage2_min_prob_up": null,
+  "stage2_min_prob_down": null,
+  "stage1_min_prob_1m": null,
+  "stage1_min_prob_15m": null,
+  "stage2_min_prob_1m": null,
+  "stage2_min_prob_15m": null,
+  "feature_shape": [
+    9,
+    150
+  ],
+  "evaluation_mode": "single_split",
+  "split_mode": "date:2025-11-25T17:02:00+00:00",
+  "n_kept": 62489,
+  "n_skipped": 252807,
+  "train_samples": 13009,
+  "test_samples": 49480,
+  "stage1": {
+    "accuracy": 0.8242926434923201,
+    "balanced_accuracy": 0.651046884246434,
+    "confusion_matrix": [
+      [
+        38067,
+        4869
+      ],
+      [
+        3825,
+        2719
+      ]
+    ],
+    "confusion_labels": [
+      "flat",
+      "trend"
+    ],
+    "classification_report": {
+      "flat": {
+        "precision": 0.9086937840160413,
+        "recall": 0.8865986584684181,
+        "f1-score": 0.8975102560475314,
+        "support": 42936.0
+      },
+      "trend": {
+        "precision": 0.3583289404322615,
+        "recall": 0.4154951100244499,
+        "f1-score": 0.38480045287291254,
+        "support": 6544.0
+      },
+      "accuracy": 0.8242926434923201,
+      "macro avg": {
+        "precision": 0.6335113622241514,
+        "recall": 0.651046884246434,
+        "f1-score": 0.641155354460222,
+        "support": 49480.0
+      },
+      "weighted avg": {
+        "precision": 0.835905030248615,
+        "recall": 0.8242926434923201,
+        "f1-score": 0.829701586848366,
+        "support": 49480.0
+      }
+    }
+  },
+  "stage2": {
+    "accuracy": 0.5413755057006252,
+    "balanced_accuracy": 0.540642290490521,
+    "confusion_matrix": [
+      [
+        524,
+        829
+      ],
+      [
+        418,
+        948
+      ]
+    ],
+    "confusion_labels": [
+      "down",
+      "up"
+    ],
+    "classification_report": {
+      "down": {
+        "precision": 0.5562632696390658,
+        "recall": 0.38728750923872873,
+        "f1-score": 0.45664488017429194,
+        "support": 1353.0
+      },
+      "up": {
+        "precision": 0.5334833989870569,
+        "recall": 0.6939970717423133,
+        "f1-score": 0.6032453070314986,
+        "support": 1366.0
+      },
+      "accuracy": 0.5413755057006252,
+      "macro avg": {
+        "precision": 0.5448733343130614,
+        "recall": 0.540642290490521,
+        "f1-score": 0.5299450936028953,
+        "support": 2719.0
+      },
+      "weighted avg": {
+        "precision": 0.5448188771011312,
+        "recall": 0.5413755057006252,
+        "f1-score": 0.5302955543511747,
+        "support": 2719.0
+      }
+    }
+  },
+  "full_confusion_matrix": [
+    [
+      524,
+      1669,
+      829,
+      0
+    ],
+    [
+      1956,
+      37560,
+      2098,
+      0
+    ],
+    [
+      418,
+      2156,
+      948,
+      0
+    ],
+    [
+      185,
+      507,
+      630,
+      0
+    ]
+  ],
+  "full_confusion_labels": [
+    "down",
+    "flat",
+    "up",
+    "risky"
+  ],
+  "directional_pnl": {
+    "trades": 1158,
+    "total_pnl": 4482.279999999996,
+    "avg_trade": 3.8707081174438653,
+    "n_days": 68,
+    "avg_trades_per_day": 17.029411764705884,
+    "avg_day": 65.91588235294113,
+    "positive_days_pct": 72.05882352941177,
+    "max_drawdown": -239.90999999999894,
+    "long": {
+      "trades": 717,
+      "wins": 320,
+      "losses": 397,
+      "win_rate": 44.63040446304045,
+      "total_pnl": 2857.4599999999964,
+      "avg_trade": 3.985299860529981
+    },
+    "short": {
+      "trades": 441,
+      "wins": 227,
+      "losses": 214,
+      "win_rate": 51.47392290249433,
+      "total_pnl": 1624.8199999999997,
+      "avg_trade": 3.684399092970521
+    },
+    "streaks": {
+      "max_win_streak": 10,
+      "max_loss_streak": 16,
+      "current_win_streak": 1,
+      "current_loss_streak": 0
+    },
+    "reverse_signal": {
+      "trades": 477,
+      "wins": 310,
+      "losses": 167,
+      "breakeven": 0,
+      "avg_pnl": 9.002054507337517,
+      "win_rate_pct": 64.98951781970649,
+      "loss_rate_pct": 35.0104821802935
+    },
+    "target_hit": {
+      "trades": 237,
+      "avg_pnl": 27.518059071729965
+    },
+    "timeout": {
+      "trades": 63,
+      "wins": 0,
+      "losses": 63,
+      "breakeven": 0,
+      "avg_pnl": -5.38857142857145,
+      "win_rate_pct": 0.0,
+      "loss_rate_pct": 100.0
+    },
+    "all": {
+      "trades": 1158,
+      "total_pnl": 4482.279999999996,
+      "avg_trade": 3.8707081174438653,
+      "median_trade": -1.5300000000006548,
+      "win_rate_pct": 47.236614853195164,
+      "gross_profit": 11842.339999999998,
+      "gross_loss": -7360.060000000002,
+      "profit_factor": 1.6090004701048626,
+      "best_trade": 210.98000000000047,
+      "worst_trade": -18.0,
+      "avg_win": 21.64961608775137,
+      "avg_loss": -12.045924713584292,
+      "max_win_streak": 10,
+      "max_loss_streak": 16,
+      "current_streak": 1,
+      "current_win_streak": 1,
+      "current_loss_streak": 0,
+      "avg_duration_min": 19.84715025906736,
+      "median_duration_min": 10.0,
+      "min_duration_min": 0.0,
+      "max_duration_min": 2950.0,
+      "n_days": 68,
+      "avg_trades_per_day": 17.029411764705884,
+      "avg_day": 65.91588235294113,
+      "median_day": 18.245000000000346,
+      "best_day": 942.7900000000018,
+      "worst_day": -92.88999999999942,
+      "positive_days_pct": 72.05882352941177,
+      "trade_max_drawdown": -239.90999999999894,
+      "daily_max_drawdown": -92.88999999999942,
+      "exit_reason_counts": {
+        "reverse_signal": 477,
+        "stop_loss": 381,
+        "target_hit": 237,
+        "timeout": 63
+      },
+      "reverse_signal_stats": {
+        "trades": 477,
+        "wins": 310,
+        "losses": 167,
+        "breakeven": 0,
+        "avg_pnl": 9.002054507337517,
+        "win_rate_pct": 64.98951781970649,
+        "loss_rate_pct": 35.0104821802935
+      },
+      "target_hit_stats": {
+        "trades": 237,
+        "avg_pnl": 27.518059071729965
+      },
+      "timeout_stats": {
+        "trades": 63,
+        "wins": 0,
+        "losses": 63,
+        "breakeven": 0,
+        "avg_pnl": -5.38857142857145,
+        "win_rate_pct": 0.0,
+        "loss_rate_pct": 100.0
+      },
+      "target_updates_mean": 1.2858376511226253,
+      "target_updates_median": 1.0,
+      "target_updates_max": 20
+    },
+    "long_up": {
+      "trades": 717,
+      "total_pnl": 2857.4599999999964,
+      "avg_trade": 3.985299860529981,
+      "median_trade": -3.610000000000582,
+      "win_rate_pct": 44.63040446304045,
+      "gross_profit": 7799.389999999998,
+      "gross_loss": -4941.930000000001,
+      "profit_factor": 1.5782072995772898,
+      "best_trade": 210.98000000000047,
+      "worst_trade": -15.0,
+      "avg_win": 24.373093749999992,
+      "avg_loss": -12.44818639798489,
+      "max_win_streak": 10,
+      "max_loss_streak": 11,
+      "current_streak": 1,
+      "current_win_streak": 1,
+      "current_loss_streak": 0,
+      "avg_duration_min": 23.16317991631799,
+      "median_duration_min": 9.0,
+      "min_duration_min": 0.0,
+      "max_duration_min": 2950.0,
+      "n_days": 61,
+      "avg_trades_per_day": 11.754098360655737,
+      "avg_day": 46.84360655737699,
+      "median_day": 20.140000000000327,
+      "best_day": 631.5800000000027,
+      "worst_day": -48.11999999999989,
+      "positive_days_pct": 81.9672131147541,
+      "trade_max_drawdown": -240.92999999999938,
+      "daily_max_drawdown": -63.31999999999971,
+      "exit_reason_counts": {
+        "stop_loss": 288,
+        "reverse_signal": 230,
+        "target_hit": 176,
+        "timeout": 23
+      },
+      "reverse_signal_stats": {
+        "trades": 230,
+        "wins": 144,
+        "losses": 86,
+        "breakeven": 0,
+        "avg_pnl": 8.367347826086947,
+        "win_rate_pct": 62.60869565217392,
+        "loss_rate_pct": 37.391304347826086
+      },
+      "target_hit_stats": {
+        "trades": 176,
+        "avg_pnl": 30.48477272727272
+      },
+      "timeout_stats": {
+        "trades": 23,
+        "wins": 0,
+        "losses": 23,
+        "breakeven": 0,
+        "avg_pnl": -4.884782608695668,
+        "win_rate_pct": 0.0,
+        "loss_rate_pct": 100.0
+      },
+      "target_updates_mean": 1.2789400278940029,
+      "target_updates_median": 1.0,
+      "target_updates_max": 20
+    },
+    "short_down": {
+      "trades": 441,
+      "total_pnl": 1624.8199999999997,
+      "avg_trade": 3.684399092970521,
+      "median_trade": 0.3900000000003274,
+      "win_rate_pct": 51.47392290249433,
+      "gross_profit": 4042.9500000000007,
+      "gross_loss": -2418.130000000001,
+      "profit_factor": 1.6719324436651457,
+      "best_trade": 118.78000000000065,
+      "worst_trade": -18.0,
+      "avg_win": 17.810352422907492,
+      "avg_loss": -11.299672897196267,
+      "max_win_streak": 9,
+      "max_loss_streak": 15,
+      "current_streak": 1,
+      "current_win_streak": 1,
+      "current_loss_streak": 0,
+      "avg_duration_min": 14.45578231292517,
+      "median_duration_min": 11.0,
+      "min_duration_min": 0.0,
+      "max_duration_min": 83.0,
+      "n_days": 56,
+      "avg_trades_per_day": 7.875,
+      "avg_day": 29.014642857142853,
+      "median_day": 6.730000000000018,
+      "best_day": 311.2099999999991,
+      "worst_day": -135.4800000000023,
+      "positive_days_pct": 57.14285714285714,
+      "trade_max_drawdown": -174.20000000000255,
+      "daily_max_drawdown": -145.53999999999542,
+      "exit_reason_counts": {
+        "reverse_signal": 247,
+        "stop_loss": 93,
+        "target_hit": 61,
+        "timeout": 40
+      },
+      "reverse_signal_stats": {
+        "trades": 247,
+        "wins": 166,
+        "losses": 81,
+        "breakeven": 0,
+        "avg_pnl": 9.593076923076914,
+        "win_rate_pct": 67.20647773279353,
+        "loss_rate_pct": 32.79352226720648
+      },
+      "target_hit_stats": {
+        "trades": 61,
+        "avg_pnl": 18.95836065573775
+      },
+      "timeout_stats": {
+        "trades": 40,
+        "wins": 0,
+        "losses": 40,
+        "breakeven": 0,
+        "avg_pnl": -5.678250000000025,
+        "win_rate_pct": 0.0,
+        "loss_rate_pct": 100.0
+      },
+      "target_updates_mean": 1.2970521541950113,
+      "target_updates_median": 1.0,
+      "target_updates_max": 12
+    }
+  },
+  "trading_day_cutoff": {
+    "timezone": "America/New_York",
+    "hour": 17
+  },
+  "walkforward_config": null,
+  "walkforward_cycles": [],
+  "model_reuse": {
+    "model_in": "/Users/alpha/Desktop/python/AlphaGold/training/_tmp_base_single_split_aligned/w150_h25_thr0.008_d15_lt0.006_st0.008_ls15_ss18_r0_f3_p10.48_p20.5.joblib",
+    "saved_stage1_min_prob": 0.48,
+    "saved_stage2_min_prob": 0.5
+  },
+  "cache_info": {
+    "bars": {
+      "enabled": true,
+      "kind": "bars",
+      "key": "db0303fb00f0ce9735b7a14c",
+      "path": "/Users/alpha/Desktop/python/AlphaGold/training/_prep_cache_single_split_aligned/bars/db0303fb00f0ce9735b7a14c.joblib",
+      "hit": true
+    },
+    "dataset": {
+      "enabled": true,
+      "kind": "supervised_dataset",
+      "key": "79358f1bb0a19cde984c73ba",
+      "path": "/Users/alpha/Desktop/python/AlphaGold/training/_prep_cache_single_split_aligned/datasets/79358f1bb0a19cde984c73ba.joblib",
+      "hit": true
+    }
+  }
+}

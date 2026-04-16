@@ -1,0 +1,31 @@
+[16:21:16] Starting image-trend pipeline
+[16:21:16] Loading data from MySQL...
+Data successfully loaded: 315470 rows.
+[16:21:34] Bars after resample: 315,470  (+17.4s)
+[16:21:34] Building image-like dataset  (window=150, horizon=25, threshold=0.008, min_range=40.0, min_15m_drop=15.0, min_15m_rise=15.0)...
+  [16:21:35]   5.0%  bars= 15,764/315,296  kept=302  skipped=15,462  elapsed=1.2s  eta≈22s
+  [16:21:36]  10.0%  bars= 31,528/315,296  kept=612  skipped=30,916  elapsed=2.3s  eta≈21s
+  [16:21:37]  15.0%  bars= 47,292/315,296  kept=744  skipped=46,548  elapsed=3.8s  eta≈21s
+  [16:21:39]  20.0%  bars= 63,056/315,296  kept=908  skipped=62,148  elapsed=4.9s  eta≈20s
+  [16:21:40]  25.0%  bars= 78,820/315,296  kept=1,052  skipped=77,768  elapsed=6.1s  eta≈18s
+  [16:21:41]  30.0%  bars= 94,584/315,296  kept=1,186  skipped=93,398  elapsed=7.2s  eta≈17s
+  [16:21:42]  35.0%  bars=110,348/315,296  kept=1,431  skipped=108,917  elapsed=8.4s  eta≈16s
+  [16:21:44]  40.0%  bars=126,112/315,296  kept=1,784  skipped=124,328  elapsed=10.1s  eta≈15s
+  [16:21:45]  45.0%  bars=141,876/315,296  kept=2,575  skipped=139,301  elapsed=11.5s  eta≈14s
+  [16:21:48]  50.0%  bars=157,640/315,296  kept=8,154  skipped=149,486  elapsed=14.7s  eta≈15s
+  [16:21:51]  55.0%  bars=173,404/315,296  kept=10,771  skipped=162,633  elapsed=17.0s  eta≈14s
+  [16:21:53]  60.0%  bars=189,168/315,296  kept=13,027  skipped=176,141  elapsed=19.2s  eta≈13s
+  [16:21:55]  65.0%  bars=204,932/315,296  kept=14,157  skipped=190,775  elapsed=20.9s  eta≈11s
+  [16:21:57]  70.0%  bars=220,696/315,296  kept=16,487  skipped=204,209  elapsed=23.4s  eta≈10s
+  [16:21:59]  75.0%  bars=236,460/315,296  kept=18,177  skipped=218,283  elapsed=25.8s  eta≈9s
+  [16:22:06]  80.0%  bars=252,224/315,296  kept=28,166  skipped=224,058  elapsed=32.3s  eta≈8s
+  [16:22:12]  85.0%  bars=267,988/315,296  kept=36,802  skipped=231,186  elapsed=38.0s  eta≈7s
+  [16:22:17]  90.0%  bars=283,752/315,296  kept=43,876  skipped=239,876  elapsed=43.6s  eta≈5s
+  [16:22:26]  95.0%  bars=299,516/315,296  kept=52,350  skipped=247,166  elapsed=52.1s  eta≈3s
+  [16:22:38] 100.0%  bars=315,280/315,296  kept=62,489  skipped=252,791  elapsed=1m04s  eta≈0s
+  [16:22:38] Dataset build done — kept=62,489  skipped=252,807  took=1m04s
+[16:22:40] Dataset ready: kept=62,489  skipped=252,807  (+1m06s)
+[16:22:40] Split: train=37,493  test=24,996
+Class balance train (down/flat/up/risky): [2075, 32142, 2314, 962]
+Class balance test  (down/flat/up/risky): [1247, 21745, 1601, 403]
+[16:22:40] Building causal state features (OOF train + base test)...

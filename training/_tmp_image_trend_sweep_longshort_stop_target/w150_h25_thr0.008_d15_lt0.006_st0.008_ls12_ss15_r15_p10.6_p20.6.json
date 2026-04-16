@@ -1,0 +1,194 @@
+{
+  "config": {
+    "table": "gold_prices",
+    "start_date": "2025-05-20",
+    "end_date": "2026-04-10",
+    "timeframe": "1min",
+    "window": 150,
+    "window_15m": 0,
+    "min_window_range": 40.0,
+    "min_15m_drop": 15.0,
+    "min_15m_rise": 15.0,
+    "horizon": 25,
+    "trend_threshold": 0.008,
+    "adverse_limit": 15.0,
+    "long_target_threshold": 0.006,
+    "short_target_threshold": 0.008,
+    "long_adverse_limit": 12.0,
+    "short_adverse_limit": 15.0,
+    "test_size": 0.4,
+    "max_samples": null,
+    "optimize": false,
+    "optimize_prob": false,
+    "two_branch": false,
+    "two_branch_stage": "both",
+    "max_flat_ratio": 4.0,
+    "classifier": "gradient_boosting",
+    "stage1_min_prob": 0.6,
+    "stage2_min_prob": 0.6,
+    "stage1_min_prob_1m": null,
+    "stage1_min_prob_15m": null,
+    "stage2_min_prob_1m": null,
+    "stage2_min_prob_15m": null,
+    "use_state_features": false,
+    "state_oof_splits": 5,
+    "pred_history_len": 150,
+    "allow_overlap_backtest": false,
+    "reverse_exit_prob": 0.7,
+    "random_state": 42,
+    "model_out": "training/_tmp_image_trend_sweep_longshort_stop_target/w150_h25_thr0.008_d15_lt0.006_st0.008_ls12_ss15_r15_p10.6_p20.6.joblib",
+    "report_out": "training/_tmp_image_trend_sweep_longshort_stop_target/w150_h25_thr0.008_d15_lt0.006_st0.008_ls12_ss15_r15_p10.6_p20.6.json",
+    "trades_out": null
+  },
+  "threshold_used": 0.008,
+  "horizon_used": 25,
+  "long_target_threshold_used": 0.006,
+  "short_target_threshold_used": 0.008,
+  "long_adverse_limit_used": 12.0,
+  "short_adverse_limit_used": 15.0,
+  "min_window_range_used": 40.0,
+  "window_15m": 0,
+  "min_15m_drop": 15.0,
+  "min_15m_rise": 15.0,
+  "two_branch": false,
+  "two_branch_stage": "both",
+  "n_1m_feats": 1350,
+  "use_state_features": false,
+  "allow_overlap_backtest": false,
+  "reverse_exit_prob": 0.7,
+  "state_feature_names": [],
+  "stage1_min_prob": 0.6,
+  "stage2_min_prob": 0.6,
+  "stage1_min_prob_1m": null,
+  "stage1_min_prob_15m": null,
+  "stage2_min_prob_1m": null,
+  "stage2_min_prob_15m": null,
+  "feature_shape": [
+    9,
+    150
+  ],
+  "n_kept": 41132,
+  "n_skipped": 274164,
+  "train_samples": 24679,
+  "test_samples": 16453,
+  "stage1": {
+    "accuracy": 0.8591138394213821,
+    "balanced_accuracy": 0.6024388140610966,
+    "confusion_matrix": [
+      [
+        13697,
+        1232
+      ],
+      [
+        1086,
+        438
+      ]
+    ],
+    "confusion_labels": [
+      "flat",
+      "trend"
+    ],
+    "classification_report": {
+      "flat": {
+        "precision": 0.9265372387201515,
+        "recall": 0.9174760533190435,
+        "f1-score": 0.9219843834141088,
+        "support": 14929.0
+      },
+      "trend": {
+        "precision": 0.2622754491017964,
+        "recall": 0.2874015748031496,
+        "f1-score": 0.2742642454602379,
+        "support": 1524.0
+      },
+      "accuracy": 0.8591138394213821,
+      "macro avg": {
+        "precision": 0.5944063439109739,
+        "recall": 0.6024388140610966,
+        "f1-score": 0.5981243144371734,
+        "support": 16453.0
+      },
+      "weighted avg": {
+        "precision": 0.8650083401984002,
+        "recall": 0.8591138394213821,
+        "f1-score": 0.8619876964730221,
+        "support": 16453.0
+      }
+    }
+  },
+  "stage2": {
+    "accuracy": 0.5136986301369864,
+    "balanced_accuracy": 0.5181623931623932,
+    "confusion_matrix": [
+      [
+        106,
+        128
+      ],
+      [
+        85,
+        119
+      ]
+    ],
+    "confusion_labels": [
+      "down",
+      "up"
+    ],
+    "classification_report": {
+      "down": {
+        "precision": 0.5549738219895288,
+        "recall": 0.452991452991453,
+        "f1-score": 0.4988235294117647,
+        "support": 234.0
+      },
+      "up": {
+        "precision": 0.4817813765182186,
+        "recall": 0.5833333333333334,
+        "f1-score": 0.5277161862527716,
+        "support": 204.0
+      },
+      "accuracy": 0.5136986301369864,
+      "macro avg": {
+        "precision": 0.5183775992538737,
+        "recall": 0.5181623931623932,
+        "f1-score": 0.5132698578322682,
+        "support": 438.0
+      },
+      "weighted avg": {
+        "precision": 0.5208841898522062,
+        "recall": 0.5136986301369864,
+        "f1-score": 0.5122803832829186,
+        "support": 438.0
+      }
+    }
+  },
+  "full_confusion_matrix": [
+    [
+      106,
+      417,
+      128
+    ],
+    [
+      407,
+      13697,
+      825
+    ],
+    [
+      85,
+      669,
+      119
+    ]
+  ],
+  "full_confusion_labels": [
+    "down",
+    "flat",
+    "up"
+  ],
+  "directional_pnl": {
+    "trades": 240,
+    "total_pnl": 669.3400000000038,
+    "avg_trade": 2.7889166666666823,
+    "n_days": 30,
+    "avg_day": 22.311333333333458,
+    "positive_days_pct": 53.333333333333336
+  }
+}

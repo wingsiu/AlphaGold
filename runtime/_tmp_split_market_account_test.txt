@@ -1,0 +1,7 @@
+test_market_data_collector_logs_position_status_and_combined_snapshot_summary (test_trading_bot.TradingBotHelpersTest.test_market_data_collector_logs_position_status_and_combined_snapshot_summary) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+EXIT:0

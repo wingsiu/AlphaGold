@@ -1,0 +1,66 @@
+test_aligned_sleep_seconds_targets_next_boundary (test_trading_bot.TradingBotHelpersTest.test_aligned_sleep_seconds_targets_next_boundary) ... ok
+test_best_base_paper_mode_is_rejected_in_parse (test_trading_bot.TradingBotHelpersTest.test_best_base_paper_mode_is_rejected_in_parse) ... ok
+test_best_base_run_skips_when_prediction_cycle_not_due (test_trading_bot.TradingBotHelpersTest.test_best_base_run_skips_when_prediction_cycle_not_due) ... ERROR
+test_best_base_signal_only_run_skips_legacy_trading_path (test_trading_bot.TradingBotHelpersTest.test_best_base_signal_only_run_skips_legacy_trading_path) ... ok
+test_bot_save_state_persists_market_sync_error (test_trading_bot.TradingBotHelpersTest.test_bot_save_state_persists_market_sync_error) ... ok
+test_bot_save_state_persists_market_sync_summaries (test_trading_bot.TradingBotHelpersTest.test_bot_save_state_persists_market_sync_summaries) ... ok
+test_bot_state_round_trip_with_last_execution_attempt (test_trading_bot.TradingBotHelpersTest.test_bot_state_round_trip_with_last_execution_attempt) ... ok
+test_build_complete_15m_bars_drops_incomplete_tail (test_trading_bot.TradingBotHelpersTest.test_build_complete_15m_bars_drops_incomplete_tail) ... ok
+test_build_latest_signal_best_base_maps_risky_to_risk_off (test_trading_bot.TradingBotHelpersTest.test_build_latest_signal_best_base_maps_risky_to_risk_off) ... ok
+test_build_parser_accepts_live_mode_and_disable_dynamic_target_stop (test_trading_bot.TradingBotHelpersTest.test_build_parser_accepts_live_mode_and_disable_dynamic_target_stop) ... ok
+test_build_parser_accepts_market_sync_only_flag (test_trading_bot.TradingBotHelpersTest.test_build_parser_accepts_market_sync_only_flag) ... ok
+test_build_parser_defaults_to_best_base_signal_family (test_trading_bot.TradingBotHelpersTest.test_build_parser_defaults_to_best_base_signal_family) ... ok
+test_dynamic_target_stop_updates_from_matching_signal (test_trading_bot.TradingBotHelpersTest.test_dynamic_target_stop_updates_from_matching_signal) ... ok
+test_entry_block_reason_respects_cooldown_bars_after_exit (test_trading_bot.TradingBotHelpersTest.test_entry_block_reason_respects_cooldown_bars_after_exit) ... ok
+test_entry_block_reason_respects_max_trades_per_day (test_trading_bot.TradingBotHelpersTest.test_entry_block_reason_respects_max_trades_per_day) ... ok
+test_existing_schema_store_counts_logical_snapshot_rows (test_trading_bot.TradingBotHelpersTest.test_existing_schema_store_counts_logical_snapshot_rows) ... ok
+test_format_best_base_signal_log_includes_market_open_flag (test_trading_bot.TradingBotHelpersTest.test_format_best_base_signal_log_includes_market_open_flag) ... ok
+test_format_best_base_signal_log_is_clear (test_trading_bot.TradingBotHelpersTest.test_format_best_base_signal_log_is_clear) ... ok
+test_format_best_base_signal_log_supports_risk_off_side (test_trading_bot.TradingBotHelpersTest.test_format_best_base_signal_log_supports_risk_off_side) ... ok
+test_format_signal_status_line_has_visual_marks (test_trading_bot.TradingBotHelpersTest.test_format_signal_status_line_has_visual_marks) ... ok
+test_format_signal_status_line_shows_open_now_and_lag (test_trading_bot.TradingBotHelpersTest.test_format_signal_status_line_shows_open_now_and_lag) ... ok
+test_instrument_trading_hours_open_respects_maintenance_and_weekend (test_trading_bot.TradingBotHelpersTest.test_instrument_trading_hours_open_respects_maintenance_and_weekend) ... ok
+test_market_data_collector_force_bypasses_poll_second_gate (test_trading_bot.TradingBotHelpersTest.test_market_data_collector_force_bypasses_poll_second_gate) ... ok
+test_market_data_collector_stores_only_tradeable_open_instruments (test_trading_bot.TradingBotHelpersTest.test_market_data_collector_stores_only_tradeable_open_instruments) ... ok
+test_market_data_due_only_once_per_minute_after_poll_second (test_trading_bot.TradingBotHelpersTest.test_market_data_due_only_once_per_minute_after_poll_second) ... ok
+test_market_sync_only_run_raises_on_market_data_failure (test_trading_bot.TradingBotHelpersTest.test_market_sync_only_run_raises_on_market_data_failure) ... ok
+test_market_sync_only_run_skips_trading_logic (test_trading_bot.TradingBotHelpersTest.test_market_sync_only_run_skips_trading_logic) ... ok
+test_next_trading_open_utc_returns_future_open_when_closed (test_trading_bot.TradingBotHelpersTest.test_next_trading_open_utc_returns_future_open_when_closed) ... ok
+test_open_position_adjusts_target_stop_after_next_minute (test_trading_bot.TradingBotHelpersTest.test_open_position_adjusts_target_stop_after_next_minute) ... ok
+test_paper_broker_hits_take_profit (test_trading_bot.TradingBotHelpersTest.test_paper_broker_hits_take_profit) ... ok
+test_paper_broker_times_out (test_trading_bot.TradingBotHelpersTest.test_paper_broker_times_out) ... ok
+test_prepare_raw_price_frame_builds_sorted_utc_index (test_trading_bot.TradingBotHelpersTest.test_prepare_raw_price_frame_builds_sorted_utc_index) ... ok
+test_run_market_data_cycle_market_sync_only_persists_error_and_raises (test_trading_bot.TradingBotHelpersTest.test_run_market_data_cycle_market_sync_only_persists_error_and_raises) ... Market-data capture failed: IG auth bad
+Traceback (most recent call last):
+  File "/Users/alpha/Desktop/python/AlphaGold/trading_bot.py", line 1166, in _run_market_data_cycle
+    summaries = self.market_data_collector.maybe_capture(pd.Timestamp(datetime.now(UTC)), force=force)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alpha/Desktop/python/AlphaGold/test_trading_bot.py", line 684, in <lambda>
+    "maybe_capture": staticmethod(lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("IG auth bad"))),
+                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alpha/Desktop/python/AlphaGold/test_trading_bot.py", line 684, in <genexpr>
+    "maybe_capture": staticmethod(lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("IG auth bad"))),
+RuntimeError: IG auth bad
+ok
+test_scheduled_performance_log_prints_only_on_00_or_30_once_per_bucket (test_trading_bot.TradingBotHelpersTest.test_scheduled_performance_log_prints_only_on_00_or_30_once_per_bucket) ... ok
+test_snapshot_tradeable_recognizes_closed_status (test_trading_bot.TradingBotHelpersTest.test_snapshot_tradeable_recognizes_closed_status) ... ok
+test_summarize_daily_trade_log_returns_today_previous_and_trailing (test_trading_bot.TradingBotHelpersTest.test_summarize_daily_trade_log_returns_today_previous_and_trailing) ... ok
+test_summarize_trade_log_uses_ny_cutoff_day_labels (test_trading_bot.TradingBotHelpersTest.test_summarize_trade_log_uses_ny_cutoff_day_labels) ... ok
+test_summarize_trade_windows_returns_30m_and_60m (test_trading_bot.TradingBotHelpersTest.test_summarize_trade_windows_returns_30m_and_60m) ... ok
+test_summarize_weekly_trade_log_returns_this_and_previous_week (test_trading_bot.TradingBotHelpersTest.test_summarize_weekly_trade_log_returns_this_and_previous_week) ... ok
+
+======================================================================
+ERROR: test_best_base_run_skips_when_prediction_cycle_not_due (test_trading_bot.TradingBotHelpersTest.test_best_base_run_skips_when_prediction_cycle_not_due)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alpha/Desktop/python/AlphaGold/test_trading_bot.py", line 778, in test_best_base_run_skips_when_prediction_cycle_not_due
+    bot.run_once()
+  File "/Users/alpha/Desktop/python/AlphaGold/trading_bot.py", line 1481, in run_once
+    if self._last_prediction_wait_bucket_utc is None or now_utc > self._last_prediction_wait_bucket_utc:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AlphaGoldTradingBot' object has no attribute '_last_prediction_wait_bucket_utc'
+
+----------------------------------------------------------------------
+Ran 39 tests in 3.917s
+
+FAILED (errors=1)

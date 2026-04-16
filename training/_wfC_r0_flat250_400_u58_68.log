@@ -1,0 +1,58 @@
+[16:23:44] Starting image-trend pipeline
+[16:23:44] Loading data from MySQL...
+Data successfully loaded: 315470 rows.
+[16:23:49] Bars after resample: 315,470  (+5.3s)
+[16:23:49] Bar split boundary: train_bars=255,125  test_bars=60,345  (date:2026-02-06T00:00:00+00:00)
+[16:23:49] Building supervised dataset...
+  [16:23:51]   5.0%  bars= 15,764/315,296  kept=302  skipped=15,462  elapsed=1.3s  eta≈24s
+  [16:23:52]  10.0%  bars= 31,528/315,296  kept=612  skipped=30,916  elapsed=2.5s  eta≈23s
+  [16:23:53]  15.0%  bars= 47,292/315,296  kept=744  skipped=46,548  elapsed=3.9s  eta≈22s
+  [16:23:54]  20.0%  bars= 63,056/315,296  kept=908  skipped=62,148  elapsed=5.1s  eta≈20s
+  [16:23:56]  25.0%  bars= 78,820/315,296  kept=1,052  skipped=77,768  elapsed=6.2s  eta≈19s
+  [16:23:57]  30.0%  bars= 94,584/315,296  kept=1,186  skipped=93,398  elapsed=7.4s  eta≈17s
+  [16:23:58]  35.0%  bars=110,348/315,296  kept=1,431  skipped=108,917  elapsed=8.9s  eta≈17s
+  [16:24:00]  40.0%  bars=126,112/315,296  kept=1,784  skipped=124,328  elapsed=10.2s  eta≈15s
+  [16:24:01]  45.0%  bars=141,876/315,296  kept=2,575  skipped=139,301  elapsed=11.6s  eta≈14s
+  [16:24:05]  50.0%  bars=157,640/315,296  kept=8,154  skipped=149,486  elapsed=15.6s  eta≈16s
+  [16:24:09]  55.0%  bars=173,404/315,296  kept=10,771  skipped=162,633  elapsed=19.4s  eta≈16s
+  [16:24:12]  60.0%  bars=189,168/315,296  kept=13,027  skipped=176,141  elapsed=22.3s  eta≈15s
+  [16:24:13]  65.0%  bars=204,932/315,296  kept=14,157  skipped=190,775  elapsed=24.0s  eta≈13s
+  [16:24:16]  70.0%  bars=220,696/315,296  kept=16,487  skipped=204,209  elapsed=26.5s  eta≈11s
+  [16:24:18]  75.0%  bars=236,460/315,296  kept=18,177  skipped=218,283  elapsed=28.4s  eta≈9s
+  [16:24:23]  80.0%  bars=252,224/315,296  kept=28,166  skipped=224,058  elapsed=33.1s  eta≈8s
+  [16:24:27]  85.0%  bars=267,988/315,296  kept=36,802  skipped=231,186  elapsed=37.4s  eta≈7s
+  [16:24:31]  90.0%  bars=283,752/315,296  kept=43,876  skipped=239,876  elapsed=41.1s  eta≈5s
+  [16:24:35]  95.0%  bars=299,516/315,296  kept=52,350  skipped=247,166  elapsed=45.4s  eta≈2s
+  [16:24:40] 100.0%  bars=315,280/315,296  kept=62,489  skipped=252,791  elapsed=50.2s  eta≈0s
+  [16:24:40] Dataset build done — kept=62,489  skipped=252,807  took=50.2s
+[16:24:40] Dataset built: kept=62,489 skipped=252,807  (+50.6s)
+[16:24:40] Walk-forward schedule ready: cycles=10  init_train=6m  retrain_every=14d  max_train=365d  anchor=weekend_fri_close
+[16:24:40] WF cycle 1/10: train=0:12,984 test=12,984:13,644 mode=expanding
+[16:27:02] WF sweep: flat_ratio=3.50 s1=0.57 s2=0.55 stage2_up=0.58 stage2_down=0.64 reason=fallback_low_signal
+[16:27:02] WF cycle 1: building causal state features...
+Traceback (most recent call last):
+  File "/Users/alpha/Desktop/python/AlphaGold/training/image_trend_ml.py", line 3024, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/alpha/Desktop/python/AlphaGold/training/image_trend_ml.py", line 2522, in main
+    meta_tr_cycle = _build_oof_state_features(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alpha/Desktop/python/AlphaGold/training/image_trend_ml.py", line 736, in _build_oof_state_features
+    m1_f, m2_f = train_two_stage(
+                 ^^^^^^^^^^^^^^^^
+  File "/Users/alpha/Desktop/python/AlphaGold/training/image_trend_ml.py", line 970, in train_two_stage
+    m1.fit(X_s1, y_s1, sample_weight=sw_s1)
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/sklearn/base.py", line 1336, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py", line 937, in fit
+    grower = TreeGrower(
+             ^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/sklearn/ensemble/_hist_gradient_boosting/grower.py", line 356, in __init__
+    self._initialize_root()
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/sklearn/ensemble/_hist_gradient_boosting/grower.py", line 460, in _initialize_root
+    self._compute_best_split_and_push(self.root)
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/sklearn/ensemble/_hist_gradient_boosting/grower.py", line 472, in _compute_best_split_and_push
+    node.split_info = self.splitter.find_node_split(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

@@ -1,0 +1,10 @@
+
+ entry_signal_prob_sweep
+{'threshold': 0.7, 'better_cells': 12, 'worse_cells': 7, 'flat_cells': 2, 'sum_delta': 25.7699999999968}
+{'threshold': 0.8, 'better_cells': 15, 'worse_cells': 4, 'flat_cells': 2, 'sum_delta': 192.74999999999545}
+{'threshold': 0.9, 'better_cells': 15, 'worse_cells': 6, 'flat_cells': 0, 'sum_delta': 201.5999999999949}
+
+ last_signal_prob_sweep
+{'threshold': 0.7, 'better_cells': 11, 'worse_cells': 7, 'flat_cells': 3, 'sum_delta': 145.13999999999578}
+{'threshold': 0.8, 'better_cells': 15, 'worse_cells': 4, 'flat_cells': 2, 'sum_delta': 304.36999999999716}
+{'threshold': 0.9, 'better_cells': 14, 'worse_cells': 6, 'flat_cells': 1, 'sum_delta': 303.15999999999804}

@@ -1,0 +1,29 @@
+usage: run_best_base_mock_replay.py [-h] [--table TABLE]
+                                    [--start-date START_DATE]
+                                    [--end-date END_DATE]
+                                    [--signal-model-path SIGNAL_MODEL_PATH]
+                                    [--analysis-entry-start ANALYSIS_ENTRY_START]
+                                    [--analysis-entry-end ANALYSIS_ENTRY_END]
+                                    [--timeout-minutes TIMEOUT_MINUTES]
+                                    [--report-out REPORT_OUT]
+                                    [--trades-out TRADES_OUT]
+
+Replay the promoted best-base model on a historical slice.
+
+options:
+  -h, --help            show this help message and exit
+  --table TABLE
+  --start-date START_DATE
+  --end-date END_DATE
+  --signal-model-path SIGNAL_MODEL_PATH
+  --analysis-entry-start ANALYSIS_ENTRY_START
+                        Optional UTC timestamp filter applied after replay
+                        when comparing against a saved backtest window.
+  --analysis-entry-end ANALYSIS_ENTRY_END
+                        Optional UTC timestamp upper bound applied after
+                        replay when comparing against a saved backtest window.
+  --timeout-minutes TIMEOUT_MINUTES
+                        Optional hard backtest hold cap, independent of model
+                        horizon.
+  --report-out REPORT_OUT
+  --trades-out TRADES_OUT

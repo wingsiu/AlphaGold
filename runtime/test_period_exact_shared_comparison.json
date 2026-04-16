@@ -1,0 +1,473 @@
+{
+  "comparison_basis": {
+    "type": "exact_shared_entry_timestamps",
+    "shared_entry_count": 170,
+    "shared_window_start_utc": "2025-11-28T05:25:00+00:00",
+    "shared_window_start_hkt": "2025-11-28 13:25:00 HKT",
+    "shared_window_end_utc": "2026-04-08T09:45:00+00:00",
+    "shared_window_end_hkt": "2026-04-08 17:45:00 HKT"
+  },
+  "models": {
+    "promoted_single_split": {
+      "report_path": "training/backtest_report_best_base_corrected.json",
+      "trades_path": "training/backtest_trades_best_base_corrected.csv",
+      "full_trade_coverage": {
+        "rows": 1415,
+        "signal_start_utc": "2025-11-28T05:24:00+00:00",
+        "signal_start_hkt": "2025-11-28 13:24:00 HKT",
+        "signal_end_utc": "2026-04-08T18:26:00+00:00",
+        "signal_end_hkt": "2026-04-09 02:26:00 HKT",
+        "entry_start_utc": "2025-11-28T05:25:00+00:00",
+        "entry_start_hkt": "2025-11-28 13:25:00 HKT",
+        "entry_end_utc": "2026-04-08T18:27:00+00:00",
+        "entry_end_hkt": "2026-04-09 02:27:00 HKT",
+        "exit_end_utc": "2026-04-08T18:47:00+00:00",
+        "exit_end_hkt": "2026-04-09 02:47:00 HKT"
+      },
+      "full_saved_directional_pnl": {
+        "trades": 1415,
+        "total_pnl": 6504.070000000004,
+        "avg_day": 91.60661971830991,
+        "positive_days_pct": 67.6056338028169,
+        "profit_factor": 1.8391114081283533
+      },
+      "exact_shared_subset": {
+        "all": {
+          "trades": 170,
+          "total_pnl": 1249.9800000000032,
+          "avg_trade": 7.352823529411784,
+          "median_trade": -5.25,
+          "profit_factor": 2.1503377445657197,
+          "win_rate_pct": 42.94117647058823,
+          "gross_profit": 2336.600000000004,
+          "gross_loss": -1086.6200000000008,
+          "best_trade": 210.98000000000047,
+          "worst_trade": -18.0,
+          "avg_win": 32.00821917808225,
+          "avg_loss": -11.202268041237122,
+          "n_days": 36,
+          "avg_day": 34.721666666666756,
+          "positive_days_pct": 58.333333333333336,
+          "trade_max_drawdown": -131.22000000000025,
+          "daily_max_drawdown": -91.15999999999985,
+          "exit_reason_counts": {
+            "stop_loss": 75,
+            "reverse_signal": 53,
+            "timeout": 27,
+            "target_hit": 15
+          },
+          "side_counts": {
+            "up": 131,
+            "down": 39
+          },
+          "entry_signal_prob_mean": 0.9261780862530943,
+          "entry_signal_prob_median": 0.9852893642371705,
+          "max_win_streak": 6,
+          "max_loss_streak": 11,
+          "current_win_streak": 1,
+          "current_loss_streak": 0,
+          "current_streak": 1
+        },
+        "long_up": {
+          "trades": 131,
+          "total_pnl": 1213.2400000000052,
+          "avg_trade": 9.261374045801567,
+          "median_trade": -7.920000000000073,
+          "profit_factor": 2.4691337095250865,
+          "win_rate_pct": 41.221374045801525,
+          "gross_profit": 2039.060000000004,
+          "gross_loss": -825.8199999999988,
+          "best_trade": 210.98000000000047,
+          "worst_trade": -12.0,
+          "avg_win": 37.760370370370445,
+          "avg_loss": -10.72493506493505,
+          "n_days": 32,
+          "avg_day": 37.913750000000164,
+          "positive_days_pct": 68.75,
+          "trade_max_drawdown": -131.22000000000025,
+          "daily_max_drawdown": -56.029999999999745,
+          "exit_reason_counts": {
+            "stop_loss": 63,
+            "reverse_signal": 36,
+            "timeout": 17,
+            "target_hit": 15
+          },
+          "side_counts": {
+            "up": 131
+          },
+          "entry_signal_prob_mean": 0.9349780149033791,
+          "entry_signal_prob_median": 0.9919308532874764,
+          "max_win_streak": 4,
+          "max_loss_streak": 11,
+          "current_win_streak": 1,
+          "current_loss_streak": 0,
+          "current_streak": 1
+        },
+        "short_down": {
+          "trades": 39,
+          "total_pnl": 36.73999999999796,
+          "avg_trade": 0.9420512820512298,
+          "median_trade": -0.0100000000002182,
+          "profit_factor": 1.1408742331288255,
+          "win_rate_pct": 48.717948717948715,
+          "gross_profit": 297.53999999999996,
+          "gross_loss": -260.800000000002,
+          "best_trade": 50.71000000000003,
+          "worst_trade": -18.0,
+          "avg_win": 15.659999999999998,
+          "avg_loss": -13.0400000000001,
+          "n_days": 17,
+          "avg_day": 2.161176470588115,
+          "positive_days_pct": 47.05882352941176,
+          "trade_max_drawdown": -63.4399999999996,
+          "daily_max_drawdown": -63.4399999999996,
+          "exit_reason_counts": {
+            "reverse_signal": 17,
+            "stop_loss": 12,
+            "timeout": 10
+          },
+          "side_counts": {
+            "down": 39
+          },
+          "entry_signal_prob_mean": 0.8966193515559835,
+          "entry_signal_prob_median": 0.952103814517002,
+          "max_win_streak": 4,
+          "max_loss_streak": 4,
+          "current_win_streak": 0,
+          "current_loss_streak": 2,
+          "current_streak": 2
+        },
+        "coverage": {
+          "rows": 170,
+          "signal_start_utc": "2025-11-28T05:24:00+00:00",
+          "signal_start_hkt": "2025-11-28 13:24:00 HKT",
+          "signal_end_utc": "2026-04-08T09:44:00+00:00",
+          "signal_end_hkt": "2026-04-08 17:44:00 HKT",
+          "entry_start_utc": "2025-11-28T05:25:00+00:00",
+          "entry_start_hkt": "2025-11-28 13:25:00 HKT",
+          "entry_end_utc": "2026-04-08T09:45:00+00:00",
+          "entry_end_hkt": "2026-04-08 17:45:00 HKT",
+          "exit_end_utc": "2026-04-08T10:10:00+00:00",
+          "exit_end_hkt": "2026-04-08 18:10:00 HKT"
+        }
+      }
+    },
+    "walk_forward_fixed": {
+      "report_path": "training/backtest_report_best_base_wf_10cycles.json",
+      "trades_path": "training/backtest_trades_best_base_wf_10cycles.csv",
+      "full_trade_coverage": {
+        "rows": 1328,
+        "signal_start_utc": "2025-11-25T17:03:00+00:00",
+        "signal_start_hkt": "2025-11-26 01:03:00 HKT",
+        "signal_end_utc": "2026-04-08T18:26:00+00:00",
+        "signal_end_hkt": "2026-04-09 02:26:00 HKT",
+        "entry_start_utc": "2025-11-25T17:04:00+00:00",
+        "entry_start_hkt": "2025-11-26 01:04:00 HKT",
+        "entry_end_utc": "2026-04-08T18:27:00+00:00",
+        "entry_end_hkt": "2026-04-09 02:27:00 HKT",
+        "exit_end_utc": "2026-04-08T18:51:00+00:00",
+        "exit_end_hkt": "2026-04-09 02:51:00 HKT"
+      },
+      "full_saved_directional_pnl": {
+        "trades": 1328,
+        "total_pnl": 3743.6399999999985,
+        "avg_day": 58.49437499999998,
+        "positive_days_pct": 76.5625,
+        "profit_factor": 1.4853832938964695
+      },
+      "exact_shared_subset": {
+        "all": {
+          "trades": 170,
+          "total_pnl": 996.8300000000054,
+          "avg_trade": 5.863705882352972,
+          "median_trade": -2.6799999999998363,
+          "profit_factor": 1.9926805951124351,
+          "win_rate_pct": 45.88235294117647,
+          "gross_profit": 2001.0100000000057,
+          "gross_loss": -1004.1800000000003,
+          "best_trade": 244.28999999999996,
+          "worst_trade": -18.0,
+          "avg_win": 25.65397435897443,
+          "avg_loss": -10.915000000000003,
+          "n_days": 36,
+          "avg_day": 27.689722222222372,
+          "positive_days_pct": 61.111111111111114,
+          "trade_max_drawdown": -125.96000000000004,
+          "daily_max_drawdown": -79.65999999999985,
+          "exit_reason_counts": {
+            "reverse_signal": 77,
+            "stop_loss": 67,
+            "target_hit": 18,
+            "timeout": 8
+          },
+          "side_counts": {
+            "up": 120,
+            "down": 50
+          },
+          "entry_signal_prob_mean": 0.8570665418579555,
+          "entry_signal_prob_median": 0.8972374276114825,
+          "max_win_streak": 8,
+          "max_loss_streak": 11,
+          "current_win_streak": 0,
+          "current_loss_streak": 1,
+          "current_streak": 1
+        },
+        "long_up": {
+          "trades": 120,
+          "total_pnl": 822.1800000000057,
+          "avg_trade": 6.851500000000048,
+          "median_trade": -6.244999999999891,
+          "profit_factor": 2.1346047692647474,
+          "win_rate_pct": 45.0,
+          "gross_profit": 1546.8200000000052,
+          "gross_loss": -724.6399999999994,
+          "best_trade": 244.28999999999996,
+          "worst_trade": -12.0,
+          "avg_win": 28.64481481481491,
+          "avg_loss": -10.97939393939393,
+          "n_days": 28,
+          "avg_day": 29.363571428571635,
+          "positive_days_pct": 75.0,
+          "trade_max_drawdown": -119.22000000000025,
+          "daily_max_drawdown": -42.48999999999978,
+          "exit_reason_counts": {
+            "stop_loss": 57,
+            "reverse_signal": 50,
+            "target_hit": 11,
+            "timeout": 2
+          },
+          "side_counts": {
+            "up": 120
+          },
+          "entry_signal_prob_mean": 0.8761062253636188,
+          "entry_signal_prob_median": 0.932041502210956,
+          "max_win_streak": 6,
+          "max_loss_streak": 10,
+          "current_win_streak": 1,
+          "current_loss_streak": 0,
+          "current_streak": 1
+        },
+        "short_down": {
+          "trades": 50,
+          "total_pnl": 174.64999999999964,
+          "avg_trade": 3.4929999999999928,
+          "median_trade": -1.400000000000091,
+          "profit_factor": 1.6247764184016567,
+          "win_rate_pct": 48.0,
+          "gross_profit": 454.1900000000005,
+          "gross_loss": -279.5400000000009,
+          "best_trade": 82.0,
+          "worst_trade": -18.0,
+          "avg_win": 18.924583333333356,
+          "avg_loss": -10.751538461538495,
+          "n_days": 26,
+          "avg_day": 6.717307692307679,
+          "positive_days_pct": 50.0,
+          "trade_max_drawdown": -75.02000000000044,
+          "daily_max_drawdown": -66.67000000000098,
+          "exit_reason_counts": {
+            "reverse_signal": 27,
+            "stop_loss": 10,
+            "target_hit": 7,
+            "timeout": 6
+          },
+          "side_counts": {
+            "down": 50
+          },
+          "entry_signal_prob_mean": 0.8113713014443634,
+          "entry_signal_prob_median": 0.8462262781853873,
+          "max_win_streak": 4,
+          "max_loss_streak": 6,
+          "current_win_streak": 0,
+          "current_loss_streak": 4,
+          "current_streak": 4
+        },
+        "coverage": {
+          "rows": 170,
+          "signal_start_utc": "2025-11-28T05:24:00+00:00",
+          "signal_start_hkt": "2025-11-28 13:24:00 HKT",
+          "signal_end_utc": "2026-04-08T09:44:00+00:00",
+          "signal_end_hkt": "2026-04-08 17:44:00 HKT",
+          "entry_start_utc": "2025-11-28T05:25:00+00:00",
+          "entry_start_hkt": "2025-11-28 13:25:00 HKT",
+          "entry_end_utc": "2026-04-08T09:45:00+00:00",
+          "entry_end_hkt": "2026-04-08 17:45:00 HKT",
+          "exit_end_utc": "2026-04-08T10:11:00+00:00",
+          "exit_end_hkt": "2026-04-08 18:11:00 HKT"
+        }
+      }
+    },
+    "walk_forward_prob_sweep": {
+      "report_path": "training/backtest_report_best_base_wf_10cycles_prob_sweep.json",
+      "trades_path": "training/backtest_trades_best_base_wf_10cycles_prob_sweep.csv",
+      "full_trade_coverage": {
+        "rows": 1294,
+        "signal_start_utc": "2025-11-28T05:24:00+00:00",
+        "signal_start_hkt": "2025-11-28 13:24:00 HKT",
+        "signal_end_utc": "2026-04-08T18:45:00+00:00",
+        "signal_end_hkt": "2026-04-09 02:45:00 HKT",
+        "entry_start_utc": "2025-11-28T05:25:00+00:00",
+        "entry_start_hkt": "2025-11-28 13:25:00 HKT",
+        "entry_end_utc": "2026-04-08T18:46:00+00:00",
+        "entry_end_hkt": "2026-04-09 02:46:00 HKT",
+        "exit_end_utc": "2026-04-08T19:10:00+00:00",
+        "exit_end_hkt": "2026-04-09 03:10:00 HKT"
+      },
+      "full_saved_directional_pnl": {
+        "trades": 1294,
+        "total_pnl": 3213.640000000002,
+        "avg_day": 49.44061538461542,
+        "positive_days_pct": 72.3076923076923,
+        "profit_factor": 1.426561257686994
+      },
+      "exact_shared_subset": {
+        "all": {
+          "trades": 170,
+          "total_pnl": 855.6700000000083,
+          "avg_trade": 5.033352941176519,
+          "median_trade": -3.949999999999818,
+          "profit_factor": 1.838883932510475,
+          "win_rate_pct": 44.11764705882353,
+          "gross_profit": 1875.6800000000067,
+          "gross_loss": -1020.0099999999984,
+          "best_trade": 244.28999999999996,
+          "worst_trade": -18.0,
+          "avg_win": 25.009066666666754,
+          "avg_loss": -10.736947368421037,
+          "n_days": 36,
+          "avg_day": 23.76861111111134,
+          "positive_days_pct": 66.66666666666666,
+          "trade_max_drawdown": -125.96000000000004,
+          "daily_max_drawdown": -53.969999999998436,
+          "exit_reason_counts": {
+            "reverse_signal": 78,
+            "stop_loss": 68,
+            "target_hit": 16,
+            "timeout": 8
+          },
+          "side_counts": {
+            "up": 123,
+            "down": 47
+          },
+          "entry_signal_prob_mean": 0.8636068379215835,
+          "entry_signal_prob_median": 0.9067075910195108,
+          "max_win_streak": 8,
+          "max_loss_streak": 11,
+          "current_win_streak": 0,
+          "current_loss_streak": 4,
+          "current_streak": 4
+        },
+        "long_up": {
+          "trades": 123,
+          "total_pnl": 781.5300000000079,
+          "avg_trade": 6.353902439024455,
+          "median_trade": -6.640000000000327,
+          "profit_factor": 2.0364706974523683,
+          "win_rate_pct": 43.90243902439025,
+          "gross_profit": 1535.5600000000068,
+          "gross_loss": -754.0299999999988,
+          "best_trade": 244.28999999999996,
+          "worst_trade": -12.0,
+          "avg_win": 28.436296296296423,
+          "avg_loss": -10.927971014492737,
+          "n_days": 31,
+          "avg_day": 25.21064516129058,
+          "positive_days_pct": 74.19354838709677,
+          "trade_max_drawdown": -119.22000000000025,
+          "daily_max_drawdown": -40.67999999999938,
+          "exit_reason_counts": {
+            "stop_loss": 58,
+            "reverse_signal": 52,
+            "target_hit": 11,
+            "timeout": 2
+          },
+          "side_counts": {
+            "up": 123
+          },
+          "entry_signal_prob_mean": 0.8729059718562615,
+          "entry_signal_prob_median": 0.9299444615499296,
+          "max_win_streak": 6,
+          "max_loss_streak": 10,
+          "current_win_streak": 0,
+          "current_loss_streak": 2,
+          "current_streak": 2
+        },
+        "short_down": {
+          "trades": 47,
+          "total_pnl": 74.14000000000033,
+          "avg_trade": 1.5774468085106452,
+          "median_trade": -2.4200000000000728,
+          "profit_factor": 1.278742762613732,
+          "win_rate_pct": 44.680851063829785,
+          "gross_profit": 340.1199999999999,
+          "gross_loss": -265.97999999999956,
+          "best_trade": 64.5,
+          "worst_trade": -18.0,
+          "avg_win": 16.19619047619047,
+          "avg_loss": -10.229999999999983,
+          "n_days": 24,
+          "avg_day": 3.08916666666668,
+          "positive_days_pct": 50.0,
+          "trade_max_drawdown": -64.10000000000036,
+          "daily_max_drawdown": -47.35999999999967,
+          "exit_reason_counts": {
+            "reverse_signal": 26,
+            "stop_loss": 10,
+            "timeout": 6,
+            "target_hit": 5
+          },
+          "side_counts": {
+            "down": 47
+          },
+          "entry_signal_prob_mean": 0.8392708065606183,
+          "entry_signal_prob_median": 0.8263290047247767,
+          "max_win_streak": 4,
+          "max_loss_streak": 5,
+          "current_win_streak": 0,
+          "current_loss_streak": 3,
+          "current_streak": 3
+        },
+        "coverage": {
+          "rows": 170,
+          "signal_start_utc": "2025-11-28T05:24:00+00:00",
+          "signal_start_hkt": "2025-11-28 13:24:00 HKT",
+          "signal_end_utc": "2026-04-08T09:44:00+00:00",
+          "signal_end_hkt": "2026-04-08 17:44:00 HKT",
+          "entry_start_utc": "2025-11-28T05:25:00+00:00",
+          "entry_start_hkt": "2025-11-28 13:25:00 HKT",
+          "entry_end_utc": "2026-04-08T09:45:00+00:00",
+          "entry_end_hkt": "2026-04-08 17:45:00 HKT",
+          "exit_end_utc": "2026-04-08T10:09:00+00:00",
+          "exit_end_hkt": "2026-04-08 18:09:00 HKT"
+        }
+      }
+    }
+  },
+  "ranking_by_exact_shared_total_pnl": [
+    {
+      "label": "promoted_single_split",
+      "total_pnl": 1249.9800000000032,
+      "profit_factor": 2.1503377445657197,
+      "avg_day": 34.721666666666756,
+      "trades": 170
+    },
+    {
+      "label": "walk_forward_fixed",
+      "total_pnl": 996.8300000000054,
+      "profit_factor": 1.9926805951124351,
+      "avg_day": 27.689722222222372,
+      "trades": 170
+    },
+    {
+      "label": "walk_forward_prob_sweep",
+      "total_pnl": 855.6700000000083,
+      "profit_factor": 1.838883932510475,
+      "avg_day": 23.76861111111134,
+      "trades": 170
+    }
+  ],
+  "recommendation": {
+    "best_exact_shared_total_pnl": "promoted_single_split",
+    "practical_suggestion": "promoted_single_split_still_leads_on_exact_shared_subset"
+  }
+}

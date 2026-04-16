@@ -1,0 +1,8 @@
+test_cycle_slice_bounds_prefer_reported_trading_day_window (training.test_image_trend_walkforward_cycles.WalkForwardCycleBoundaryTest.test_cycle_slice_bounds_prefer_reported_trading_day_window) ... ok
+test_find_slice_accepts_date_only_trading_day_bounds (training.test_image_trend_walkforward_cycles.WalkForwardCycleBoundaryTest.test_find_slice_accepts_date_only_trading_day_bounds) ... ok
+test_weekend_cycles_report_monday_to_friday_trading_days (training.test_image_trend_walkforward_cycles.WalkForwardCycleBoundaryTest.test_weekend_cycles_report_monday_to_friday_trading_days) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.013s
+
+OK

@@ -1,0 +1,184 @@
+{
+  "config": {
+    "table": "gold_prices",
+    "start_date": "2025-05-20",
+    "end_date": "2026-04-10",
+    "timeframe": "1min",
+    "window": 150,
+    "window_15m": 0,
+    "min_window_range": 40.0,
+    "min_15m_drop": 15.0,
+    "min_15m_rise": 15.0,
+    "horizon": 40,
+    "trend_threshold": 0.012,
+    "adverse_limit": 15.0,
+    "test_size": 0.4,
+    "max_samples": null,
+    "optimize": false,
+    "optimize_prob": false,
+    "two_branch": false,
+    "two_branch_stage": "both",
+    "max_flat_ratio": 4.0,
+    "classifier": "gradient_boosting",
+    "stage1_min_prob": 0.6,
+    "stage2_min_prob": 0.65,
+    "stage1_min_prob_1m": null,
+    "stage1_min_prob_15m": null,
+    "stage2_min_prob_1m": null,
+    "stage2_min_prob_15m": null,
+    "use_state_features": false,
+    "state_oof_splits": 5,
+    "pred_history_len": 150,
+    "allow_overlap_backtest": false,
+    "random_state": 42,
+    "model_out": "training/_singlepos_sweep/w150_h40_thr0.012_d15_r15_p10.6_p20.65.joblib",
+    "report_out": "training/_singlepos_sweep/w150_h40_thr0.012_d15_r15_p10.6_p20.65.json",
+    "trades_out": null
+  },
+  "threshold_used": 0.012,
+  "horizon_used": 40,
+  "min_window_range_used": 40.0,
+  "window_15m": 0,
+  "min_15m_drop": 15.0,
+  "min_15m_rise": 15.0,
+  "two_branch": false,
+  "two_branch_stage": "both",
+  "n_1m_feats": 1350,
+  "use_state_features": false,
+  "allow_overlap_backtest": false,
+  "state_feature_names": [],
+  "stage1_min_prob": 0.6,
+  "stage2_min_prob": 0.65,
+  "stage1_min_prob_1m": null,
+  "stage1_min_prob_15m": null,
+  "stage2_min_prob_1m": null,
+  "stage2_min_prob_15m": null,
+  "feature_shape": [
+    9,
+    150
+  ],
+  "n_kept": 41132,
+  "n_skipped": 274149,
+  "train_samples": 24679,
+  "test_samples": 16453,
+  "stage1": {
+    "accuracy": 0.9353309426852245,
+    "balanced_accuracy": 0.554395288835402,
+    "confusion_matrix": [
+      [
+        15291,
+        448
+      ],
+      [
+        616,
+        98
+      ]
+    ],
+    "confusion_labels": [
+      "flat",
+      "trend"
+    ],
+    "classification_report": {
+      "flat": {
+        "precision": 0.9612749104167977,
+        "recall": 0.9715356757100196,
+        "f1-score": 0.9663780572584213,
+        "support": 15739.0
+      },
+      "trend": {
+        "precision": 0.1794871794871795,
+        "recall": 0.13725490196078433,
+        "f1-score": 0.15555555555555556,
+        "support": 714.0
+      },
+      "accuracy": 0.9353309426852245,
+      "macro avg": {
+        "precision": 0.5703810449519886,
+        "recall": 0.554395288835402,
+        "f1-score": 0.5609668064069884,
+        "support": 16453.0
+      },
+      "weighted avg": {
+        "precision": 0.9273481833832021,
+        "recall": 0.9353309426852245,
+        "f1-score": 0.9311913274087984,
+        "support": 16453.0
+      }
+    }
+  },
+  "stage2": {
+    "accuracy": 0.7244897959183674,
+    "balanced_accuracy": 0.5918101199791341,
+    "confusion_matrix": [
+      [
+        63,
+        8
+      ],
+      [
+        19,
+        8
+      ]
+    ],
+    "confusion_labels": [
+      "down",
+      "up"
+    ],
+    "classification_report": {
+      "down": {
+        "precision": 0.7682926829268293,
+        "recall": 0.8873239436619719,
+        "f1-score": 0.8235294117647058,
+        "support": 71.0
+      },
+      "up": {
+        "precision": 0.5,
+        "recall": 0.2962962962962963,
+        "f1-score": 0.37209302325581395,
+        "support": 27.0
+      },
+      "accuracy": 0.7244897959183674,
+      "macro avg": {
+        "precision": 0.6341463414634146,
+        "recall": 0.5918101199791341,
+        "f1-score": 0.5978112175102599,
+        "support": 98.0
+      },
+      "weighted avg": {
+        "precision": 0.6943753111000498,
+        "recall": 0.7244897959183674,
+        "f1-score": 0.6991540802367459,
+        "support": 98.0
+      }
+    }
+  },
+  "full_confusion_matrix": [
+    [
+      63,
+      438,
+      8
+    ],
+    [
+      343,
+      15291,
+      105
+    ],
+    [
+      19,
+      178,
+      8
+    ]
+  ],
+  "full_confusion_labels": [
+    "down",
+    "flat",
+    "up"
+  ],
+  "directional_pnl": {
+    "trades": 51,
+    "total_pnl": -68.06000000000131,
+    "avg_trade": -1.3345098039215944,
+    "n_days": 20,
+    "avg_day": -3.4030000000000653,
+    "positive_days_pct": 40.0
+  }
+}

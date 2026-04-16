@@ -1,0 +1,155 @@
+{
+  "config": {
+    "table": "gold_prices",
+    "start_date": "2025-05-20",
+    "end_date": "2026-04-10",
+    "timeframe": "1min",
+    "window": 150,
+    "min_window_range": 40.0,
+    "min_15m_drop": 15.0,
+    "horizon": 60,
+    "trend_threshold": 0.0075,
+    "adverse_limit": 15.0,
+    "test_size": 0.3,
+    "max_samples": null,
+    "optimize": false,
+    "optimize_prob": true,
+    "max_flat_ratio": 4.0,
+    "classifier": "gradient_boosting",
+    "stage1_min_prob": 0.55,
+    "stage2_min_prob": 0.6,
+    "random_state": 42,
+    "model_out": "training/_tmp_image_trend_sweep/h60_thr0.0075_d15_p10.55_p20.6.joblib",
+    "report_out": "training/_tmp_image_trend_sweep/h60_thr0.0075_d15_p10.55_p20.6.json"
+  },
+  "threshold_used": 0.0075,
+  "horizon_used": 60,
+  "min_window_range_used": 40.0,
+  "min_15m_drop": 15.0,
+  "stage1_min_prob": 0.5,
+  "stage2_min_prob": 0.5,
+  "n_kept": 41132,
+  "n_skipped": 274129,
+  "train_samples": 28792,
+  "test_samples": 12340,
+  "stage1": {
+    "accuracy": 0.719935170178282,
+    "balanced_accuracy": 0.6523873129037152,
+    "confusion_matrix": [
+      [
+        7499,
+        2258
+      ],
+      [
+        1198,
+        1385
+      ]
+    ],
+    "confusion_labels": [
+      "flat",
+      "trend"
+    ],
+    "classification_report": {
+      "flat": {
+        "precision": 0.8622513510405887,
+        "recall": 0.7685764066823819,
+        "f1-score": 0.8127235287742495,
+        "support": 9757.0
+      },
+      "trend": {
+        "precision": 0.38018116936590723,
+        "recall": 0.5361982191250484,
+        "f1-score": 0.4449084484420173,
+        "support": 2583.0
+      },
+      "accuracy": 0.719935170178282,
+      "macro avg": {
+        "precision": 0.6212162602032479,
+        "recall": 0.6523873129037152,
+        "f1-score": 0.6288159886081334,
+        "support": 12340.0
+      },
+      "weighted avg": {
+        "precision": 0.7613447643902076,
+        "recall": 0.719935170178282,
+        "f1-score": 0.7357327384583535,
+        "support": 12340.0
+      }
+    }
+  },
+  "stage2": {
+    "accuracy": 0.4028880866425993,
+    "balanced_accuracy": 0.4186207014075866,
+    "confusion_matrix": [
+      [
+        246,
+        547
+      ],
+      [
+        280,
+        312
+      ]
+    ],
+    "confusion_labels": [
+      "down",
+      "up"
+    ],
+    "classification_report": {
+      "down": {
+        "precision": 0.467680608365019,
+        "recall": 0.31021437578814626,
+        "f1-score": 0.3730098559514784,
+        "support": 793.0
+      },
+      "up": {
+        "precision": 0.36321303841676367,
+        "recall": 0.527027027027027,
+        "f1-score": 0.43004824259131635,
+        "support": 592.0
+      },
+      "accuracy": 0.4028880866425993,
+      "macro avg": {
+        "precision": 0.41544682339089134,
+        "recall": 0.4186207014075866,
+        "f1-score": 0.4015290492713974,
+        "support": 1385.0
+      },
+      "weighted avg": {
+        "precision": 0.42302732214886946,
+        "recall": 0.4028880866425992,
+        "f1-score": 0.39739016273182787,
+        "support": 1385.0
+      }
+    }
+  },
+  "full_confusion_matrix": [
+    [
+      246,
+      616,
+      547
+    ],
+    [
+      935,
+      7499,
+      1323
+    ],
+    [
+      280,
+      582,
+      312
+    ]
+  ],
+  "full_confusion_labels": [
+    "down",
+    "flat",
+    "up"
+  ],
+  "directional_pnl": {
+    "trades": 3643,
+    "total_pnl": -13536.449999999992,
+    "avg_trade": -3.715742519901178,
+    "n_days": 28,
+    "avg_day": -483.44464285714247,
+    "positive_days_pct": 46.42857142857143
+  }
+}

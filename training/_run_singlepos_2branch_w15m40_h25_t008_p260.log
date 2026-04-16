@@ -1,0 +1,90 @@
+[08:47:23] Starting image-trend pipeline
+[08:47:23] Loading data from MySQL...
+Data successfully loaded: 315470 rows.
+[08:47:26] Bars after resample: 315,470  (+2.7s)
+[08:47:26] Building image-like dataset  (window=150, horizon=25, threshold=0.008, min_range=40.0, min_15m_drop=15.0, min_15m_rise=15.0)...
+  [08:47:26] 15-min image: resampled 21,055 bars, window_15m=40
+  [08:47:26]   5.0%  bars= 15,764/315,296  kept=161  skipped=15,603  elapsed=0.4s  eta≈9s
+  [08:47:27]  10.0%  bars= 31,528/315,296  kept=386  skipped=31,142  elapsed=0.9s  eta≈8s
+  [08:47:27]  15.0%  bars= 47,292/315,296  kept=386  skipped=46,906  elapsed=1.2s  eta≈7s
+  [08:47:27]  20.0%  bars= 63,056/315,296  kept=550  skipped=62,506  elapsed=1.7s  eta≈7s
+  [08:47:28]  25.0%  bars= 78,820/315,296  kept=551  skipped=78,269  elapsed=2.1s  eta≈6s
+  [08:47:28]  30.0%  bars= 94,584/315,296  kept=641  skipped=93,943  elapsed=2.5s  eta≈6s
+  [08:47:29]  35.0%  bars=110,348/315,296  kept=812  skipped=109,536  elapsed=2.9s  eta≈5s
+  [08:47:29]  40.0%  bars=126,112/315,296  kept=1,089  skipped=125,023  elapsed=3.3s  eta≈5s
+  [08:47:30]  45.0%  bars=141,876/315,296  kept=1,549  skipped=140,327  elapsed=3.9s  eta≈5s
+  [08:47:31]  50.0%  bars=157,640/315,296  kept=4,550  skipped=153,090  elapsed=5.2s  eta≈5s
+  [08:47:32]  55.0%  bars=173,404/315,296  kept=6,353  skipped=167,051  elapsed=6.2s  eta≈5s
+  [08:47:33]  60.0%  bars=189,168/315,296  kept=7,886  skipped=181,282  elapsed=7.0s  eta≈5s
+  [08:47:33]  65.0%  bars=204,932/315,296  kept=8,883  skipped=196,049  elapsed=7.7s  eta≈4s
+  [08:47:34]  70.0%  bars=220,696/315,296  kept=10,501  skipped=210,195  elapsed=8.6s  eta≈4s
+  [08:47:35]  75.0%  bars=236,460/315,296  kept=11,840  skipped=224,620  elapsed=9.4s  eta≈3s
+  [08:47:37]  80.0%  bars=252,224/315,296  kept=18,539  skipped=233,685  elapsed=11.8s  eta≈3s
+  [08:47:40]  85.0%  bars=267,988/315,296  kept=24,203  skipped=243,785  elapsed=13.9s  eta≈2s
+  [08:47:41]  90.0%  bars=283,752/315,296  kept=29,192  skipped=254,560  elapsed=15.8s  eta≈2s
+  [08:47:44]  95.0%  bars=299,516/315,296  kept=34,660  skipped=264,856  elapsed=17.8s  eta≈1s
+  [08:47:46] 100.0%  bars=315,280/315,296  kept=41,132  skipped=274,148  elapsed=20.2s  eta≈0s
+  [08:47:46] Dataset build done — kept=41,132  skipped=274,164  took=20.2s
+[08:47:46] Dataset ready: kept=41,132  skipped=274,164  (+20.4s)
+[08:47:46] Two-branch mode: stage=both  1m_feats=1350  15m_feats=360
+[08:47:46] Split: train=24,679  test=16,453
+Class balance train (down/flat/up): [1180, 22648, 851]
+Class balance test  (down/flat/up): [651, 15357, 445]
+[08:47:46] Training two-stage model...
+[08:48:16] Training done  (+30.0s)
+
+── Stage 1 : flat vs trend ─────────────────────────────────────
+   Accuracy=0.9320   Balanced=0.5069
+   Confusion matrix  (rows=true, cols=pred)  [flat | trend]
+             pred_flat  pred_trend
+   true_flat    15317          40
+   true_trend    1078          18
+              precision    recall  f1-score   support
+
+        flat       0.93      1.00      0.96     15357
+       trend       0.31      0.02      0.03      1096
+
+    accuracy                           0.93     16453
+   macro avg       0.62      0.51      0.50     16453
+weighted avg       0.89      0.93      0.90     16453
+
+── Stage 2 : down vs up (on trend-predicted samples) ───────────
+   Accuracy=0.5000   Balanced=0.5000
+   Confusion matrix  (rows=true, cols=pred)  [down | up]
+            pred_down   pred_up
+   true_down       9         0
+   true_up         9         0
+              precision    recall  f1-score   support
+
+        down       0.50      1.00      0.67         9
+          up       0.00      0.00      0.00         9
+
+    accuracy                           0.50        18
+   macro avg       0.25      0.50      0.33        18
+weighted avg       0.25      0.50      0.33        18
+
+── Full 3-class (down / flat / up) ─────────────────────────────
+   Confusion matrix  (rows=true, cols=pred)  [down | flat | up]
+             pred_down  pred_flat  pred_up
+   true_down        9        642        0
+   true_flat       30      15317       10
+   true_up          9        436        0
+              precision    recall  f1-score   support
+
+        down       0.19      0.01      0.03       651
+        flat       0.93      1.00      0.96     15357
+          up       0.00      0.00      0.00       445
+
+    accuracy                           0.93     16453
+   macro avg       0.37      0.34      0.33     16453
+weighted avg       0.88      0.93      0.90     16453
+
+── Directional PnL check ───────────────────────────────────────
+   trades=7  total=$142.51  avg_trade=$20.36
+   n_days=1  (avg_day N/A – fewer than 5 trading days in test)
+Saved trades  : training/backtest_trades_singlepos_2branch_w15m40_h25_t008_p260.csv
+[08:48:17] Saving model and report...
+
+Saved model  : training/backtest_model_singlepos_2branch_w15m40_h25_t008_p260.joblib
+Saved report : training/backtest_report_singlepos_2branch_w15m40_h25_t008_p260.json
+[08:48:17] All done — total elapsed: 54.0s  (+0.1s)

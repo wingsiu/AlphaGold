@@ -1,0 +1,82 @@
+[10:33:18] Starting image-trend pipeline
+[10:33:18] Preparing bars...
+[10:33:18] Prep cache HIT (bars): training/_prep_cache_single_split_aligned/bars/db0303fb00f0ce9735b7a14c.joblib
+[10:33:18] Bars after resample: 315,470  (+0.1s)
+[10:33:18] Bar split boundary: train_bars=186,525  test_bars=128,945  (date:2025-11-25T17:02:00+00:00)
+[10:33:18] Preparing supervised dataset...
+[10:33:21] Prep cache HIT (dataset): training/_prep_cache_single_split_aligned/datasets/656d94322bad33df4ac808bf.joblib
+[10:33:21] Dataset ready: kept=62,489 skipped=252,807  (+2.5s)
+[10:33:21] Split: train=13,009  test=49,480  (date:2025-11-25T17:02:00+00:00)
+Class balance train (down/flat/up/risky): [300, 12273, 376, 60]
+Class balance test  (down/flat/up/risky): [3022, 41614, 3257, 1587]
+[10:33:21] Building causal state features (OOF train + base test)...
+[10:35:48] State features added: +457 columns  (+2m27s)
+[10:35:48] Training two-stage model...
+[10:36:25] Training done  (+37.1s)
+
+── Stage 1 : flat vs trend ─────────────────────────────────────
+   Accuracy=0.8031   Balanced=0.6526
+   Confusion matrix  (rows=true, cols=pred)  [flat | trend]
+             pred_flat  pred_trend
+   true_flat    36905        6296
+   true_trend    3447        2832
+              precision    recall  f1-score   support
+
+        flat       0.91      0.85      0.88     43201
+       trend       0.31      0.45      0.37      6279
+
+    accuracy                           0.80     49480
+   macro avg       0.61      0.65      0.63     49480
+weighted avg       0.84      0.80      0.82     49480
+
+── Stage 2 : down vs up (on trend-predicted samples) ───────────
+   Accuracy=0.5487   Balanced=0.5560
+   Confusion matrix  (rows=true, cols=pred)  [down | up]
+            pred_down   pred_up
+   true_down     533       936
+   true_up       342      1021
+              precision    recall  f1-score   support
+
+        down       0.61      0.36      0.45      1469
+          up       0.52      0.75      0.62      1363
+
+    accuracy                           0.55      2832
+   macro avg       0.57      0.56      0.53      2832
+weighted avg       0.57      0.55      0.53      2832
+
+── Full 4-class (down / flat / up / risky) ────────────────────
+   Confusion matrix  (rows=true, cols=pred)  [down | flat | up | risky]
+             pred_down  pred_flat  pred_up  pred_risky
+   true_down      533       1553      936          0
+   true_flat     2211      36257     3146          0
+   true_up        342       1894     1021          0
+   true_risky     170        648      769          0
+              precision    recall  f1-score   support
+
+        down       0.16      0.18      0.17      3022
+        flat       0.90      0.87      0.88     41614
+          up       0.17      0.31      0.22      3257
+       risky       0.00      0.00      0.00      1587
+
+    accuracy                           0.76     49480
+   macro avg       0.31      0.34      0.32     49480
+weighted avg       0.78      0.76      0.77     49480
+
+── Directional PnL check ───────────────────────────────────────
+   trades=1415  total=$6504.07  avg_trade=$4.60
+   avg_trades_per_day=19.93
+   drawdown: trade=$-177.09 daily=$-98.17
+   n_days=71  avg_day=$91.61  positive_days=67.6%%
+   long: trades=954 win_rate=43.4% pnl=$4384.30
+   short: trades=461 win_rate=55.5% pnl=$2119.77
+   streaks: max_win=9 max_loss=15 current_win=2 current_loss=0
+   exits: reverse_signal=578, stop_loss=498, timeout=266, target_hit=73
+   reverse_signal: wins=406 losses=171 avg_pnl=$10.03 win_pct=70.2% loss_pct=29.6%
+   target_hit: trades=73 avg_pnl=$69.96 
+   timeout: wins=191 losses=75 avg_pnl=$7.71 win_pct=71.8% loss_pct=28.2%
+Saved trades  : training/backtest_trades_best_base_corrected.csv
+[10:36:29] Saving model and report...
+
+Saved model  : training/backtest_model_best_base_corrected.joblib
+Saved report : training/backtest_report_best_base_corrected.json
+[10:36:29] All done — total elapsed: 3m11s  (+0.5s)

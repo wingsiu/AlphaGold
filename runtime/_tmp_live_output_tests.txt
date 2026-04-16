@@ -1,0 +1,10 @@
+test_build_latest_signal_best_base_uses_stage_diagnostics_for_flat (test_trading_bot.TradingBotHelpersTest.test_build_latest_signal_best_base_uses_stage_diagnostics_for_flat) ... ok
+test_market_data_collector_logs_account_and_position_status (test_trading_bot.TradingBotHelpersTest.test_market_data_collector_logs_account_and_position_status) ... ok
+test_market_data_collector_stores_only_tradeable_open_instruments (test_trading_bot.TradingBotHelpersTest.test_market_data_collector_stores_only_tradeable_open_instruments) ... ok
+test_market_data_collector_force_bypasses_poll_second_gate (test_trading_bot.TradingBotHelpersTest.test_market_data_collector_force_bypasses_poll_second_gate) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.007s
+
+OK
+EXIT:0

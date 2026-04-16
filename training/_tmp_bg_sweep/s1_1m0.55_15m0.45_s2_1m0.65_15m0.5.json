@@ -1,0 +1,176 @@
+{
+  "config": {
+    "table": "gold_prices",
+    "start_date": "2025-05-20",
+    "end_date": "2026-04-10",
+    "timeframe": "1min",
+    "window": 150,
+    "window_15m": 40,
+    "min_window_range": 40.0,
+    "min_15m_drop": 15.0,
+    "min_15m_rise": 0.0,
+    "horizon": 40,
+    "trend_threshold": 0.01,
+    "adverse_limit": 15.0,
+    "test_size": 0.3,
+    "max_samples": null,
+    "optimize": false,
+    "optimize_prob": true,
+    "two_branch": true,
+    "two_branch_stage": "stage2",
+    "max_flat_ratio": 4.0,
+    "classifier": "gradient_boosting",
+    "stage1_min_prob": 0.55,
+    "stage2_min_prob": 0.55,
+    "stage1_min_prob_1m": 0.55,
+    "stage1_min_prob_15m": 0.45,
+    "stage2_min_prob_1m": 0.65,
+    "stage2_min_prob_15m": 0.5,
+    "random_state": 42,
+    "model_out": "training/_tmp_bg_sweep/s1_1m0.55_15m0.45_s2_1m0.65_15m0.5.joblib",
+    "report_out": "training/_tmp_bg_sweep/s1_1m0.55_15m0.45_s2_1m0.65_15m0.5.json"
+  },
+  "threshold_used": 0.01,
+  "horizon_used": 40,
+  "min_window_range_used": 40.0,
+  "window_15m": 40,
+  "min_15m_drop": 15.0,
+  "min_15m_rise": 0.0,
+  "two_branch": true,
+  "two_branch_stage": "stage2",
+  "n_1m_feats": 1350,
+  "stage1_min_prob": 0.55,
+  "stage2_min_prob": 0.6,
+  "stage1_min_prob_1m": 0.55,
+  "stage1_min_prob_15m": 0.45,
+  "stage2_min_prob_1m": 0.65,
+  "stage2_min_prob_15m": 0.5,
+  "feature_shape": [
+    9,
+    190
+  ],
+  "n_kept": 41132,
+  "n_skipped": 274149,
+  "train_samples": 28792,
+  "test_samples": 12340,
+  "stage1": {
+    "accuracy": 0.9016207455429498,
+    "balanced_accuracy": 0.5599170293280762,
+    "confusion_matrix": [
+      [
+        10975,
+        380
+      ],
+      [
+        834,
+        151
+      ]
+    ],
+    "confusion_labels": [
+      "flat",
+      "trend"
+    ],
+    "classification_report": {
+      "flat": {
+        "precision": 0.9293758997374884,
+        "recall": 0.9665345662703655,
+        "f1-score": 0.9475910896218269,
+        "support": 11355.0
+      },
+      "trend": {
+        "precision": 0.2843691148775895,
+        "recall": 0.1532994923857868,
+        "f1-score": 0.19920844327176782,
+        "support": 985.0
+      },
+      "accuracy": 0.9016207455429498,
+      "macro avg": {
+        "precision": 0.6068725073075389,
+        "recall": 0.5599170293280762,
+        "f1-score": 0.5733997664467974,
+        "support": 12340.0
+      },
+      "weighted avg": {
+        "precision": 0.8778903500545872,
+        "recall": 0.9016207455429498,
+        "f1-score": 0.8878539010760564,
+        "support": 12340.0
+      }
+    }
+  },
+  "stage2": {
+    "accuracy": 0.6556291390728477,
+    "balanced_accuracy": 0.47215384615384615,
+    "confusion_matrix": [
+      [
+        94,
+        31
+      ],
+      [
+        21,
+        5
+      ]
+    ],
+    "confusion_labels": [
+      "down",
+      "up"
+    ],
+    "classification_report": {
+      "down": {
+        "precision": 0.8173913043478261,
+        "recall": 0.752,
+        "f1-score": 0.7833333333333333,
+        "support": 125.0
+      },
+      "up": {
+        "precision": 0.1388888888888889,
+        "recall": 0.19230769230769232,
+        "f1-score": 0.16129032258064516,
+        "support": 26.0
+      },
+      "accuracy": 0.6556291390728477,
+      "macro avg": {
+        "precision": 0.47814009661835755,
+        "recall": 0.47215384615384615,
+        "f1-score": 0.4723118279569892,
+        "support": 151.0
+      },
+      "weighted avg": {
+        "precision": 0.7005630738714529,
+        "recall": 0.6556291390728477,
+        "f1-score": 0.6762265897600228,
+        "support": 151.0
+      }
+    }
+  },
+  "full_confusion_matrix": [
+    [
+      94,
+      509,
+      31
+    ],
+    [
+      199,
+      10975,
+      181
+    ],
+    [
+      21,
+      325,
+      5
+    ]
+  ],
+  "full_confusion_labels": [
+    "down",
+    "flat",
+    "up"
+  ],
+  "directional_pnl": {
+    "trades": 531,
+    "total_pnl": 1898.8099999999895,
+    "avg_trade": 3.575913370998097,
+    "n_days": 10,
+    "avg_day": 189.88099999999895,
+    "positive_days_pct": 60.0
+  }
+}

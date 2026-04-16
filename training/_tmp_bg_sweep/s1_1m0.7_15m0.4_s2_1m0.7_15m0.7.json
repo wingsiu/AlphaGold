@@ -1,0 +1,176 @@
+{
+  "config": {
+    "table": "gold_prices",
+    "start_date": "2025-05-20",
+    "end_date": "2026-04-10",
+    "timeframe": "1min",
+    "window": 150,
+    "window_15m": 40,
+    "min_window_range": 40.0,
+    "min_15m_drop": 15.0,
+    "min_15m_rise": 0.0,
+    "horizon": 40,
+    "trend_threshold": 0.01,
+    "adverse_limit": 15.0,
+    "test_size": 0.3,
+    "max_samples": null,
+    "optimize": false,
+    "optimize_prob": true,
+    "two_branch": true,
+    "two_branch_stage": "stage2",
+    "max_flat_ratio": 4.0,
+    "classifier": "gradient_boosting",
+    "stage1_min_prob": 0.55,
+    "stage2_min_prob": 0.55,
+    "stage1_min_prob_1m": 0.7,
+    "stage1_min_prob_15m": 0.4,
+    "stage2_min_prob_1m": 0.7,
+    "stage2_min_prob_15m": 0.7,
+    "random_state": 42,
+    "model_out": "training/_tmp_bg_sweep/s1_1m0.7_15m0.4_s2_1m0.7_15m0.7.joblib",
+    "report_out": "training/_tmp_bg_sweep/s1_1m0.7_15m0.4_s2_1m0.7_15m0.7.json"
+  },
+  "threshold_used": 0.01,
+  "horizon_used": 40,
+  "min_window_range_used": 40.0,
+  "window_15m": 40,
+  "min_15m_drop": 15.0,
+  "min_15m_rise": 0.0,
+  "two_branch": true,
+  "two_branch_stage": "stage2",
+  "n_1m_feats": 1350,
+  "stage1_min_prob": 0.5,
+  "stage2_min_prob": 0.65,
+  "stage1_min_prob_1m": 0.7,
+  "stage1_min_prob_15m": 0.4,
+  "stage2_min_prob_1m": 0.7,
+  "stage2_min_prob_15m": 0.7,
+  "feature_shape": [
+    9,
+    190
+  ],
+  "n_kept": 41132,
+  "n_skipped": 274149,
+  "train_samples": 28792,
+  "test_samples": 12340,
+  "stage1": {
+    "accuracy": 0.9024311183144247,
+    "balanced_accuracy": 0.545986360801722,
+    "confusion_matrix": [
+      [
+        11016,
+        339
+      ],
+      [
+        865,
+        120
+      ]
+    ],
+    "confusion_labels": [
+      "flat",
+      "trend"
+    ],
+    "classification_report": {
+      "flat": {
+        "precision": 0.9271946805824426,
+        "recall": 0.9701453104359313,
+        "f1-score": 0.9481838526424514,
+        "support": 11355.0
+      },
+      "trend": {
+        "precision": 0.26143790849673204,
+        "recall": 0.1218274111675127,
+        "f1-score": 0.16620498614958448,
+        "support": 985.0
+      },
+      "accuracy": 0.9024311183144247,
+      "macro avg": {
+        "precision": 0.5943162945395873,
+        "recall": 0.545986360801722,
+        "f1-score": 0.557194419396018,
+        "support": 12340.0
+      },
+      "weighted avg": {
+        "precision": 0.8740528312709008,
+        "recall": 0.9024311183144247,
+        "f1-score": 0.8857649560869025,
+        "support": 12340.0
+      }
+    }
+  },
+  "stage2": {
+    "accuracy": 0.5166666666666667,
+    "balanced_accuracy": 0.3069306930693069,
+    "confusion_matrix": [
+      [
+        62,
+        39
+      ],
+      [
+        19,
+        0
+      ]
+    ],
+    "confusion_labels": [
+      "down",
+      "up"
+    ],
+    "classification_report": {
+      "down": {
+        "precision": 0.7654320987654321,
+        "recall": 0.6138613861386139,
+        "f1-score": 0.6813186813186813,
+        "support": 101.0
+      },
+      "up": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 19.0
+      },
+      "accuracy": 0.5166666666666667,
+      "macro avg": {
+        "precision": 0.38271604938271603,
+        "recall": 0.3069306930693069,
+        "f1-score": 0.34065934065934067,
+        "support": 120.0
+      },
+      "weighted avg": {
+        "precision": 0.6442386831275719,
+        "recall": 0.5166666666666667,
+        "f1-score": 0.5734432234432235,
+        "support": 120.0
+      }
+    }
+  },
+  "full_confusion_matrix": [
+    [
+      62,
+      533,
+      39
+    ],
+    [
+      143,
+      11016,
+      196
+    ],
+    [
+      19,
+      332,
+      0
+    ]
+  ],
+  "full_confusion_labels": [
+    "down",
+    "flat",
+    "up"
+  ],
+  "directional_pnl": {
+    "trades": 459,
+    "total_pnl": -1448.5199999999995,
+    "avg_trade": -3.155816993464051,
+    "n_days": 12,
+    "avg_day": -120.70999999999997,
+    "positive_days_pct": 33.33333333333333
+  }
+}

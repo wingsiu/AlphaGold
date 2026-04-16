@@ -1,0 +1,2 @@
+type <class 'dict'>
+keys ['schema', 'kind', 'cache_key', 'data']

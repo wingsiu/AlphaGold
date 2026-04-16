@@ -1,0 +1,10 @@
+test_market_data_collector_logs_market_then_account_without_snapshot_store (test_trading_bot.TradingBotHelpersTest.test_market_data_collector_logs_market_then_account_without_snapshot_store) ... ok
+test_market_data_collector_stores_only_tradeable_open_instruments (test_trading_bot.TradingBotHelpersTest.test_market_data_collector_stores_only_tradeable_open_instruments) ... ok
+test_market_data_collector_force_bypasses_poll_second_gate (test_trading_bot.TradingBotHelpersTest.test_market_data_collector_force_bypasses_poll_second_gate) ... ok
+test_fetch_and_store_prices_from_latest_returns_resulting_period_summary (test_ig_data_api.IGDataApiTest.test_fetch_and_store_prices_from_latest_returns_resulting_period_summary) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.002s
+
+OK
+EXIT:0

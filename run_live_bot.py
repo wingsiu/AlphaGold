@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+"""Small launcher for running trading_bot.py in live best-base mode.
+
+PyCharm Play-button friendly: run this file directly.
+"""
+
+from __future__ import annotations
+
+import argparse
+import subprocess
+import sys
+from pathlib import Path
+
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+TRADING_BOT_SCRIPT = PROJECT_ROOT / "trading_bot.py"
+
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(description="Launch trading_bot.py in live best-base mode.")
+    p.add_argument("--once", action="store_true", help="Run a single cycle and exit.")
+    p.add_argument("--sleep-seconds", type=int, default=1, help="Cycle sleep seconds for loop mode.")
+    p.add_argument(
+        "--prediction-poll-second",
+        type=int,
+        default=5,
+        help="Second within each minute when prediction refresh runs (default: 5).",
+    )
+    p.add_argument(
+        "--market-data-poll-second",
+        type=int,
+        default=30,
+        help="Second within each minute when market-data sync runs (default: 30).",
+    )
+    p.add_argument(
+        "--prediction-cache-max-rows",
+        type=int,
+        default=1200,
+        help="Maximum rows kept in prediction cache (default: 1200).",
+    )
+    p.add_argument("--size", type=float, default=1.0, help="Position size passed to trading_bot.py.")
+    p.add_argument("--disable-dynamic-target-stop", action="store_true", help="Disable dynamic TP/SL updates.")
+    p.add_argument(
+        "--signal-model-path",
+        default=None,
+        help="Optional best-base model path override.",
+    )
+    p.add_argument(
+        "--weak-periods-json",
+        default="runtime/_tmp_weak_zone_gate_probs_v2.json",
+        help="Weak-period cells JSON used to block entries in weak time cells.",
+    )
+    return p
+
+
+def main() -> int:
+    args = build_parser().parse_args()
+
+    cmd = [
+        sys.executable,
+        "-u",
+        str(TRADING_BOT_SCRIPT),
+        "--signal-model-family",
+        "best_base_state",
+        "--mode",
+        "live",
+        "--sleep-seconds",
+        str(args.sleep_seconds),
+        "--prediction-poll-second",
+        str(args.prediction_poll_second),
+        "--market-data-poll-second",
+        str(args.market_data_poll_second),
+        "--prediction-cache-max-rows",
+        str(args.prediction_cache_max_rows),
+        "--weak-periods-json",
+        str(args.weak_periods_json),
+        "--size",
+        str(args.size),
+    ]
+    if args.once:
+        cmd.append("--once")
+    if args.disable_dynamic_target_stop:
+        cmd.append("--disable-dynamic-target-stop")
+    if args.signal_model_path:
+        cmd.extend(["--signal-model-path", str(args.signal_model_path)])
+
+    return subprocess.call(cmd, cwd=str(PROJECT_ROOT))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+

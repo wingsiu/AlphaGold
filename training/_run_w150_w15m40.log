@@ -1,0 +1,108 @@
+[00:50:31] Starting image-trend pipeline
+[00:50:31] Loading data from MySQL...
+Data successfully loaded: 315470 rows.
+[00:50:33] Bars after resample: 315,470  (+2.6s)
+[00:50:33] Building image-like dataset  (window=150, horizon=40, threshold=0.01, min_range=40.0, min_15m_drop=15.0, min_15m_rise=0.0)...
+  [00:50:33] 15-min image: resampled 21,055 bars, window_15m=40
+  [00:50:34]   5.0%  bars= 15,764/315,281  kept=161  skipped=15,603  elapsed=0.4s  eta≈8s
+  [00:50:34]  10.0%  bars= 31,528/315,281  kept=386  skipped=31,142  elapsed=0.9s  eta≈8s
+  [00:50:35]  15.0%  bars= 47,292/315,281  kept=386  skipped=46,906  elapsed=1.2s  eta≈7s
+  [00:50:35]  20.0%  bars= 63,056/315,281  kept=550  skipped=62,506  elapsed=1.7s  eta≈7s
+  [00:50:35]  25.0%  bars= 78,820/315,281  kept=551  skipped=78,269  elapsed=2.0s  eta≈6s
+  [00:50:36]  30.0%  bars= 94,584/315,281  kept=641  skipped=93,943  elapsed=2.4s  eta≈6s
+  [00:50:36]  35.0%  bars=110,348/315,281  kept=812  skipped=109,536  elapsed=2.8s  eta≈5s
+  [00:50:37]  40.0%  bars=126,112/315,281  kept=1,089  skipped=125,023  elapsed=3.3s  eta≈5s
+  [00:50:37]  45.0%  bars=141,876/315,281  kept=1,549  skipped=140,327  elapsed=3.8s  eta≈5s
+  [00:50:39]  50.0%  bars=157,640/315,281  kept=4,550  skipped=153,090  elapsed=5.1s  eta≈5s
+  [00:50:39]  55.0%  bars=173,404/315,281  kept=6,353  skipped=167,051  elapsed=6.0s  eta≈5s
+  [00:50:40]  60.0%  bars=189,168/315,281  kept=7,886  skipped=181,282  elapsed=6.8s  eta≈5s
+  [00:50:41]  65.0%  bars=204,932/315,281  kept=8,883  skipped=196,049  elapsed=7.5s  eta≈4s
+  [00:50:42]  70.0%  bars=220,696/315,281  kept=10,501  skipped=210,195  elapsed=8.3s  eta≈4s
+  [00:50:43]  75.0%  bars=236,460/315,281  kept=11,840  skipped=224,620  elapsed=9.1s  eta≈3s
+  [00:50:45]  80.0%  bars=252,224/315,281  kept=18,539  skipped=233,685  elapsed=11.5s  eta≈3s
+  [00:50:47]  85.0%  bars=267,988/315,281  kept=24,203  skipped=243,785  elapsed=13.5s  eta≈2s
+  [00:50:49]  90.0%  bars=283,752/315,281  kept=29,192  skipped=254,560  elapsed=15.4s  eta≈2s
+  [00:50:51]  95.0%  bars=299,516/315,281  kept=34,660  skipped=264,856  elapsed=17.4s  eta≈1s
+  [00:50:53] 100.0%  bars=315,280/315,281  kept=41,132  skipped=274,148  elapsed=19.8s  eta≈0s
+  [00:50:53] Dataset build done — kept=41,132  skipped=274,149  took=19.8s
+[00:50:53] Dataset ready: kept=41,132  skipped=274,149  (+19.9s)
+[00:50:53] Split: train=28,792  test=12,340
+Class balance train (down/flat/up): [1140, 26738, 914]
+Class balance test  (down/flat/up): [634, 11355, 351]
+[00:50:53] Optimising stage probability thresholds on train-validation split...
+[00:51:34] Prob-grid progress: 5/25
+[00:51:35] Prob-grid progress: 10/25
+[00:51:36] Prob-grid progress: 15/25
+[00:51:37] Prob-grid progress: 20/25
+[00:51:38] Prob-grid progress: 25/25
+
+    stage1   stage2      score  signals  total_pnl
+      0.50     0.55     341.38       94     352.11 ◄ best
+      0.50     0.50     330.20      101     328.56
+      0.50     0.60     246.23       91     258.12
+      0.65     0.55     219.43       36     365.71
+      0.65     0.50     212.09       39     339.61
+      0.55     0.55     208.07       71     246.93
+      0.60     0.55     199.52       51     279.39
+      0.55     0.50     180.98       75     208.98
+      0.60     0.50     179.06       55     241.44
+      0.65     0.60     166.35       34     285.29
+[00:51:38] Probability optimisation done — total=5.1s
+[00:51:38] → Best probability gates: stage1=0.50, stage2=0.55  (+45.1s)
+[00:51:38] Training two-stage model...
+[00:52:02] Training done  (+23.4s)
+
+── Stage 1 : flat vs trend ─────────────────────────────────────
+   Accuracy=0.8931   Balanced=0.5910
+   Confusion matrix  (rows=true, cols=pred)  [flat | trend]
+             pred_flat  pred_trend
+   true_flat    10793         562
+   true_trend     757         228
+              precision    recall  f1-score   support
+
+        flat       0.93      0.95      0.94     11355
+       trend       0.29      0.23      0.26       985
+
+    accuracy                           0.89     12340
+   macro avg       0.61      0.59      0.60     12340
+weighted avg       0.88      0.89      0.89     12340
+
+── Stage 2 : down vs up (on trend-predicted samples) ───────────
+   Accuracy=0.6535   Balanced=0.5465
+   Confusion matrix  (rows=true, cols=pred)  [down | up]
+            pred_down   pred_up
+   true_down     131        46
+   true_up        33        18
+              precision    recall  f1-score   support
+
+        down       0.80      0.74      0.77       177
+          up       0.28      0.35      0.31        51
+
+    accuracy                           0.65       228
+   macro avg       0.54      0.55      0.54       228
+weighted avg       0.68      0.65      0.67       228
+
+── Full 3-class (down / flat / up) ─────────────────────────────
+   Confusion matrix  (rows=true, cols=pred)  [down | flat | up]
+             pred_down  pred_flat  pred_up
+   true_down      131        457       46
+   true_flat      233      10793      329
+   true_up         33        300       18
+              precision    recall  f1-score   support
+
+        down       0.33      0.21      0.25       634
+        flat       0.93      0.95      0.94     11355
+          up       0.05      0.05      0.05       351
+
+    accuracy                           0.89     12340
+   macro avg       0.44      0.40      0.41     12340
+weighted avg       0.88      0.89      0.88     12340
+
+── Directional PnL check ───────────────────────────────────────
+   trades=790  total=$2802.87  avg_trade=$3.55
+   n_days=9  avg_day=$311.43  positive_days=55.6%%
+[00:52:02] Saving model and report...
+
+Saved model  : training/image_trend_model_w150_w15m40.joblib
+Saved report : training/image_trend_report_w150_w15m40.json
+[00:52:02] All done — total elapsed: 1m31s  (+0.1s)

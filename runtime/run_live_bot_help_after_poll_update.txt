@@ -1,0 +1,24 @@
+usage: run_live_bot.py [-h] [--once] [--sleep-seconds SLEEP_SECONDS]
+                       [--prediction-poll-second PREDICTION_POLL_SECOND]
+                       [--market-data-poll-second MARKET_DATA_POLL_SECOND]
+                       [--size SIZE] [--disable-dynamic-target-stop]
+                       [--signal-model-path SIGNAL_MODEL_PATH]
+
+Launch trading_bot.py in live best-base mode.
+
+options:
+  -h, --help            show this help message and exit
+  --once                Run a single cycle and exit.
+  --sleep-seconds SLEEP_SECONDS
+                        Cycle sleep seconds for loop mode.
+  --prediction-poll-second PREDICTION_POLL_SECOND
+                        Second within each minute when prediction refresh runs
+                        (default: 5).
+  --market-data-poll-second MARKET_DATA_POLL_SECOND
+                        Second within each minute when market-data sync runs
+                        (default: 30).
+  --size SIZE           Position size passed to trading_bot.py.
+  --disable-dynamic-target-stop
+                        Disable dynamic TP/SL updates.
+  --signal-model-path SIGNAL_MODEL_PATH
+                        Optional best-base model path override.

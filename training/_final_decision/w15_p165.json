@@ -1,0 +1,176 @@
+{
+  "config": {
+    "table": "gold_prices",
+    "start_date": "2025-05-20",
+    "end_date": "2026-04-10",
+    "timeframe": "1min",
+    "window": 150,
+    "window_15m": 40,
+    "min_window_range": 40.0,
+    "min_15m_drop": 15.0,
+    "min_15m_rise": 15.0,
+    "horizon": 40,
+    "trend_threshold": 0.01,
+    "adverse_limit": 15.0,
+    "test_size": 0.4,
+    "max_samples": null,
+    "optimize": false,
+    "optimize_prob": false,
+    "two_branch": false,
+    "two_branch_stage": "both",
+    "max_flat_ratio": 4.0,
+    "classifier": "gradient_boosting",
+    "stage1_min_prob": 0.65,
+    "stage2_min_prob": 0.7,
+    "stage1_min_prob_1m": null,
+    "stage1_min_prob_15m": null,
+    "stage2_min_prob_1m": null,
+    "stage2_min_prob_15m": null,
+    "random_state": 42,
+    "model_out": "training/_final_decision/w15_p165.joblib",
+    "report_out": "training/_final_decision/w15_p165.json"
+  },
+  "threshold_used": 0.01,
+  "horizon_used": 40,
+  "min_window_range_used": 40.0,
+  "window_15m": 40,
+  "min_15m_drop": 15.0,
+  "min_15m_rise": 15.0,
+  "two_branch": false,
+  "two_branch_stage": "both",
+  "n_1m_feats": 1350,
+  "stage1_min_prob": 0.65,
+  "stage2_min_prob": 0.7,
+  "stage1_min_prob_1m": null,
+  "stage1_min_prob_15m": null,
+  "stage2_min_prob_1m": null,
+  "stage2_min_prob_15m": null,
+  "feature_shape": [
+    9,
+    190
+  ],
+  "n_kept": 41132,
+  "n_skipped": 274149,
+  "train_samples": 24679,
+  "test_samples": 16453,
+  "stage1": {
+    "accuracy": 0.9298608156567192,
+    "balanced_accuracy": 0.5480273911236619,
+    "confusion_matrix": [
+      [
+        15182,
+        195
+      ],
+      [
+        959,
+        117
+      ]
+    ],
+    "confusion_labels": [
+      "flat",
+      "trend"
+    ],
+    "classification_report": {
+      "flat": {
+        "precision": 0.9405860851248373,
+        "recall": 0.98731872276777,
+        "f1-score": 0.9633860016498509,
+        "support": 15377.0
+      },
+      "trend": {
+        "precision": 0.375,
+        "recall": 0.1087360594795539,
+        "f1-score": 0.1685878962536023,
+        "support": 1076.0
+      },
+      "accuracy": 0.9298608156567192,
+      "macro avg": {
+        "precision": 0.6577930425624187,
+        "recall": 0.5480273911236619,
+        "f1-score": 0.5659869489517266,
+        "support": 16453.0
+      },
+      "weighted avg": {
+        "precision": 0.9035976558053014,
+        "recall": 0.9298608156567192,
+        "f1-score": 0.9114074712051683,
+        "support": 16453.0
+      }
+    }
+  },
+  "stage2": {
+    "accuracy": 0.5128205128205128,
+    "balanced_accuracy": 0.3509803921568627,
+    "confusion_matrix": [
+      [
+        58,
+        44
+      ],
+      [
+        13,
+        2
+      ]
+    ],
+    "confusion_labels": [
+      "down",
+      "up"
+    ],
+    "classification_report": {
+      "down": {
+        "precision": 0.8169014084507042,
+        "recall": 0.5686274509803921,
+        "f1-score": 0.6705202312138728,
+        "support": 102.0
+      },
+      "up": {
+        "precision": 0.043478260869565216,
+        "recall": 0.13333333333333333,
+        "f1-score": 0.06557377049180328,
+        "support": 15.0
+      },
+      "accuracy": 0.5128205128205128,
+      "macro avg": {
+        "precision": 0.4301898346601347,
+        "recall": 0.3509803921568627,
+        "f1-score": 0.36804700085283804,
+        "support": 117.0
+      },
+      "weighted avg": {
+        "precision": 0.7177445946582506,
+        "recall": 0.5128205128205128,
+        "f1-score": 0.5929629926597614,
+        "support": 117.0
+      }
+    }
+  },
+  "full_confusion_matrix": [
+    [
+      58,
+      585,
+      44
+    ],
+    [
+      99,
+      15182,
+      96
+    ],
+    [
+      13,
+      374,
+      2
+    ]
+  ],
+  "full_confusion_labels": [
+    "down",
+    "flat",
+    "up"
+  ],
+  "directional_pnl": {
+    "trades": 312,
+    "total_pnl": 763.839999999991,
+    "avg_trade": 2.4482051282050996,
+    "n_days": 6,
+    "avg_day": 127.30666666666518,
+    "positive_days_pct": 66.66666666666666
+  }
+}

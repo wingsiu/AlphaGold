@@ -1,0 +1,11 @@
+[08:46:07] Starting image-trend pipeline
+[08:46:07] Loading data from MySQL...
+Data successfully loaded: 315470 rows.
+[08:46:09] Bars after resample: 315,470  (+2.6s)
+Traceback (most recent call last):
+  File "/Users/alpha/Desktop/python/AlphaGold/training/image_trend_ml.py", line 1542, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/alpha/Desktop/python/AlphaGold/training/image_trend_ml.py", line 1200, in main
+    raise ValueError("--use-state-features is currently supported for 1m-only mode (no --two-branch)")
+ValueError: --use-state-features is currently supported for 1m-only mode (no --two-branch)

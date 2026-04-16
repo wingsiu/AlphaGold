@@ -1,0 +1,5 @@
+stage1 {'total_features': None, 'wick_lower_sum': None, 'wick_upper_sum': None, 'wick_total_sum': None}
+stage2 {'total_features': None, 'wick_lower_sum': None, 'wick_upper_sum': None, 'wick_total_sum': None}
+bundle_use_15m_wick_features True
+bundle_n_1m_feats 1650
+image_channel_names_tail ['long_lower_wick_flag', 'long_upper_wick_flag']

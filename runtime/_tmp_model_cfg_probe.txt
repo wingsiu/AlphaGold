@@ -1,0 +1,13 @@
+{
+  "window": 150,
+  "horizon": 25,
+  "min_window_range": 40.0,
+  "min_15m_drop": 15.0,
+  "min_15m_rise": 0.0,
+  "disable_time_filter": true,
+  "last_bar_wr90_high": null,
+  "last_bar_wr90_low": null,
+  "weak_periods_json": null,
+  "timeframe": "1min",
+  "pred_history_len": 150
+}

@@ -17,7 +17,9 @@ def main() -> int:
         "--start-date", "2025-11-01",
         "--end-date", "2026-02-04",
         "--window", "120",
+        "--window-15m", "0",        # 1m-only baseline (15m branch disabled)
         "--min-window-range", "40",
+        "--min-15m-drop", "20",
         "--horizon", "25",
         "--trend-threshold", "0.004",
         "--max-samples", "3000",

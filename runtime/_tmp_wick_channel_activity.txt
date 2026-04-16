@@ -1,0 +1,10 @@
+data_type <class 'dict'>
+data_keys ['X_tensor', 'y', 'ts', 'curr_a', 'entry_a', 'fut_a', 'entry_ts_a', 'fut_ts_a', 'kept', 'skipped']
+has_X True
+shape (62489, 11, 150)
+low_nonzero 236250
+up_nonzero 76500
+samples_with_any_low 1575
+samples_with_any_up 510
+low_unique [0.0, 1.0]
+up_unique [0.0, 1.0]

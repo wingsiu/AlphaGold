@@ -1,0 +1,39 @@
+{
+  "strategy_name": "Support Bounce Strategy",
+  "period": {
+    "start_date": "2025-05-01",
+    "end_date": "2026-02-04"
+  },
+  "support_detection": {
+    "min_15min_range": 20,
+    "min_lower_wick_pct": 35,
+    "min_reversal_size": 8,
+    "check_fvg": true,
+    "min_fvg_gap": 0.5
+  },
+  "entry": {
+    "entry_zone_min": 0,
+    "entry_zone_max": 8,
+    "entry_offset": 2
+  },
+  "exit": {
+    "stop_loss": 12,
+    "max_hold_bars": 12,
+    "fixed_target": 20,
+    "use_dynamic_target": false
+  },
+  "dynamic_target": {
+    "range_thresholds": [
+      20,
+      35,
+      50
+    ],
+    "targets": [
+      12,
+      18,
+      24,
+      30
+    ]
+  }
+}
+

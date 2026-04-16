@@ -1,0 +1,399 @@
+{
+  "report_in": "/Users/alpha/Desktop/python/AlphaGold/training/_wfC_r0_flat250_400_u58_68.json",
+  "cycles_used": 10,
+  "execution_semantics": {},
+  "original": {
+    "trades": 1332,
+    "total_pnl": 5052.050000000002,
+    "profit_factor": 1.5929281228471064,
+    "avg_day": 80.19126984126987,
+    "positive_days_pct": 77.77777777777779,
+    "win_rate_pct": 48.1981981981982,
+    "trade_max_drawdown": -340.0500000000002,
+    "daily_max_drawdown": -181.6100000000015
+  },
+  "replay": {
+    "trades": 1436,
+    "total_pnl": 4985.909999999998,
+    "profit_factor": 1.5355849217125281,
+    "avg_day": 77.90484374999997,
+    "positive_days_pct": 75.0,
+    "win_rate_pct": 47.07520891364902,
+    "trade_max_drawdown": -316.8900000000003,
+    "daily_max_drawdown": -127.51000000000022
+  },
+  "delta": {
+    "trades": 104,
+    "total_pnl": -66.14000000000397,
+    "profit_factor": -0.05734320113457825,
+    "avg_day": -2.2864260912699024,
+    "positive_days_pct": -2.7777777777777857,
+    "win_rate_pct": -1.1229892845491776,
+    "trade_max_drawdown": 23.159999999999854,
+    "daily_max_drawdown": 54.10000000000127
+  },
+  "original_exit_reason_counts": {
+    "reverse_signal": 585,
+    "stop_loss": 432,
+    "target_hit": 253,
+    "timeout": 62
+  },
+  "replay_exit_reason_counts": {
+    "reverse_signal": 660,
+    "stop_loss": 468,
+    "target_hit": 248,
+    "timeout": 60
+  },
+  "cycle_deltas": [
+    {
+      "cycle_id": 1,
+      "test_start": "2025-11-24T20:31:00+00:00",
+      "test_end": "2025-12-05T18:35:00+00:00",
+      "original": {
+        "trades": 8,
+        "total_pnl": -28.029999999998836,
+        "profit_factor": 0.4846479132193577,
+        "avg_day": -5.605999999999767,
+        "positive_days_pct": 40.0,
+        "win_rate_pct": 37.5,
+        "trade_max_drawdown": -18.269999999999527,
+        "daily_max_drawdown": -18.0
+      },
+      "replay": {
+        "trades": 8,
+        "total_pnl": -55.86999999999898,
+        "profit_factor": 0.09095346566873129,
+        "avg_day": -11.173999999999797,
+        "positive_days_pct": 0.0,
+        "win_rate_pct": 25.0,
+        "trade_max_drawdown": -37.86999999999898,
+        "daily_max_drawdown": -37.86999999999898
+      },
+      "delta": {
+        "trades": 0,
+        "total_pnl": -27.840000000000146,
+        "profit_factor": -0.3936944475506264,
+        "avg_day": -5.56800000000003,
+        "positive_days_pct": -40.0,
+        "win_rate_pct": -12.5,
+        "trade_max_drawdown": -19.599999999999454,
+        "daily_max_drawdown": -19.86999999999898
+      }
+    },
+    {
+      "cycle_id": 2,
+      "test_start": "2025-12-10T20:04:00+00:00",
+      "test_end": "2025-12-18T19:31:00+00:00",
+      "original": {
+        "trades": 6,
+        "total_pnl": 41.1899999999996,
+        "profit_factor": 5.61254199328135,
+        "avg_day": 13.729999999999867,
+        "positive_days_pct": 66.66666666666666,
+        "win_rate_pct": 83.33333333333334,
+        "trade_max_drawdown": 0.0,
+        "daily_max_drawdown": 0.0
+      },
+      "replay": {
+        "trades": 7,
+        "total_pnl": 47.30000000000018,
+        "profit_factor": 2.8777292576418905,
+        "avg_day": 15.766666666666728,
+        "positive_days_pct": 66.66666666666666,
+        "win_rate_pct": 57.14285714285714,
+        "trade_max_drawdown": -10.75,
+        "daily_max_drawdown": 0.0
+      },
+      "delta": {
+        "trades": 1,
+        "total_pnl": 6.110000000000582,
+        "profit_factor": -2.7348127356394594,
+        "avg_day": 2.0366666666668607,
+        "positive_days_pct": 0.0,
+        "win_rate_pct": -26.190476190476204,
+        "trade_max_drawdown": -10.75,
+        "daily_max_drawdown": 0.0
+      }
+    },
+    {
+      "cycle_id": 3,
+      "test_start": "2025-12-22T01:40:00+00:00",
+      "test_end": "2026-01-02T17:32:00+00:00",
+      "original": {
+        "trades": 19,
+        "total_pnl": 179.8799999999983,
+        "profit_factor": 18.481049562680568,
+        "avg_day": 44.96999999999957,
+        "positive_days_pct": 100.0,
+        "win_rate_pct": 84.21052631578947,
+        "trade_max_drawdown": -10.020000000000437,
+        "daily_max_drawdown": 0.0
+      },
+      "replay": {
+        "trades": 17,
+        "total_pnl": 155.58999999999742,
+        "profit_factor": 7.113555992141178,
+        "avg_day": 38.897499999999354,
+        "positive_days_pct": 100.0,
+        "win_rate_pct": 82.35294117647058,
+        "trade_max_drawdown": -15.0,
+        "daily_max_drawdown": 0.0
+      },
+      "delta": {
+        "trades": -2,
+        "total_pnl": -24.290000000000873,
+        "profit_factor": -11.36749357053939,
+        "avg_day": -6.072500000000218,
+        "positive_days_pct": 0.0,
+        "win_rate_pct": -1.8575851393188856,
+        "trade_max_drawdown": -4.979999999999563,
+        "daily_max_drawdown": 0.0
+      }
+    },
+    {
+      "cycle_id": 4,
+      "test_start": "2026-01-04T23:03:00+00:00",
+      "test_end": "2026-01-16T18:14:00+00:00",
+      "original": {
+        "trades": 6,
+        "total_pnl": 0.6199999999998909,
+        "profit_factor": 1.0214532871972277,
+        "avg_day": 0.20666666666663028,
+        "positive_days_pct": 66.66666666666666,
+        "win_rate_pct": 50.0,
+        "trade_max_drawdown": -28.900000000000546,
+        "daily_max_drawdown": -13.910000000000764
+      },
+      "replay": {
+        "trades": 4,
+        "total_pnl": 14.210000000000036,
+        "profit_factor": 1.7894444444444464,
+        "avg_day": 4.736666666666679,
+        "positive_days_pct": 100.0,
+        "win_rate_pct": 75.0,
+        "trade_max_drawdown": -18.0,
+        "daily_max_drawdown": 0.0
+      },
+      "delta": {
+        "trades": -2,
+        "total_pnl": 13.590000000000146,
+        "profit_factor": 0.7679911572472187,
+        "avg_day": 4.530000000000048,
+        "positive_days_pct": 33.33333333333334,
+        "win_rate_pct": 25.0,
+        "trade_max_drawdown": 10.900000000000546,
+        "daily_max_drawdown": 13.910000000000764
+      }
+    },
+    {
+      "cycle_id": 5,
+      "test_start": "2026-01-18T23:01:00+00:00",
+      "test_end": "2026-01-30T21:59:00+00:00",
+      "original": {
+        "trades": 237,
+        "total_pnl": 645.6100000000042,
+        "profit_factor": 1.3222282115014146,
+        "avg_day": 80.70125000000053,
+        "positive_days_pct": 62.5,
+        "win_rate_pct": 36.708860759493675,
+        "trade_max_drawdown": -340.0500000000002,
+        "daily_max_drawdown": -28.530000000000655
+      },
+      "replay": {
+        "trades": 266,
+        "total_pnl": 843.189999999995,
+        "profit_factor": 1.4092499745186426,
+        "avg_day": 105.39874999999938,
+        "positive_days_pct": 62.5,
+        "win_rate_pct": 39.097744360902254,
+        "trade_max_drawdown": -316.8900000000003,
+        "daily_max_drawdown": -81.0
+      },
+      "delta": {
+        "trades": 29,
+        "total_pnl": 197.57999999999083,
+        "profit_factor": 0.08702176301722808,
+        "avg_day": 24.697499999998854,
+        "positive_days_pct": 0.0,
+        "win_rate_pct": 2.3888836014085797,
+        "trade_max_drawdown": 23.159999999999854,
+        "daily_max_drawdown": -52.469999999999345
+      }
+    },
+    {
+      "cycle_id": 6,
+      "test_start": "2026-02-01T23:02:00+00:00",
+      "test_end": "2026-02-13T19:47:00+00:00",
+      "original": {
+        "trades": 454,
+        "total_pnl": 1566.7300000000023,
+        "profit_factor": 1.5594305465296479,
+        "avg_day": 156.67300000000023,
+        "positive_days_pct": 90.0,
+        "win_rate_pct": 49.33920704845815,
+        "trade_max_drawdown": -136.3199999999997,
+        "daily_max_drawdown": -1.0599999999994907
+      },
+      "replay": {
+        "trades": 519,
+        "total_pnl": 1372.4500000000025,
+        "profit_factor": 1.415392950320524,
+        "avg_day": 137.24500000000026,
+        "positive_days_pct": 70.0,
+        "win_rate_pct": 44.50867052023121,
+        "trade_max_drawdown": -162.02000000000135,
+        "daily_max_drawdown": -97.53000000000065
+      },
+      "delta": {
+        "trades": 65,
+        "total_pnl": -194.27999999999975,
+        "profit_factor": -0.14403759620912382,
+        "avg_day": -19.42799999999997,
+        "positive_days_pct": -20.0,
+        "win_rate_pct": -4.830536528226936,
+        "trade_max_drawdown": -25.700000000001637,
+        "daily_max_drawdown": -96.47000000000116
+      }
+    },
+    {
+      "cycle_id": 7,
+      "test_start": "2026-02-16T00:03:00+00:00",
+      "test_end": "2026-02-27T20:57:00+00:00",
+      "original": {
+        "trades": 22,
+        "total_pnl": 122.63999999999851,
+        "profit_factor": 2.0100477680777415,
+        "avg_day": 24.5279999999997,
+        "positive_days_pct": 80.0,
+        "win_rate_pct": 59.09090909090909,
+        "trade_max_drawdown": -38.42000000000007,
+        "daily_max_drawdown": -16.109999999999673
+      },
+      "replay": {
+        "trades": 27,
+        "total_pnl": 152.94000000000142,
+        "profit_factor": 2.2553558236887685,
+        "avg_day": 25.490000000000236,
+        "positive_days_pct": 83.33333333333334,
+        "win_rate_pct": 55.55555555555556,
+        "trade_max_drawdown": -28.039999999999964,
+        "daily_max_drawdown": -13.339999999999236
+      },
+      "delta": {
+        "trades": 5,
+        "total_pnl": 30.30000000000291,
+        "profit_factor": 0.24530805561102698,
+        "avg_day": 0.9620000000005362,
+        "positive_days_pct": 3.333333333333343,
+        "win_rate_pct": -3.5353535353535364,
+        "trade_max_drawdown": 10.38000000000011,
+        "daily_max_drawdown": 2.7700000000004366
+      }
+    },
+    {
+      "cycle_id": 8,
+      "test_start": "2026-03-01T23:04:00+00:00",
+      "test_end": "2026-03-20T20:59:00+00:00",
+      "original": {
+        "trades": 238,
+        "total_pnl": 1324.650000000005,
+        "profit_factor": 2.061750066126438,
+        "avg_day": 101.89615384615423,
+        "positive_days_pct": 84.61538461538461,
+        "win_rate_pct": 55.88235294117647,
+        "trade_max_drawdown": -165.32999999999993,
+        "daily_max_drawdown": -21.039999999997235
+      },
+      "replay": {
+        "trades": 221,
+        "total_pnl": 1162.4600000000019,
+        "profit_factor": 1.8317425337359265,
+        "avg_day": 89.42000000000014,
+        "positive_days_pct": 84.61538461538461,
+        "win_rate_pct": 52.03619909502263,
+        "trade_max_drawdown": -113.34999999999764,
+        "daily_max_drawdown": -23.710000000000036
+      },
+      "delta": {
+        "trades": -17,
+        "total_pnl": -162.19000000000324,
+        "profit_factor": -0.23000753239051153,
+        "avg_day": -12.47615384615409,
+        "positive_days_pct": 0.0,
+        "win_rate_pct": -3.8461538461538396,
+        "trade_max_drawdown": 51.98000000000229,
+        "daily_max_drawdown": -2.6700000000028012
+      }
+    },
+    {
+      "cycle_id": 9,
+      "test_start": "2026-03-22T22:01:00+00:00",
+      "test_end": "2026-04-02T17:34:00+00:00",
+      "original": {
+        "trades": 310,
+        "total_pnl": 1017.299999999992,
+        "profit_factor": 1.4753427345874524,
+        "avg_day": 113.03333333333245,
+        "positive_days_pct": 77.77777777777779,
+        "win_rate_pct": 44.516129032258064,
+        "trade_max_drawdown": -252.6700000000028,
+        "daily_max_drawdown": -181.6100000000015
+      },
+      "replay": {
+        "trades": 333,
+        "total_pnl": 1137.579999999999,
+        "profit_factor": 1.5301920208799409,
+        "avg_day": 126.39777777777766,
+        "positive_days_pct": 88.88888888888889,
+        "win_rate_pct": 50.750750750750754,
+        "trade_max_drawdown": -262.79999999999836,
+        "daily_max_drawdown": -127.51000000000022
+      },
+      "delta": {
+        "trades": 23,
+        "total_pnl": 120.28000000000702,
+        "profit_factor": 0.05484928629248853,
+        "avg_day": 13.364444444445212,
+        "positive_days_pct": 11.1111111111111,
+        "win_rate_pct": 6.23462171849269,
+        "trade_max_drawdown": -10.129999999995562,
+        "daily_max_drawdown": 54.10000000000127
+      }
+    },
+    {
+      "cycle_id": 10,
+      "test_start": "2026-04-05T22:01:00+00:00",
+      "test_end": "2026-04-09T17:17:00+00:00",
+      "original": {
+        "trades": 32,
+        "total_pnl": 186.7500000000009,
+        "profit_factor": 2.6108858794099925,
+        "avg_day": 62.250000000000306,
+        "positive_days_pct": 100.0,
+        "win_rate_pct": 62.5,
+        "trade_max_drawdown": -45.090000000000146,
+        "daily_max_drawdown": 0.0
+      },
+      "replay": {
+        "trades": 35,
+        "total_pnl": 167.52999999999975,
+        "profit_factor": 2.026217457886681,
+        "avg_day": 55.84333333333325,
+        "positive_days_pct": 100.0,
+        "win_rate_pct": 57.14285714285714,
+        "trade_max_drawdown": -51.20999999999913,
+        "daily_max_drawdown": 0.0
+      },
+      "delta": {
+        "trades": 3,
+        "total_pnl": -19.220000000001164,
+        "profit_factor": -0.5846684215233116,
+        "avg_day": -6.406666666667057,
+        "positive_days_pct": 0.0,
+        "win_rate_pct": -5.357142857142861,
+        "trade_max_drawdown": -6.119999999998981,
+        "daily_max_drawdown": 0.0
+      }
+    }
+  ]
+}
