@@ -2669,3 +2669,43 @@ requests.exceptions.ConnectionError: HTTPSConnectionPool(host='deal.ig.com', por
 2026-04-16 19:50:10,425 | INFO | BEST_BASE INPUT: source=prediction_memory_cache reload_each_cycle=False recent_days=10 raw_rows=1200 bars_1m=1200 candidates=39 window=150 horizon=25 pred_history=150 start=2026-04-15T14:50:00+00:00 end=2026-04-16T11:50:00+00:00
 2026-04-16 19:50:10,427 | INFO | BEST_BASE SIGNAL: side=flat prob=0.0026 tradable=0 trend_prob=0.0026 reason=stage1_gate pred=1 raw_rows=1200 bars_1m=1200 candidates=39 market_open=1 close=4817.68 range150=🟢✓ drop15m=🟢✓
 2026-04-16 19:50:10,427 | INFO | SIGNAL STATUS: hour=[OK] signal=🔴✗ weak_filter=[OK] side=flat prob=0.0026 tradable=0 reason=stage1_gate freshness=[OK] lag_min=0.2 pred=1
+2026-04-16 19:50:33,294 | INFO | MARKET POLL: bucket=2026-04-16T11:50:00+00:00 | pos=none | gold:rows_added=1 ; aud:rows_added=1 ; oil:rows_added=1
+2026-04-16 19:50:33,295 | INFO | ACCOUNT STATUS: bucket=2026-04-16T11:50:00+00:00 | acct=enabled bal=268.09USD eq=268.09USD pnl=0.00USD
+2026-04-16 19:51:00,002 | INFO | Best-base prediction cycle not due yet; waiting for second=5.
+2026-04-16 19:51:05,487 | INFO | Prediction cache refresh instrument=gold requested=2026-04-16T11:50:00+00:00 -> 2026-04-16T11:51:05.004099+00:00 fetched_rows=2 appended_rows=0 cache_rows=1200
+2026-04-16 19:51:05,487 | INFO | Loaded raw=1200 latest_raw=2026-04-16T11:51:00+00:00 signal_model_family=best_base_state
+2026-04-16 19:51:06,982 | INFO | BEST_BASE INPUT: source=prediction_memory_cache reload_each_cycle=False recent_days=10 raw_rows=1200 bars_1m=1200 candidates=40 window=150 horizon=25 pred_history=150 start=2026-04-15T14:51:00+00:00 end=2026-04-16T11:51:00+00:00
+2026-04-16 19:51:06,994 | INFO | BEST_BASE SIGNAL: side=flat prob=0.0070 tradable=0 trend_prob=0.0070 reason=stage1_gate pred=1 raw_rows=1200 bars_1m=1200 candidates=40 market_open=1 close=4819.28 range150=🟢✓ drop15m=🟢✓
+2026-04-16 19:51:06,996 | INFO | SIGNAL STATUS: hour=[OK] signal=🔴✗ weak_filter=[OK] side=flat prob=0.0070 tradable=0 reason=stage1_gate freshness=[OK] lag_min=0.1 pred=1
+2026-04-16 19:51:33,281 | INFO | MARKET POLL: bucket=2026-04-16T11:51:00+00:00 | pos=none | gold:rows_added=1 ; aud:rows_added=1 ; oil:rows_added=1
+2026-04-16 19:51:33,284 | INFO | ACCOUNT STATUS: bucket=2026-04-16T11:51:00+00:00 | acct=enabled bal=268.09USD eq=268.09USD pnl=0.00USD
+2026-04-16 19:52:00,001 | INFO | Best-base prediction cycle not due yet; waiting for second=5.
+2026-04-16 19:52:05,424 | INFO | Prediction cache refresh instrument=gold requested=2026-04-16T11:51:00+00:00 -> 2026-04-16T11:52:05.008320+00:00 fetched_rows=2 appended_rows=0 cache_rows=1200
+2026-04-16 19:52:05,424 | INFO | Loaded raw=1200 latest_raw=2026-04-16T11:52:00+00:00 signal_model_family=best_base_state
+2026-04-16 19:52:06,778 | INFO | BEST_BASE INPUT: source=prediction_memory_cache reload_each_cycle=False recent_days=10 raw_rows=1200 bars_1m=1200 candidates=41 window=150 horizon=25 pred_history=150 start=2026-04-15T14:52:00+00:00 end=2026-04-16T11:52:00+00:00
+2026-04-16 19:52:06,783 | INFO | BEST_BASE SIGNAL: side=flat prob=0.0069 tradable=0 trend_prob=0.0069 reason=stage1_gate pred=1 raw_rows=1200 bars_1m=1200 candidates=41 market_open=1 close=4818.87 range150=🟢✓ drop15m=🟢✓
+2026-04-16 19:52:06,783 | INFO | SIGNAL STATUS: hour=[OK] signal=🔴✗ weak_filter=[OK] side=flat prob=0.0069 tradable=0 reason=stage1_gate freshness=[OK] lag_min=0.1 pred=1
+2026-04-16 19:52:33,530 | INFO | MARKET POLL: bucket=2026-04-16T11:52:00+00:00 | pos=none | gold:rows_added=1 ; aud:rows_added=1 ; oil:rows_added=1
+2026-04-16 19:52:33,531 | INFO | ACCOUNT STATUS: bucket=2026-04-16T11:52:00+00:00 | acct=enabled bal=268.09USD eq=268.09USD pnl=0.00USD
+2026-04-16 19:53:00,005 | INFO | Best-base prediction cycle not due yet; waiting for second=5.
+2026-04-16 19:53:05,434 | INFO | Prediction cache refresh instrument=gold requested=2026-04-16T11:52:00+00:00 -> 2026-04-16T11:53:05.013548+00:00 fetched_rows=2 appended_rows=0 cache_rows=1200
+2026-04-16 19:53:05,435 | INFO | Loaded raw=1200 latest_raw=2026-04-16T11:53:00+00:00 signal_model_family=best_base_state
+2026-04-16 19:53:08,116 | INFO | BEST_BASE INPUT: source=prediction_memory_cache reload_each_cycle=False recent_days=10 raw_rows=1200 bars_1m=1200 candidates=42 window=150 horizon=25 pred_history=150 start=2026-04-15T14:53:00+00:00 end=2026-04-16T11:53:00+00:00
+2026-04-16 19:53:08,120 | INFO | BEST_BASE SIGNAL: side=flat prob=0.0046 tradable=0 trend_prob=0.0046 reason=stage1_gate pred=1 raw_rows=1200 bars_1m=1200 candidates=42 market_open=1 close=4818.57 range150=🟢✓ drop15m=🟢✓
+2026-04-16 19:53:08,122 | INFO | SIGNAL STATUS: hour=[OK] signal=🔴✗ weak_filter=[OK] side=flat prob=0.0046 tradable=0 reason=stage1_gate freshness=[OK] lag_min=0.1 pred=1
+2026-04-16 19:53:33,161 | INFO | MARKET POLL: bucket=2026-04-16T11:53:00+00:00 | pos=none | gold:rows_added=1 ; aud:rows_added=1 ; oil:rows_added=1
+2026-04-16 19:53:33,162 | INFO | ACCOUNT STATUS: bucket=2026-04-16T11:53:00+00:00 | acct=enabled bal=268.09USD eq=268.09USD pnl=0.00USD
+2026-04-16 19:54:00,001 | INFO | Best-base prediction cycle not due yet; waiting for second=5.
+2026-04-16 19:54:05,428 | INFO | Prediction cache refresh instrument=gold requested=2026-04-16T11:53:00+00:00 -> 2026-04-16T11:54:05.006218+00:00 fetched_rows=2 appended_rows=0 cache_rows=1200
+2026-04-16 19:54:05,429 | INFO | Loaded raw=1200 latest_raw=2026-04-16T11:54:00+00:00 signal_model_family=best_base_state
+2026-04-16 19:54:06,979 | INFO | BEST_BASE INPUT: source=prediction_memory_cache reload_each_cycle=False recent_days=10 raw_rows=1200 bars_1m=1200 candidates=43 window=150 horizon=25 pred_history=150 start=2026-04-15T14:54:00+00:00 end=2026-04-16T11:54:00+00:00
+2026-04-16 19:54:06,980 | INFO | BEST_BASE SIGNAL: side=flat prob=0.0025 tradable=0 trend_prob=0.0025 reason=stage1_gate pred=1 raw_rows=1200 bars_1m=1200 candidates=43 market_open=1 close=4818.77 range150=🟢✓ drop15m=🟢✓
+2026-04-16 19:54:06,981 | INFO | SIGNAL STATUS: hour=[OK] signal=🔴✗ weak_filter=[OK] side=flat prob=0.0025 tradable=0 reason=stage1_gate freshness=[OK] lag_min=0.1 pred=1
+2026-04-16 19:54:33,203 | INFO | MARKET POLL: bucket=2026-04-16T11:54:00+00:00 | pos=none | gold:rows_added=1 ; aud:rows_added=1 ; oil:rows_added=1
+2026-04-16 19:54:33,204 | INFO | ACCOUNT STATUS: bucket=2026-04-16T11:54:00+00:00 | acct=enabled bal=268.09USD eq=268.09USD pnl=0.00USD
+2026-04-16 19:55:00,005 | INFO | Best-base prediction cycle not due yet; waiting for second=5.
+2026-04-16 19:55:05,420 | INFO | Prediction cache refresh instrument=gold requested=2026-04-16T11:54:00+00:00 -> 2026-04-16T11:55:05.010752+00:00 fetched_rows=2 appended_rows=0 cache_rows=1200
+2026-04-16 19:55:05,420 | INFO | Loaded raw=1200 latest_raw=2026-04-16T11:55:00+00:00 signal_model_family=best_base_state
+2026-04-16 19:55:05,982 | INFO | BEST_BASE INPUT: source=prediction_memory_cache reload_each_cycle=False recent_days=10 raw_rows=1200 bars_1m=1200 candidates=44 window=150 horizon=25 pred_history=150 start=2026-04-15T14:55:00+00:00 end=2026-04-16T11:55:00+00:00
+2026-04-16 19:55:05,982 | INFO | BEST_BASE SIGNAL: side=flat prob=0.0116 tradable=0 trend_prob=0.0116 reason=stage1_gate pred=1 raw_rows=1200 bars_1m=1200 candidates=44 market_open=1 close=4818.44 range150=🟢✓ drop15m=🟢✓
+2026-04-16 19:55:05,983 | INFO | SIGNAL STATUS: hour=[OK] signal=🔴✗ weak_filter=[OK] side=flat prob=0.0116 tradable=0 reason=stage1_gate freshness=[OK] lag_min=0.1 pred=1
