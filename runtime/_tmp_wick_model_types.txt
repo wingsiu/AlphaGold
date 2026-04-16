@@ -1,4 +1,0 @@
-stage1 type <class 'sklearn.ensemble._hist_gradient_boosting.gradient_boosting.HistGradientBoostingClassifier'>
- has feature_importances_ False
-stage2 type <class 'sklearn.ensemble._hist_gradient_boosting.gradient_boosting.HistGradientBoostingClassifier'>
- has feature_importances_ False

@@ -28,7 +28,52 @@ It does **not** impose extra session-window filters by default. The intent is to
 let the trading bot follow the model's own signal logic unless a separate risk
 gate is explicitly requested later.
 
-The workspace currently has historical IG access in `ig_scripts/ig_data_api.py`, but it does not yet expose the live trading methods used by `old_bot.py` (`place_order`, `get_positions`, `delete_position`, etc.).
+The workspace now includes a live broker adapter path (`brokers/ig_live.py`) used by `trading_bot.py --mode live` for order submit/amend/close and position/account queries.
+
+## Current bot status (latest runtime snapshot)
+
+From `runtime/trading_bot_status.json` (latest saved state):
+
+- mode: `live`
+- signal family: `best_base_state`
+- model: `training/_tmp_feature_single_split_aligned_state_stop_sweep/w150_h25_thr0.008_d15_lt0.006_st0.008_ls12_ss18_r0_f2.5_p10.48_p20.5_sf.joblib`
+- configured size: `1.0`
+- open position: `none`
+- realized trades/PnL: `0` trades, `$0.00` realized (this is runtime-session status, not backtest performance)
+- prediction poll second: `5`
+- market-data poll second: `30`
+- prediction cache: `1200` rows (latest bucket `2026-04-16T11:59:00+00:00`)
+- latest best-base runtime: `bars=1200`, `candidates=48`, `latest_close=4822.07`, `range150_ok=true`, `drop15m_ok=true`
+- latest market sync bucket: `2026-04-16T11:59:00+00:00` with `gold/aud/oil` summaries present and no market/prediction cache errors
+
+This section is a runtime health snapshot only; strategy quality comparisons remain in the backtest/replay reports under `training/` and `runtime/`.
+
+## Implementation progress
+
+### Done
+
+- best-base signal path is integrated and defaulted (`best_base_state`)
+- live mode path is implemented (`--mode live`) with IG broker adapter wiring
+- dynamic target/stop update flow exists and can be disabled via `--disable-dynamic-target-stop`
+- deal ID tracking is persisted in runtime state/status for open-position traceability
+- split timing loop is implemented:
+  - prediction path around `:05` (with pre-prediction cache refresh)
+  - MySQL market data sync around `:30`
+- weak-period filter loading is supported via `--weak-periods-json`
+- periodic runtime reporting exists (`:00` / `:30` buckets) with rolling 30m/60m/day/week summaries
+- PyCharm launcher support exists via `run_live_bot.py` and `.idea/runConfigurations/`
+
+### In progress / hardening
+
+- live close-result reconciliation hardening (broker-side closes vs bot-intended exits)
+- production guardrails tuning (session filter policy, weak-cell governance, kill-switch thresholds)
+- signal presentation/log readability alignment with legacy operator workflow
+
+### Next priority
+
+- finalize robust close-source reconciliation and add clear close-source stats in runtime outputs
+- add explicit live risk controls (max daily loss, max live trades/day, spread/slippage gate)
+- expand bot-vs-backtest parity diagnostics on shared date slices (trade-by-trade diff)
 
 So this version gives you:
 

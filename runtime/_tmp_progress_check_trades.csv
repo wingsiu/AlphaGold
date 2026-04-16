@@ -1,1 +1,0 @@
-signal_idx,ts,entry_time,exit_time,pred,side,entry_price,exit_price,pnl,entry_signal_prob,last_signal_prob,target_updates,last_target_signal_idx,last_target_time,last_target_price,exit_reason
