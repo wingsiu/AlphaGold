@@ -65,10 +65,8 @@ BAR_INTERVAL = pd.Timedelta(minutes=15)
 MIN_FEATURE_BARS = 120
 DEFAULT_SIGNAL_MODEL_FAMILY = "best_base_state"
 DEFAULT_MODEL_DIR = "training/ml_models_15m_nextbar_060_corr"
-DEFAULT_BEST_BASE_MODEL_PATH = (
-	"training/_tmp_feature_single_split_aligned_state_stop_sweep/"
-	"w150_h25_thr0.008_d15_lt0.006_st0.008_ls12_ss18_r0_f2.5_p10.48_p20.5_sf.joblib"
-)
+DEFAULT_BEST_BASE_MODEL_PATH = "runtime/backtest_model_best_base_weak_nostate.joblib"
+DEFAULT_WEAK_PERIODS_JSON = "runtime/bot_assets/weak-filter.json"
 DEFAULT_MAX_ADVERSE_LOW_PCT = 0.40
 DEFAULT_FORWARD_BARS = 4
 DEFAULT_THRESHOLD_PCT = 0.60
@@ -132,7 +130,7 @@ class BotConfig:
 	prediction_poll_second: int = PREDICTION_POLL_SECOND
 	market_data_poll_second: int = MARKET_DATA_POLL_SECOND
 	prediction_cache_max_rows: int = 1200
-	weak_periods_json: Optional[str] = "runtime/_tmp_weak_zone_gate_probs_v2.json"
+	weak_periods_json: Optional[str] = DEFAULT_WEAK_PERIODS_JSON
 	dynamic_target_stop_enabled: bool = True
 
 
@@ -2437,7 +2435,7 @@ def build_parser() -> argparse.ArgumentParser:
 	p.add_argument("--signal-model-family", default=DEFAULT_SIGNAL_MODEL_FAMILY,
 		choices=["best_base_state", "legacy_15m_nextbar"])
 	p.add_argument("--signal-model-path", default=DEFAULT_BEST_BASE_MODEL_PATH,
-		help="Path to the promoted best-base image_trend model artifact when using --signal-model-family best_base_state.")
+		help="Path to best-base no-retrain model artifact (default: runtime/backtest_model_best_base_weak_nostate.joblib).")
 	p.add_argument("--model-type", default="gradient_boosting", choices=["random_forest", "gradient_boosting"])
 	p.add_argument("--model-dir", default=DEFAULT_MODEL_DIR)
 	p.add_argument("--market-sync-only", action="store_true",
@@ -2467,8 +2465,8 @@ def build_parser() -> argparse.ArgumentParser:
 		help="Second within each minute when the MySQL backup/snapshot task should store latest IG data for later backtest usage (default: 30).")
 	p.add_argument("--prediction-cache-max-rows", type=int, default=1200,
 		help="Maximum rows kept in in-memory prediction cache (default: 1200).")
-	p.add_argument("--weak-periods-json", default="runtime/_tmp_weak_zone_gate_probs_v2.json",
-		help="Optional weak-period cells JSON to block entries in weak hours (default: runtime/_tmp_weak_zone_gate_probs_v2.json).")
+	p.add_argument("--weak-periods-json", default=DEFAULT_WEAK_PERIODS_JSON,
+		help="Optional weak-period cells JSON to block entries in weak hours (default: runtime/bot_assets/weak-filter.json).")
 	p.add_argument("--disable-dynamic-target-stop", action="store_true",
 		help="Disable dynamic target/stop updates while a position is open.")
 	p.add_argument("--once", action="store_true")
