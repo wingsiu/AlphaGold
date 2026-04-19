@@ -25,7 +25,6 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 IMAGE_TREND_ML = PROJECT_ROOT / "training" / "image_trend_ml.py"
@@ -33,8 +32,6 @@ MODEL_IN       = PROJECT_ROOT / "runtime" / "bot_assets" / "backtest_model_best_
 RESULTS_DIR    = Path(__file__).parent / "results"
 RESULTS_DIR.mkdir(exist_ok=True)
 
-HK_TZ = ZoneInfo("Asia/Hong_Kong")
-NY_TZ = ZoneInfo("America/New_York")
 
 # ── Candidate definitions ─────────────────────────────────────────────────────
 CANDIDATES: dict[str, dict] = {
@@ -69,10 +66,9 @@ FIXED = {
     "classifier":             "gradient_boosting",
 }
 
-# Weak-filter generation thresholds
-WEAK_MIN_TRADES    = 20   # minimum trades in cell to consider filtering
-WEAK_MAX_WIN_RATE  = 0.40 # filter cells with win rate below this
-WEAK_MAX_AVG_TRADE = 0.0  # filter cells with avg PnL below this
+# Weak-filter generation thresholds — same as backtest_no_retrain.py
+WEAK_MIN_TRADES   = 3     # minimum trades in cell
+WEAK_MAX_WIN_RATE = 40.0  # filter if win_rate < this AND total_pnl < 0
 
 DAY_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
@@ -141,48 +137,47 @@ def _parse_report(report_path: Path) -> dict:
         return {"error": str(e)}
 
 
-def _generate_weak_filter(trades_csv: Path, out_json: Path) -> list[dict]:
-    """Identify weak cells (session:day:hour) from trades and write weak-filter JSON."""
-    df = pd.read_csv(trades_csv)
-    if df.empty:
+def _generate_weak_filter(report_json: Path, out_json: Path) -> list[dict]:
+    """Extract weak cells from report using the same rule as backtest_no_retrain.py:
+       total_pnl < 0  AND  win_rate < 40%  AND  trades >= 3
+       across all sessions: hkt, london, ny
+    """
+    r = json.loads(report_json.read_text())
+    dp = r.get("directional_pnl", r)
+    try:
+        session_heatmaps = dp["all"]["time_distribution"]["session_heatmaps"]
+    except KeyError:
+        print("  WARNING: session_heatmaps not found in report — no weak filter generated")
         out_json.write_text(json.dumps({"weak_cells": []}, indent=2))
         return []
 
-    df["entry_time"] = pd.to_datetime(df["entry_time"], utc=True)
-    df["pnl"] = df["pnl"].astype(float)
-
-    # Build NY session heatmap
-    df["hour_ny"] = df["entry_time"].dt.tz_convert(NY_TZ).dt.hour
-    df["weekday_ny"] = df["entry_time"].dt.tz_convert(NY_TZ).dt.day_name()
-    df["hour_hkt"] = df["entry_time"].dt.tz_convert(HK_TZ).dt.hour
-    df["weekday_hkt"] = df["entry_time"].dt.tz_convert(HK_TZ).dt.day_name()
-
     weak_cells: list[dict] = []
+    for session in ("hkt", "london", "ny"):
+        day_map = session_heatmaps.get(session, {}).get("cell_stats", {})
+        for day, hour_map in day_map.items():
+            for hour, st in hour_map.items():
+                if not st:
+                    continue
+                t = int(st.get("trades", 0))
+                pnl_total = float(st.get("total_pnl", 0.0))
+                wr = st.get("win_rate_pct", None)
+                wr = float(wr) if wr is not None else None
+                if t >= WEAK_MIN_TRADES and pnl_total < 0.0 and wr is not None and wr < WEAK_MAX_WIN_RATE:
+                    weak_cells.append({
+                        "session": session, "day": str(day), "hour": hour,
+                        "_trades": t, "_wr": round(wr, 1), "_pnl": round(pnl_total, 2),
+                    })
 
-    # Check NY session cells (08:00-15:00 NY)
-    ny = df[(df["hour_ny"] >= 8) & (df["hour_ny"] <= 15)]
-    for (day, hour), grp in ny.groupby(["weekday_ny", "hour_ny"]):
-        n = len(grp)
-        if n < WEAK_MIN_TRADES:
-            continue
-        wr = float((grp["pnl"] > 0).mean())
-        avg = float(grp["pnl"].mean())
-        if wr < WEAK_MAX_WIN_RATE or avg < WEAK_MAX_AVG_TRADE:
-            weak_cells.append({
-                "session": "ny",
-                "day": str(day),
-                "hour": f"{int(hour):02d}:00",
-                "trades": n,
-                "win_rate": round(wr * 100, 1),
-                "avg_pnl": round(avg, 2),
-            })
-
-    weak_cells.sort(key=lambda c: (c["session"], DAY_ORDER.index(c["day"]) if c["day"] in DAY_ORDER else 99, c["hour"]))
-    payload = {"weak_cells": [{k: v for k, v in c.items() if k in ("session", "day", "hour")} for c in weak_cells]}
+    weak_cells.sort(key=lambda c: (
+        c["session"],
+        DAY_ORDER.index(c["day"]) if c["day"] in DAY_ORDER else 99,
+        c["hour"],
+    ))
+    payload = {"weak_cells": [{"session": c["session"], "day": c["day"], "hour": c["hour"]} for c in weak_cells]}
     out_json.write_text(json.dumps(payload, indent=2))
     print(f"\n  Generated weak filter: {len(weak_cells)} cells → {out_json.name}")
     for c in weak_cells:
-        print(f"    {c['session']}:{c['day']}:{c['hour']}  wr={c['win_rate']}%  avg={c['avg_pnl']}")
+        print(f"    {c['session']}:{c['day']}:{c['hour']}  wr={c['_wr']}%  total_pnl={c['_pnl']}  trades={c['_trades']}")
     return weak_cells
 
 
@@ -220,9 +215,9 @@ def run_candidate(cid: str) -> None:
         return
 
     # ── Generate per-candidate weak filter ───────────────────────────────────
-    trades1 = Path(str(base1) + "_trades.csv")
+    report1 = Path(str(base1) + "_report.json")
     weak_json = Path(str(prefix) + "_weak_filter.json")
-    cells = _generate_weak_filter(trades1, weak_json)
+    cells = _generate_weak_filter(report1, weak_json)
 
     # ── Pass 2: with generated weak filter ───────────────────────────────────
     base2 = Path(str(prefix) + "_pass2")
