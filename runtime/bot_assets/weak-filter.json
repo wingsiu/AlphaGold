@@ -78,6 +78,11 @@
     {
       "session": "ny",
       "day": "Monday",
+      "hour": "09:00"
+    },
+    {
+      "session": "ny",
+      "day": "Monday",
       "hour": "10:00"
     },
     {
@@ -104,6 +109,11 @@
       "session": "ny",
       "day": "Thursday",
       "hour": "15:00"
+    },
+    {
+      "session": "ny",
+      "day": "Friday",
+      "hour": "09:00"
     },
     {
       "session": "ny",
