@@ -67,9 +67,9 @@ DEFAULT_SIGNAL_MODEL_FAMILY = "best_base_state"
 DEFAULT_MODEL_DIR = "training/ml_models_15m_nextbar_060_corr"
 DEFAULT_BEST_BASE_MODEL_PATH = "runtime/bot_assets/backtest_model_best_base_weak_nostate.joblib"
 DEFAULT_WEAK_PERIODS_JSON = "runtime/bot_assets/weak-filter.json"
-DEFAULT_MAX_ADVERSE_LOW_PCT = 0.40
+DEFAULT_MAX_ADVERSE_LOW_PCT = 15.0   # absolute points (matches backtest long_adverse_limit=15, short=18)
 DEFAULT_FORWARD_BARS = 4
-DEFAULT_THRESHOLD_PCT = 0.60
+DEFAULT_THRESHOLD_PCT = 0.80         # % of entry price (matches backtest long/short_target_threshold=0.008 = 0.8%)
 PREDICTION_POLL_SECOND = 5
 MARKET_DATA_POLL_SECOND = 30
 TRADEABLE_MARKET_STATUSES = {"TRADEABLE", "EDIT", "ONLINE", "ON_AUCTION", "DEAL_NO_EDIT"}
@@ -114,6 +114,7 @@ class BotConfig:
 	probability_cutoff: float = 0.50
 	take_profit_pct: float = DEFAULT_THRESHOLD_PCT
 	stop_loss_pct: float = DEFAULT_MAX_ADVERSE_LOW_PCT
+	short_stop_loss_pct: float = 18.0  # absolute points for short stops (matches backtest short_adverse_limit=18)
 	max_hold_bars: int = DEFAULT_FORWARD_BARS
 	size: float = 1.0
 	mode: str = "signal_only"  # paper | signal_only | live
@@ -1269,6 +1270,7 @@ class AlphaGoldTradingBot:
 				instrument=Price.Gold,
 				stop_loss_pct=cfg.stop_loss_pct,
 				take_profit_pct=cfg.take_profit_pct,
+				short_stop_loss_pct=getattr(cfg, "short_stop_loss_pct", cfg.stop_loss_pct),
 			)
 		else:
 			broker_adapter = DryRunBrokerAdapter()
@@ -1888,16 +1890,13 @@ class AlphaGoldTradingBot:
 
 		entry = find_next_entry_minute(raw, signal_entry_time)
 		if entry is None:
-			if self.cfg.mode != "signal_only":
-				self.logger.info("Signal qualified, but next entry minute is not available yet.")
-				self._save_state()
-				return
 			entry_time = pd.Timestamp(signal_entry_time)
 			entry_time = entry_time.tz_convert("UTC") if entry_time.tzinfo else entry_time.tz_localize("UTC")
 			entry_row = raw.iloc[-1]
 			self.logger.info(
-				"Signal-only fallback entry used because next minute is unavailable: entry_time=%s",
+				"Next entry bar not yet in cache; using last-close fallback entry: entry_time=%s mode=%s",
 				entry_time.isoformat(),
+				self.cfg.mode,
 			)
 		else:
 			entry_time, entry_row = entry
@@ -2515,6 +2514,8 @@ def build_parser() -> argparse.ArgumentParser:
 	p.add_argument("--probability-cutoff", type=float, default=0.50)
 	p.add_argument("--take-profit-pct", type=float, default=DEFAULT_THRESHOLD_PCT)
 	p.add_argument("--stop-loss-pct", type=float, default=DEFAULT_MAX_ADVERSE_LOW_PCT)
+	p.add_argument("--short-stop-loss-pct", type=float, default=18.0,
+		help="Absolute point stop distance for short trades (default: 18, matching backtest short_adverse_limit)")
 	p.add_argument("--max-hold-bars", type=int, default=DEFAULT_FORWARD_BARS)
 	p.add_argument("--size", type=float, default=1.0)
 	p.add_argument("--mode", default="signal_only", choices=["paper", "signal_only", "live"])

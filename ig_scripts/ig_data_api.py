@@ -41,6 +41,7 @@ PRICE_COLUMNS = [
 ]
 
 # Price Instruments Enum
+
 class Price(Enum):
     Oil = ("CC.D.CL.BMU.IP", "prices")
     AUD = ("CS.D.AUDUSD.MINI.IP", "aud_prices")
@@ -491,7 +492,7 @@ def place_otc_market_order(
 ) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "epic": instrument.epic,
-        "expiry": "DFB",
+        "expiry": "-",
         "direction": str(direction).upper(),
         "size": float(size),
         "orderType": "MARKET",

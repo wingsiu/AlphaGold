@@ -24,10 +24,13 @@ class IGLiveBrokerAdapter:
 		instrument: Price = Price.Gold,
 		stop_loss_pct: float,
 		take_profit_pct: float,
+		short_stop_loss_pct: float | None = None,
 	):
 		self.service = service
 		self.instrument = instrument
 		self.stop_loss_pct = float(stop_loss_pct)
+		# short stop defaults to stop_loss_pct if not provided
+		self.short_stop_loss_pct = float(short_stop_loss_pct) if short_stop_loss_pct is not None else self.stop_loss_pct
 		self.take_profit_pct = float(take_profit_pct)
 
 	def submit_order(self, request: OrderRequest) -> OrderResult:
@@ -45,7 +48,9 @@ class IGLiveBrokerAdapter:
 			)
 
 		entry_price = float(request.entry_price)
-		stop_distance = abs(entry_price) * (self.stop_loss_pct / 100.0)
+		# stop_loss_pct / short_stop_loss_pct are absolute point distances (e.g. 15 = 15 pts)
+		# take_profit_pct is % of entry price (e.g. 0.80 = 0.8%)
+		stop_distance = self.stop_loss_pct if direction == "BUY" else self.short_stop_loss_pct
 		limit_distance = abs(entry_price) * (self.take_profit_pct / 100.0)
 
 		try:

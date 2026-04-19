@@ -32,43 +32,21 @@ def _weak_cells_count(path: Path) -> int:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Launch trading_bot.py in live best-base mode.")
     p.add_argument("--once", action="store_true", help="Run a single cycle and exit.")
-    p.add_argument("--sleep-seconds", type=int, default=5, help="Cycle sleep seconds for loop mode.")
-    p.add_argument(
-        "--prediction-poll-second",
-        type=int,
-        default=5,
-        help="Second within each minute when prediction refresh runs (default: 5).",
-    )
-    p.add_argument(
-        "--market-data-poll-second",
-        type=int,
-        default=30,
-        help="Second within each minute when market-data sync runs (default: 30).",
-    )
-    p.add_argument(
-        "--prediction-cache-max-rows",
-        type=int,
-        default=1200,
-        help="Maximum rows kept in prediction cache (default: 1200).",
-    )
-    p.add_argument("--size", type=float, default=1.0, help="Position size passed to trading_bot.py.")
+    p.add_argument("--sleep-seconds", type=int, default=5)
+    p.add_argument("--prediction-poll-second", type=int, default=5)
+    p.add_argument("--market-data-poll-second", type=int, default=30)
+    p.add_argument("--prediction-cache-max-rows", type=int, default=1200)
+    p.add_argument("--size", type=float, default=2)
+    p.add_argument("--stop-loss-pct", type=float, default=15.0,
+        help="Absolute point stop distance for long trades (default: 15 pts)")
+    p.add_argument("--short-stop-loss-pct", type=float, default=18.0,
+        help="Absolute point stop distance for short trades (default: 18 pts)")
+    p.add_argument("--take-profit-pct", type=float, default=0.80,
+        help="Target as %% of entry price (default: 0.80 = 0.8%%)")
     p.add_argument("--disable-dynamic-target-stop", action="store_true", help="Disable dynamic TP/SL updates.")
-    p.add_argument(
-        "--max-hold-minutes",
-        type=float,
-        default=60.0,
-        help="Hard timeout in minutes for live positions (default: 60 — Candidate E).",
-    )
-    p.add_argument(
-        "--signal-model-path",
-        default=None,
-        help="Optional best-base model path override.",
-    )
-    p.add_argument(
-        "--weak-periods-json",
-        default=DEFAULT_WEAK_PERIODS_JSON,
-        help="Weak-period cells JSON used to block entries in weak time cells.",
-    )
+    p.add_argument("--max-hold-minutes", type=float, default=60.0)
+    p.add_argument("--signal-model-path", default=None)
+    p.add_argument("--weak-periods-json", default=DEFAULT_WEAK_PERIODS_JSON)
     return p
 
 
@@ -99,29 +77,23 @@ def main() -> int:
         sys.executable,
         "-u",
         str(TRADING_BOT_SCRIPT),
-        "--signal-model-family",
-        "best_base_state",
-        "--mode",
-        "live",
-        "--sleep-seconds",
-        str(args.sleep_seconds),
-        "--prediction-poll-second",
-        str(args.prediction_poll_second),
-        "--market-data-poll-second",
-        str(args.market_data_poll_second),
-        "--prediction-cache-max-rows",
-        str(args.prediction_cache_max_rows),
-        "--weak-periods-json",
-        effective_weak_periods_json,
-        "--size",
-        str(args.size),
+        "--signal-model-family", "best_base_state",
+        "--mode", "live",
+        "--sleep-seconds", str(args.sleep_seconds),
+        "--prediction-poll-second", str(args.prediction_poll_second),
+        "--market-data-poll-second", str(args.market_data_poll_second),
+        "--prediction-cache-max-rows", str(args.prediction_cache_max_rows),
+        "--weak-periods-json", effective_weak_periods_json,
+        "--size", str(args.size),
+        "--stop-loss-pct", str(args.stop_loss_pct),
+        "--short-stop-loss-pct", str(args.short_stop_loss_pct),
+        "--take-profit-pct", str(args.take_profit_pct),
+        "--max-hold-minutes", str(args.max_hold_minutes),
     ]
     if args.once:
         cmd.append("--once")
     if args.disable_dynamic_target_stop:
         cmd.append("--disable-dynamic-target-stop")
-    if args.max_hold_minutes is not None:
-        cmd.extend(["--max-hold-minutes", str(args.max_hold_minutes)])
     if args.signal_model_path:
         cmd.extend(["--signal-model-path", str(args.signal_model_path)])
 

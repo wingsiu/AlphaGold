@@ -2,7 +2,7 @@
   <configuration default="false" name="Live Bot Once" type="PythonConfigurationType" factoryName="Python">
     <module name="AlphaGold" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/run_live_bot.py" />
-    <option name="PARAMETERS" value="--once --prediction-poll-second 5 --market-data-poll-second 30 --prediction-cache-max-rows 1200 --max-hold-minutes 60" />
+    <option name="PARAMETERS" value="--once --size 2" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
@@ -12,4 +12,3 @@
     <method v="2" />
   </configuration>
 </component>
-
