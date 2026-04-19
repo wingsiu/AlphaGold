@@ -2,3 +2,19 @@
 __pycache__/
 *.pyc
 
+# Runtime logs and state (never commit)
+runtime/trading_bot.log
+runtime/mock_best_base_replay.log
+runtime/trading_bot_state.json
+runtime/trading_bot_status.json
+
+# Temp diagnostic outputs (prefixed with _)
+runtime/_*
+
+# Backtest result directories
+runtime/_tmp_backtest_no_retrain/
+runtime/backtest_no_retrain/
+
+# Recovery backups
+training/*.recovery_baseline_*
+
