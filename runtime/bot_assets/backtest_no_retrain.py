@@ -239,6 +239,7 @@ def _paths_for_run(spec: RunSpec, save_results: bool) -> dict[str, Path]:
         "fullstats": base / f"{stem}_directional_pnl_fullstats.json",
         "report_fullstats": base / f"{stem}_report_fullstats.json",
         "signals_table": base / f"{stem}_signals_table.csv",
+        "signals_table_by_time": base / f"{stem}_signals_table_by_time.csv",
         "trades_table_entry": base / f"{stem}_trades_table_by_entry_time.csv",
     }
     if spec.option_key.startswith("C_"):
@@ -445,6 +446,91 @@ def _build_signals_table(report: dict[str, Any]) -> pd.DataFrame:
     )
 
 
+def _build_signals_detail_by_time(trades_path: Path) -> pd.DataFrame:
+    t = pd.read_csv(trades_path)
+    if t.empty:
+        return pd.DataFrame()
+    if "ts" in t.columns:
+        t["ts"] = pd.to_datetime(t["ts"], errors="coerce", utc=True)
+    if "last_target_time" in t.columns:
+        t["last_target_time"] = pd.to_datetime(t["last_target_time"], errors="coerce", utc=True)
+
+    rows: list[dict[str, Any]] = []
+    for _, row in t.iterrows():
+        entry_price = row.get("entry_price", None)
+        target_price = row.get("last_target_price", None)
+        side = row.get("side", "")
+        rows.append(
+            {
+                "trigger_event": "entry",
+                "signal_idx": row.get("signal_idx", None),
+                "ts": row.get("ts", pd.NaT),
+                "side": side,
+                "entry_price": entry_price,
+                "target_price": target_price,
+                "signal_prob": row.get("entry_signal_prob", None),
+                "trade_exit_reason": row.get("exit_reason", ""),
+            }
+        )
+
+        updates = int(row.get("target_updates", 0) or 0)
+        if updates > 0:
+            event_price = row.get("last_target_price", entry_price)
+            rows.append(
+                {
+                    "trigger_event": "change_target_stop",
+                    "signal_idx": row.get("last_target_signal_idx", None),
+                    "ts": row.get("last_target_time", pd.NaT),
+                    "side": side,
+                    "entry_price": event_price,
+                    "target_price": target_price,
+                    "signal_prob": row.get("last_signal_prob", None),
+                    "trade_exit_reason": row.get("exit_reason", ""),
+                }
+            )
+
+    out = pd.DataFrame(rows)
+    if out.empty:
+        return out
+    if "ts" in out.columns:
+        out = out.sort_values(["ts", "trigger_event"], kind="stable")
+    return out.reset_index(drop=True)
+
+
+def _print_signals_table_hkt(signals_df: pd.DataFrame, max_rows: int = 100) -> None:
+    shown = signals_df.head(max_rows).copy()
+    if shown.empty:
+        print("(empty)")
+        return
+
+    ts_hkt = shown["ts"].dt.tz_convert("Asia/Hong_Kong") if "ts" in shown.columns else pd.Series(dtype="datetime64[ns]")
+    print(
+        f"{'#':<5} {'Date':<12} {'Time (HKT)':<12} {'Side':<8} {'Price':<10} {'Target':<10} {'Prob':<8} {'Event':<20} {'Signal#':<8}"
+    )
+    print("-" * 108)
+    for i, row in shown.iterrows():
+        ts_i = ts_hkt.iloc[i] if i < len(ts_hkt) else pd.NaT
+        date_str = ts_i.strftime("%Y-%m-%d") if pd.notna(ts_i) else "-"
+        time_str = ts_i.strftime("%H:%M") if pd.notna(ts_i) else "-"
+        side = str(row.get("side", ""))
+        entry_price = row.get("entry_price", None)
+        target_price = row.get("target_price", None)
+        prob = row.get("signal_prob", None)
+        event = str(row.get("trigger_event", ""))
+        signal_idx = row.get("signal_idx", None)
+        entry_str = f"{float(entry_price):.2f}" if pd.notna(entry_price) else "-"
+        target_str = f"{float(target_price):.2f}" if pd.notna(target_price) else "-"
+        prob_str = f"{float(prob):.3f}" if pd.notna(prob) else "-"
+        idx_str = str(int(signal_idx)) if pd.notna(signal_idx) else "-"
+        print(
+            f"{i + 1:<5} {date_str:<12} {time_str:<12} {side:<8} {entry_str:<10} {target_str:<10} "
+            f"{prob_str:<8} {event:<20} {idx_str:<8}"
+        )
+
+    if len(signals_df) > max_rows:
+        print(f"... showing first {max_rows} of {len(signals_df)} rows")
+
+
 def _build_trades_table_by_entry_time(trades_path: Path) -> pd.DataFrame:
     t = pd.read_csv(trades_path)
     if t.empty:
@@ -505,14 +591,17 @@ def _print_trades_table_hkt(by_entry: pd.DataFrame, max_rows: int = 100) -> None
         print(f"... showing first {max_rows} of {len(by_entry)} rows")
 
 
-def _print_option_ab_tables(report: dict[str, Any], trades_path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
+def _print_option_ab_tables(report: dict[str, Any], trades_path: Path) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     signals = _build_signals_table(report)
+    signals_detail = _build_signals_detail_by_time(trades_path)
     by_entry = _build_trades_table_by_entry_time(trades_path)
     print("\n=== Signals Table ===")
     print(signals.to_string(index=False) if not signals.empty else "(empty)")
+    print("\n=== Signals Table (By Time, HKT) ===")
+    _print_signals_table_hkt(signals_detail, max_rows=100)
     print("\n=== Trades Table (By Entry Time) ===")
     _print_trades_table_hkt(by_entry, max_rows=100)
-    return signals, by_entry
+    return signals, signals_detail, by_entry
 
 
 def _build_monthly_stats_from_trades(trades_path: Path) -> pd.DataFrame:
@@ -618,6 +707,7 @@ def main() -> int:
     _print_heatmaps(pnl)
 
     signals_df = pd.DataFrame()
+    signals_detail_df = pd.DataFrame()
     trades_entry_df = pd.DataFrame()
     monthly_df = pd.DataFrame()
     run_report = json.loads(run_paths["report"].read_text(encoding="utf-8"))
@@ -628,7 +718,7 @@ def main() -> int:
             print("Try increasing --b-pretrain-days (for example: 30).")
             return 2
     _print_testing_period(run_report, run_paths["trades"])
-    signals_df, trades_entry_df = _print_option_ab_tables(run_report, run_paths["trades"])
+    signals_df, signals_detail_df, trades_entry_df = _print_option_ab_tables(run_report, run_paths["trades"])
     if spec.option_key.startswith("C_"):
         monthly_df = _build_monthly_stats_from_trades(run_paths["trades"])
         _print_monthly_stats(monthly_df)
@@ -644,6 +734,7 @@ def main() -> int:
         report["directional_pnl"] = pnl
         out_paths["report_fullstats"].write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         signals_df.to_csv(out_paths["signals_table"], index=False)
+        signals_detail_df.to_csv(out_paths["signals_table_by_time"], index=False)
         trades_entry_df.to_csv(out_paths["trades_table_entry"], index=False)
         if "monthly_stats" in out_paths:
             monthly_df.to_csv(out_paths["monthly_stats"], index=False)
@@ -656,6 +747,7 @@ def main() -> int:
         report["directional_pnl"] = pnl
         run_paths["report_fullstats"].write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         signals_df.to_csv(run_paths["signals_table"], index=False)
+        signals_detail_df.to_csv(run_paths["signals_table_by_time"], index=False)
         trades_entry_df.to_csv(run_paths["trades_table_entry"], index=False)
         if "monthly_stats" in run_paths:
             monthly_df.to_csv(run_paths["monthly_stats"], index=False)

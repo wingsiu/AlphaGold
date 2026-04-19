@@ -801,13 +801,23 @@ class IGPredictionDataCache:
 			if self.raw is None or self.raw.empty:
 				bootstrap_rows = int(len(self._bootstrap_from_mysql(now_utc)))
 			before_rows = int(len(self.raw)) if self.raw is not None else 0
-			request_start = now_utc.to_pydatetime() if self.raw is None or self.raw.empty else pd.Timestamp(self.raw.index[-1]).to_pydatetime()
-			fetched_rows = self.price_fetcher(
-				self._service_or_create(),
-				Price.Gold,
-				start_time=request_start,
-				end_time=now_utc.to_pydatetime(),
-			)
+			last_cached_ts = None if self.raw is None or self.raw.empty else pd.Timestamp(self.raw.index[-1])
+			if last_cached_ts is not None:
+				last_cached_ts = last_cached_ts.tz_localize(UTC) if last_cached_ts.tzinfo is None else last_cached_ts.tz_convert(UTC)
+			# Use only fully closed minute bars to keep live input stable/parity-friendly.
+			request_start_ts = now_utc if last_cached_ts is None else (last_cached_ts + pd.Timedelta(minutes=1))
+			request_end_ts = now_utc.floor("min") - pd.Timedelta(minutes=1)
+			request_start = request_start_ts.to_pydatetime()
+			request_end = request_end_ts.to_pydatetime()
+			if request_end < request_start:
+				fetched_rows = []
+			else:
+				fetched_rows = self.price_fetcher(
+					self._service_or_create(),
+					Price.Gold,
+					start_time=request_start,
+					end_time=request_end,
+				)
 			incoming = price_rows_to_frame(fetched_rows)
 			merged = self._merge_raw(incoming, now_utc)
 			after_rows = int(len(merged))
@@ -815,7 +825,7 @@ class IGPredictionDataCache:
 				"instrument": "gold",
 				"bucket_utc": self._last_bucket.isoformat(),
 				"requested_start_utc": pd.Timestamp(request_start).tz_localize(UTC).isoformat() if pd.Timestamp(request_start).tzinfo is None else pd.Timestamp(request_start).tz_convert(UTC).isoformat(),
-				"requested_end_utc": now_utc.isoformat(),
+				"requested_end_utc": pd.Timestamp(request_end).tz_localize(UTC).isoformat() if pd.Timestamp(request_end).tzinfo is None else pd.Timestamp(request_end).tz_convert(UTC).isoformat(),
 				"bootstrap_rows": bootstrap_rows,
 				"fetched_rows": int(len(fetched_rows)),
 				"incoming_rows": int(len(incoming)),

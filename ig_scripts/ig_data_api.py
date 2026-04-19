@@ -176,8 +176,10 @@ def snapshot_to_price_row(snapshot_record: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("Snapshot does not contain any usable bid/offer/mid/high/low price")
     ask_side = _coalesce(offer, base_mid)
     bid_side = _coalesce(bid, base_mid)
-    high_side = _coalesce(high, base_mid)
-    low_side = _coalesce(low, base_mid)
+    # Snapshot high/low are session-level fields, not minute OHLC highs/lows.
+    # Using them here corrupts minute bars with unrealistic extremes.
+    high_side = max(float(ask_side), float(bid_side))
+    low_side = min(float(ask_side), float(bid_side))
 
     return {
         'timestamp': _utc_epoch_ms(bucket_dt),
