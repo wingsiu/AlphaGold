@@ -21,7 +21,9 @@ from datetime import datetime
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-BACKTEST_SCRIPT = PROJECT_ROOT / "runtime" / "bot_assets" / "backtest_no_retrain.py"
+IMAGE_TREND_ML = PROJECT_ROOT / "training" / "image_trend_ml.py"
+MODEL_IN = PROJECT_ROOT / "runtime" / "bot_assets" / "backtest_model_best_base_weak_nostate.joblib"
+WEAK_FILTER = PROJECT_ROOT / "runtime" / "bot_assets" / "weak-filter.json"
 RESULTS_DIR = Path(__file__).parent / "results"
 RESULTS_DIR.mkdir(exist_ok=True)
 
@@ -51,25 +53,38 @@ FIXED = {
 }
 
 
-def _build_cmd(combo: dict) -> list[str]:
+def _build_cmd(combo: dict, run_id: str) -> list[str]:
+    """Build command to call image_trend_ml.py directly (no-retrain mode)."""
+    out_base = RESULTS_DIR / f"run_{run_id}"
     return [
-        sys.executable, str(BACKTEST_SCRIPT),
-        "--option", "C",
-        "--non-interactive",
-        "--stage1-min-prob",       str(combo["stage1_min_prob"]),
-        "--stage2-min-prob",       str(combo["stage2_min_prob"]),
-        "--long-adverse-limit",    str(combo["long_adverse_limit"]),
+        sys.executable, str(IMAGE_TREND_ML),
+        "--start-date", "2025-05-20",
+        "--end-date", "2026-04-10",
+        "--test-start-date", "2025-11-25T17:02:00+00:00",
+        "--timeframe", "1min",
+        "--eval-mode", "single_split",
+        "--disable-time-filter",
+        "--window", "150",
+        "--window-15m", "0",
+        "--min-window-range", str(combo["min_window_range"]),
+        "--min-15m-drop", str(FIXED["min_15m_drop"]),
+        "--min-15m-rise", "0",
+        "--horizon", str(FIXED["horizon"]),
+        "--trend-threshold", str(FIXED["trend_threshold"]),
+        "--adverse-limit", str(FIXED["adverse_limit"]),
         "--long-target-threshold", str(combo["long_target_threshold"]),
-        "--min-window-range",      str(combo["min_window_range"]),
-        "--short-adverse-limit",   str(FIXED["short_adverse_limit"]),
-        "--short-target-threshold",str(FIXED["short_target_threshold"]),
-        "--adverse-limit",         str(FIXED["adverse_limit"]),
-        "--trend-threshold",       str(FIXED["trend_threshold"]),
-        "--window",                str(FIXED["window"]),
-        "--horizon",               str(FIXED["horizon"]),
-        "--min-15m-drop",          str(FIXED["min_15m_drop"]),
-        "--max-flat-ratio",        str(FIXED["max_flat_ratio"]),
-        "--classifier",            FIXED["classifier"],
+        "--short-target-threshold", str(FIXED["short_target_threshold"]),
+        "--long-adverse-limit", str(combo["long_adverse_limit"]),
+        "--short-adverse-limit", str(FIXED["short_adverse_limit"]),
+        "--classifier", FIXED["classifier"],
+        "--max-flat-ratio", str(FIXED["max_flat_ratio"]),
+        "--stage1-min-prob", str(combo["stage1_min_prob"]),
+        "--stage2-min-prob", str(combo["stage2_min_prob"]),
+        "--model-in", str(MODEL_IN),
+        "--model-out", f"{out_base}_model.joblib",
+        "--report-out", f"{out_base}_report.json",
+        "--trades-out", f"{out_base}_trades.csv",
+        "--weak-periods-json", str(WEAK_FILTER),
     ]
 
 
@@ -124,14 +139,18 @@ def main() -> None:
 
         for i, combo in enumerate(combos, 1):
             label = " | ".join(f"{k}={v}" for k, v in combo.items())
+            run_id = f"{timestamp}_{i:03d}"
             print(f"\n[{i}/{len(combos)}] {label}")
-            cmd = _build_cmd(combo)
+
+            cmd = _build_cmd(combo, run_id)
             result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(PROJECT_ROOT))
 
-            # Find the report JSON written by this run
-            tmp_dir = PROJECT_ROOT / "runtime" / "_tmp_backtest_no_retrain"
-            report_files = sorted(tmp_dir.glob("C_full_predefined_*_report_fullstats.json")) if tmp_dir.exists() else []
-            metrics = _parse_report(report_files[-1]) if report_files else {"error": "no report found"}
+            # Parse the report JSON written by this run
+            report_path = RESULTS_DIR / f"run_{run_id}_report.json"
+            if report_path.exists():
+                metrics = _parse_report(report_path)
+            else:
+                metrics = {"error": "no report file"}
 
             if result.returncode != 0:
                 metrics["error"] = result.stderr[-300:] if result.stderr else "non-zero exit"
