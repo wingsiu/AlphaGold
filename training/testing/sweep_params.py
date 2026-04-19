@@ -34,7 +34,7 @@ PARAM_GRID = {
     "stage2_min_prob":        [0.50, 0.55, 0.58],
     "long_adverse_limit":     [12, 15, 18],
     "long_target_threshold":  [0.006, 0.008],
-    "min_window_range":       [40, 50],
+    "min_window_range":       [30, 40, 50],
 }
 
 # Fixed params (not swept)
