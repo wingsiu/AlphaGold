@@ -1,4 +1,0 @@
-Image Trend ML sweep summary
-runs=3 elapsed=0.1s
-
-No successful runs.

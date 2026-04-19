@@ -65,7 +65,7 @@ BAR_INTERVAL = pd.Timedelta(minutes=15)
 MIN_FEATURE_BARS = 120
 DEFAULT_SIGNAL_MODEL_FAMILY = "best_base_state"
 DEFAULT_MODEL_DIR = "training/ml_models_15m_nextbar_060_corr"
-DEFAULT_BEST_BASE_MODEL_PATH = "runtime/backtest_model_best_base_weak_nostate.joblib"
+DEFAULT_BEST_BASE_MODEL_PATH = "runtime/bot_assets/backtest_model_best_base_weak_nostate.joblib"
 DEFAULT_WEAK_PERIODS_JSON = "runtime/bot_assets/weak-filter.json"
 DEFAULT_MAX_ADVERSE_LOW_PCT = 0.40
 DEFAULT_FORWARD_BARS = 4

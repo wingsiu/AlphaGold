@@ -32,7 +32,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from training.rebuild_directional_pnl_from_trades import rebuild_directional_pnl
 
 
-MODEL_IN = PROJECT_ROOT / "runtime/backtest_model_best_base_weak_nostate.joblib"
+MODEL_IN = PROJECT_ROOT / "runtime/bot_assets/backtest_model_best_base_weak_nostate.joblib"
 SCRIPT = PROJECT_ROOT / "training/image_trend_ml.py"
 DEFAULT_WEAK_FILTER_PATH = PROJECT_ROOT / "runtime/bot_assets/weak-filter.json"
 
