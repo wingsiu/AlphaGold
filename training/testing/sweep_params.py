@@ -17,7 +17,8 @@ import itertools
 import json
 import subprocess
 import sys
-from datetime import datetime
+import time
+from datetime import datetime, timedelta
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -110,6 +111,17 @@ def _parse_report(report_path: Path) -> dict:
         return {"error": str(e)}
 
 
+def _fmt_sec(s: float) -> str:
+    m, sec = divmod(int(s), 60)
+    return f"{m}m{sec:02d}s" if m else f"{sec}s"
+
+
+def _bar(done: int, total: int, width: int = 20) -> str:
+    filled = int(width * done / total) if total else 0
+    pct = int(100 * done / total) if total else 0
+    return f"[{'█' * filled}{'░' * (width - filled)}] {pct:3d}%"
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true", help="Print combos only, don't run")
@@ -133,6 +145,9 @@ def main() -> None:
         "trade_max_drawdown", "daily_max_drawdown", "error",
     ]
 
+    sweep_start = time.time()
+    durations: list[float] = []
+
     with open(summary_csv, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
@@ -140,10 +155,25 @@ def main() -> None:
         for i, combo in enumerate(combos, 1):
             label = " | ".join(f"{k}={v}" for k, v in combo.items())
             run_id = f"{timestamp}_{i:03d}"
-            print(f"\n[{i}/{len(combos)}] {label}")
 
+            # ── Progress header ──────────────────────────────────────────────
+            now_str = datetime.now().strftime("%H:%M:%S")
+            elapsed_total = time.time() - sweep_start
+            if durations:
+                avg_sec = sum(durations) / len(durations)
+                remaining_sec = avg_sec * (len(combos) - i + 1)
+                eta_str = (datetime.now() + timedelta(seconds=remaining_sec)).strftime("%H:%M:%S")
+                progress_bar = _bar(i - 1, len(combos))
+                print(f"\n{progress_bar} [{i}/{len(combos)}] {now_str}  elapsed={_fmt_sec(elapsed_total)}  eta={eta_str}")
+            else:
+                print(f"\n[{i}/{len(combos)}] {now_str}  elapsed={_fmt_sec(elapsed_total)}")
+            print(f"  {label}")
+
+            t0 = time.time()
             cmd = _build_cmd(combo, run_id)
             result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(PROJECT_ROOT))
+            run_sec = time.time() - t0
+            durations.append(run_sec)
 
             # Parse the report JSON written by this run
             report_path = RESULTS_DIR / f"run_{run_id}_report.json"
@@ -156,16 +186,22 @@ def main() -> None:
                 metrics["error"] = result.stderr[-300:] if result.stderr else "non-zero exit"
 
             row = {**combo, **metrics}
-            # Fill missing fieldnames with ""
             for fn in fieldnames:
                 row.setdefault(fn, "")
             writer.writerow(row)
             f.flush()
 
-            status = f"  → trades={metrics.get('trades','?')} total_pnl={metrics.get('total_pnl','?')} avg={metrics.get('avg_trade','?')} wr={metrics.get('win_rate_pct','?')}%"
+            status = (f"  → {_fmt_sec(run_sec)}  "
+                      f"trades={metrics.get('trades','?')}  "
+                      f"pnl={metrics.get('total_pnl','?')}  "
+                      f"avg={metrics.get('avg_trade','?')}  "
+                      f"wr={metrics.get('win_rate_pct','?')}%")
+            if metrics.get("error"):
+                status += f"  ⚠ {metrics['error'][:60]}"
             print(status)
 
-    print(f"\n✅ Sweep done. Results: {summary_csv}")
+    total_sec = time.time() - sweep_start
+    print(f"\n✅ Sweep done in {_fmt_sec(total_sec)}. Results: {summary_csv}")
     _print_top(summary_csv)
 
 
