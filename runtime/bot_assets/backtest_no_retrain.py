@@ -454,10 +454,55 @@ def _build_trades_table_by_entry_time(trades_path: Path) -> pd.DataFrame:
         t["exit_time"] = pd.to_datetime(t["exit_time"], errors="coerce", utc=True)
     cols = [
         c
-        for c in ["ts", "entry_time", "exit_time", "side", "entry_price", "exit_price", "pnl", "exit_reason"]
+        for c in ["entry_time", "exit_time", "side", "entry_price", "exit_price", "pnl", "exit_reason"]
         if c in t.columns
     ]
     return t[cols].sort_values("entry_time").reset_index(drop=True)
+
+
+def _fmt_exit_hkt(value: Any) -> str:
+    if pd.isna(value):
+        return "-"
+    ts = pd.to_datetime(value, errors="coerce", utc=True)
+    if pd.isna(ts):
+        return "-"
+    return ts.tz_convert("Asia/Hong_Kong").strftime("%Y-%m-%d %H:%M")
+
+
+def _print_trades_table_hkt(by_entry: pd.DataFrame, max_rows: int = 100) -> None:
+    shown = by_entry.head(max_rows).copy()
+    if shown.empty:
+        print("(empty)")
+        return
+
+    entry_hkt = shown["entry_time"].dt.tz_convert("Asia/Hong_Kong") if "entry_time" in shown.columns else pd.Series(dtype="datetime64[ns]")
+
+    print(
+        f"{'#':<5} {'Date':<12} {'Time (HKT)':<12} {'Side':<8} {'Entry':<10} "
+        f"{'Exit':<10} {'PnL':<10} {'Exit Time (HKT)':<18} {'Reason':<16}"
+    )
+    print("-" * 115)
+
+    for i, row in shown.iterrows():
+        entry_dt = entry_hkt.iloc[i] if i < len(entry_hkt) else pd.NaT
+        date_str = entry_dt.strftime("%Y-%m-%d") if pd.notna(entry_dt) else "-"
+        time_str = entry_dt.strftime("%H:%M") if pd.notna(entry_dt) else "-"
+        side = str(row.get("side", ""))
+        entry_price = row.get("entry_price", None)
+        exit_price = row.get("exit_price", None)
+        pnl = row.get("pnl", None)
+        exit_reason = str(row.get("exit_reason", ""))
+        entry_str = f"{float(entry_price):.2f}" if pd.notna(entry_price) else "-"
+        exit_str = f"{float(exit_price):.2f}" if pd.notna(exit_price) else "-"
+        pnl_str = f"{float(pnl):.2f}" if pd.notna(pnl) else "-"
+        exit_time_str = _fmt_exit_hkt(row.get("exit_time", None))
+        print(
+            f"{i + 1:<5} {date_str:<12} {time_str:<12} {side:<8} {entry_str:<10} "
+            f"{exit_str:<10} {pnl_str:<10} {exit_time_str:<18} {exit_reason:<16}"
+        )
+
+    if len(by_entry) > max_rows:
+        print(f"... showing first {max_rows} of {len(by_entry)} rows")
 
 
 def _print_option_ab_tables(report: dict[str, Any], trades_path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -466,13 +511,7 @@ def _print_option_ab_tables(report: dict[str, Any], trades_path: Path) -> tuple[
     print("\n=== Signals Table ===")
     print(signals.to_string(index=False) if not signals.empty else "(empty)")
     print("\n=== Trades Table (By Entry Time) ===")
-    if by_entry.empty:
-        print("(empty)")
-    else:
-        # Keep console output readable while saving full table to CSV.
-        print(by_entry.head(100).to_string(index=False))
-        if len(by_entry) > 100:
-            print(f"... showing first 100 of {len(by_entry)} rows")
+    _print_trades_table_hkt(by_entry, max_rows=100)
     return signals, by_entry
 
 

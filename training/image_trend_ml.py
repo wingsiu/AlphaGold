@@ -30,6 +30,7 @@ import itertools
 import json
 import numbers
 import time
+import warnings
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -1093,6 +1094,7 @@ def build_dataset(
 
         # ── range filter ─────────────────────────────────────────────────────────
         w = df.iloc[i - window + 1 : i + 1]
+        #print('window: ', window)
         if float(w["high"].max() - w["low"].min()) <= min_window_range:
             skipped += 1
             continue
@@ -3862,10 +3864,16 @@ def main() -> int:
             yp2 = (pred_tr[dir_mask] == LABEL_UP).astype(np.int64)
             yt2 = (true_tr[dir_mask] == LABEL_UP).astype(np.int64)
             s2_acc  = accuracy_score(yt2, yp2)
-            s2_bacc = balanced_accuracy_score(yt2, yp2)
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "ignore",
+                    message=r"A single label was found in 'y_true' and 'y_pred'.*",
+                    category=UserWarning,
+                )
+                s2_bacc = balanced_accuracy_score(yt2, yp2)
             s2_cm   = confusion_matrix(yt2, yp2, labels=[0, 1])
             s2_report = classification_report(
-                yt2, yp2, target_names=["down", "up"],
+                yt2, yp2, labels=[0, 1], target_names=["down", "up"],
                 output_dict=True, zero_division=0,
             )
             print("── Stage 2 : down vs up (on trend-predicted samples) ───────────")
