@@ -2437,11 +2437,17 @@ def _backtest_trades_df(
 
         if open_trade is not None:
             stop_abs = float(open_trade["stop_abs"])
+            target_abs = float(open_trade["target_abs"])
             side_num = float(open_trade["side_num"])
             entry_price = float(open_trade["entry_price"])
             stop_px = entry_price - side_num * stop_abs
+            target_px = entry_price + side_num * target_abs
             if stop_abs > 0.0 and (float(curr[i]) - entry_price) * side_num <= -stop_abs:
                 _append_trade(open_trade, signal_ts, float(stop_px), "stop_loss")
+                next_entry_allowed_ts = signal_ts
+                open_trade = None
+            elif target_abs > 0.0 and (float(curr[i]) - entry_price) * side_num >= target_abs:
+                _append_trade(open_trade, signal_ts, float(target_px), "target_hit")
                 next_entry_allowed_ts = signal_ts
                 open_trade = None
 
