@@ -25,6 +25,10 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+# Import rebuild function so we can generate session_heatmaps from trades CSV
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from training.rebuild_directional_pnl_from_trades import rebuild_directional_pnl
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 IMAGE_TREND_ML = PROJECT_ROOT / "training" / "image_trend_ml.py"
@@ -137,17 +141,17 @@ def _parse_report(report_path: Path) -> dict:
         return {"error": str(e)}
 
 
-def _generate_weak_filter(report_json: Path, out_json: Path) -> list[dict]:
-    """Extract weak cells from report using the same rule as backtest_no_retrain.py:
+def _generate_weak_filter(trades_csv: Path, out_json: Path) -> list[dict]:
+    """Extract weak cells using same rule as backtest_no_retrain.py:
        total_pnl < 0  AND  win_rate < 40%  AND  trades >= 3
        across all sessions: hkt, london, ny
+       Uses rebuild_directional_pnl to get session_heatmaps from trades CSV.
     """
-    r = json.loads(report_json.read_text())
-    dp = r.get("directional_pnl", r)
+    pnl = rebuild_directional_pnl(trades_csv)
     try:
-        session_heatmaps = dp["all"]["time_distribution"]["session_heatmaps"]
+        session_heatmaps = pnl["all"]["time_distribution"]["session_heatmaps"]
     except KeyError:
-        print("  WARNING: session_heatmaps not found in report — no weak filter generated")
+        print("  WARNING: session_heatmaps not found — no weak filter generated")
         out_json.write_text(json.dumps({"weak_cells": []}, indent=2))
         return []
 
@@ -215,9 +219,9 @@ def run_candidate(cid: str) -> None:
         return
 
     # ── Generate per-candidate weak filter ───────────────────────────────────
-    report1 = Path(str(base1) + "_report.json")
+    trades1   = Path(str(base1) + "_trades.csv")
     weak_json = Path(str(prefix) + "_weak_filter.json")
-    cells = _generate_weak_filter(report1, weak_json)
+    cells = _generate_weak_filter(trades1, weak_json)
 
     # ── Pass 2: with generated weak filter ───────────────────────────────────
     base2 = Path(str(prefix) + "_pass2")
