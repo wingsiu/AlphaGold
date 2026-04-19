@@ -995,6 +995,11 @@ class IGMarketDataCollector:
 		if not force and not market_data_due(now_utc, self._last_bucket, self.cfg.market_data_poll_second):
 			return []
 		self._last_bucket = market_data_poll_bucket(now_utc)
+		self.logger.info(
+			"MARKET SYNC: bucket=%s  second=%d  (market-data capture running)",
+			self._last_bucket.isoformat() if self._last_bucket is not None else "na",
+			now_utc.second,
+		)
 		summaries: list[dict[str, object]] = []
 		poll_summary_parts: list[str] = []
 		snapshot_summary_parts: list[str] = []
@@ -1040,15 +1045,20 @@ class IGMarketDataCollector:
 			account_part = self._account_status_part(service)
 			position_part = self._position_status_part(service, snapshot_by_epic)
 			self.logger.info(
-				"MARKET POLL: bucket=%s | %s | %s",
+				"MARKET POLL: bucket=%s  %s  %s",
 				self._last_bucket.isoformat() if self._last_bucket is not None else "na",
 				position_part,
 				" ; ".join(poll_summary_parts),
 			)
 			self.logger.info(
-				"ACCOUNT STATUS: bucket=%s | %s",
+				"ACCOUNT STATUS: bucket=%s  %s",
 				self._last_bucket.isoformat() if self._last_bucket is not None else "na",
 				account_part,
+			)
+		else:
+			self.logger.info(
+				"MARKET SYNC SKIPPED: bucket=%s  all instruments outside trading hours",
+				self._last_bucket.isoformat() if self._last_bucket is not None else "na",
 			)
 		return summaries
 
