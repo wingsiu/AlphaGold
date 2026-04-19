@@ -1,2 +1,0 @@
-2026-04-16 14:25:00,765 | INFO | MODEL CONFIG: family=best_base_state path=training/_tmp_feature_single_split_aligned_state_stop_sweep/w150_h25_thr0.008_d15_lt0.006_st0.008_ls12_ss18_r0_f2.5_p10.48_p20.5_sf.joblib mode=signal_only size=1.0000 timeframe=1min window=150 horizon=25 stage1_min_prob=0.48 stage2_min_prob=0.5 use_state_features=True use_15m_wick_features=False
-2026-04-16 14:25:00,765 | INFO | TIME FILTER: enabled=0 disable_time_filter=1 blocked_utc=[(1, 0, 1, 30), (7, 0, 15, 0), (13, 30, 15, 0)]
