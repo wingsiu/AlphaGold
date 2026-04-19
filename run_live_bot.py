@@ -32,7 +32,7 @@ def _weak_cells_count(path: Path) -> int:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Launch trading_bot.py in live best-base mode.")
     p.add_argument("--once", action="store_true", help="Run a single cycle and exit.")
-    p.add_argument("--sleep-seconds", type=int, default=1, help="Cycle sleep seconds for loop mode.")
+    p.add_argument("--sleep-seconds", type=int, default=5, help="Cycle sleep seconds for loop mode.")
     p.add_argument(
         "--prediction-poll-second",
         type=int,
@@ -53,6 +53,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--size", type=float, default=1.0, help="Position size passed to trading_bot.py.")
     p.add_argument("--disable-dynamic-target-stop", action="store_true", help="Disable dynamic TP/SL updates.")
+    p.add_argument(
+        "--max-hold-minutes",
+        type=float,
+        default=60.0,
+        help="Hard timeout in minutes for live positions (default: 60 — Candidate E).",
+    )
     p.add_argument(
         "--signal-model-path",
         default=None,
@@ -114,6 +120,8 @@ def main() -> int:
         cmd.append("--once")
     if args.disable_dynamic_target_stop:
         cmd.append("--disable-dynamic-target-stop")
+    if args.max_hold_minutes is not None:
+        cmd.extend(["--max-hold-minutes", str(args.max_hold_minutes)])
     if args.signal_model_path:
         cmd.extend(["--signal-model-path", str(args.signal_model_path)])
 

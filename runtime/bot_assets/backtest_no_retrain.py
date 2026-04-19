@@ -36,27 +36,31 @@ MODEL_IN = PROJECT_ROOT / "runtime/bot_assets/backtest_model_best_base_weak_nost
 SCRIPT = PROJECT_ROOT / "training/image_trend_ml.py"
 DEFAULT_WEAK_FILTER_PATH = PROJECT_ROOT / "runtime/bot_assets/weak-filter.json"
 
-# Best-base constants
+# Best-base constants — Candidate E (promoted 2026-04-20)
+# D + max_hold_minutes=60  → PnL=$5,217  WR=53.4%  PF=1.749  DD=-$171 (unchanged)
 BASE_PARAMS = {
     "timeframe": "1min",
     "eval_mode": "single_split",
     "test_size": 0.4,
     "window": 150,
     "window_15m": 0,
-    "min_window_range": 40,
+    "min_window_range": 30,
     "min_15m_drop": 15,
     "min_15m_rise": 0,
     "horizon": 25,
     "trend_threshold": 0.008,
     "adverse_limit": 15,
-    "long_target_threshold": 0.006,
+    "long_target_threshold": 0.008,
     "short_target_threshold": 0.008,
-    "long_adverse_limit": 12,
+    "long_adverse_limit": 15,
     "short_adverse_limit": 18,
     "classifier": "gradient_boosting",
     "max_flat_ratio": 2.5,
-    "stage1_min_prob": 0.48,
-    "stage2_min_prob": 0.50,
+    "stage1_min_prob": 0.55,
+    "stage2_min_prob": 0.58,       # fallback (overridden by up/down below)
+    "stage2_min_prob_up": 0.65,    # long threshold (Candidate D)
+    "stage2_min_prob_down": 0.62,  # short threshold (Candidate D)
+    "max_hold_minutes": 60,        # hard timeout cap (Candidate E)
 }
 
 DAY_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -293,6 +297,12 @@ def _build_cmd(spec: RunSpec, weak_filter_path: Path | None, out: dict[str, Path
         str(BASE_PARAMS["stage1_min_prob"]),
         "--stage2-min-prob",
         str(BASE_PARAMS["stage2_min_prob"]),
+        "--stage2-min-prob-up",
+        str(BASE_PARAMS["stage2_min_prob_up"]),
+        "--stage2-min-prob-down",
+        str(BASE_PARAMS["stage2_min_prob_down"]),
+        "--max-hold-minutes",
+        str(BASE_PARAMS["max_hold_minutes"]),
         "--model-in",
         str(MODEL_IN),
         "--model-out",

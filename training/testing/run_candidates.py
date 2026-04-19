@@ -63,6 +63,16 @@ CANDIDATES: dict[str, dict] = {
         "long_target_threshold": 0.008,
         "min_window_range":      30,
     },
+    "D": {
+        "label": "Best s2-directional: s1=0.55 s2up=0.65 s2down=0.62 ladv=15 ltgt=0.008 mwr=30",
+        "stage1_min_prob":        0.55,
+        "stage2_min_prob":        0.58,    # fallback; overridden below
+        "stage2_min_prob_up":     0.65,
+        "stage2_min_prob_down":   0.62,
+        "long_adverse_limit":     15,
+        "long_target_threshold":  0.008,
+        "min_window_range":       30,
+    },
 }
 
 # Fixed params shared by all candidates
@@ -115,6 +125,11 @@ def _build_cmd(p: dict, out_base: Path, weak_filter: Path | None) -> list[str]:
         "--report-out", str(out_base) + "_report.json",
         "--trades-out", str(out_base) + "_trades.csv",
     ]
+    # Optional per-direction stage2 thresholds (Candidate D)
+    if p.get("stage2_min_prob_up") is not None:
+        cmd += ["--stage2-min-prob-up", str(p["stage2_min_prob_up"])]
+    if p.get("stage2_min_prob_down") is not None:
+        cmd += ["--stage2-min-prob-down", str(p["stage2_min_prob_down"])]
     if weak_filter:
         cmd += ["--weak-periods-json", str(weak_filter)]
     return cmd
@@ -256,10 +271,10 @@ def run_candidate(cid: str) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--candidate", choices=["A", "B", "C"], default=None, help="Run only this candidate (default: all)")
+    ap.add_argument("--candidate", choices=["A", "B", "C", "D"], default=None, help="Run only this candidate (default: all)")
     args = ap.parse_args()
 
-    to_run = [args.candidate] if args.candidate else ["A", "B", "C"]
+    to_run = [args.candidate] if args.candidate else ["A", "B", "C", "D"]
     for cid in to_run:
         run_candidate(cid)
 

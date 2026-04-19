@@ -132,6 +132,7 @@ class BotConfig:
 	prediction_cache_max_rows: int = 1200
 	weak_periods_json: Optional[str] = DEFAULT_WEAK_PERIODS_JSON
 	dynamic_target_stop_enabled: bool = True
+	max_hold_minutes: Optional[float] = None  # hard timeout for live positions (60 = Candidate E)
 
 
 @dataclass
@@ -1521,6 +1522,58 @@ class AlphaGoldTradingBot:
 			position.target_updates,
 		)
 
+	def _maybe_timeout_live_position(self) -> bool:
+		"""Close a live position that has exceeded max_hold_minutes. Returns True if closed."""
+		if self.cfg.mode != "live" or self.state.open_position is None:
+			return False
+		if not self.cfg.max_hold_minutes:
+			return False
+		position = self.state.open_position
+		entry_ts = pd.Timestamp(position.entry_time)
+		entry_ts = entry_ts.tz_convert("UTC") if entry_ts.tzinfo else entry_ts.tz_localize("UTC")
+		now_utc = pd.Timestamp(datetime.now(UTC))
+		elapsed_minutes = (now_utc - entry_ts).total_seconds() / 60.0
+		if elapsed_minutes < float(self.cfg.max_hold_minutes):
+			return False
+		self.logger.info(
+			"LIVE TIMEOUT deal_id=%s elapsed=%.1fm max_hold_minutes=%.1f — closing position",
+			position.deal_id, elapsed_minutes, float(self.cfg.max_hold_minutes),
+		)
+		adapter = getattr(self.execution_engine, "broker_adapter", None)
+		if adapter is None or not hasattr(adapter, "close_position"):
+			self.logger.warning("Live timeout close skipped: broker adapter does not support close_position")
+			return False
+		close_direction = "SELL" if position.direction == "LONG" else "BUY"
+		try:
+			close_result = adapter.close_position(
+				deal_id=position.deal_id,
+				direction=close_direction,
+				size=float(position.size),
+			)
+		except Exception as exc:
+			self.logger.warning("Live timeout close failed deal_id=%s error=%s", position.deal_id, exc)
+			return False
+		confirm = close_result.get("confirm") if isinstance(close_result, dict) else None
+		exit_price = float(close_result.get("close_level") or position.entry_price)
+		exit_time_raw = close_result.get("close_time") if isinstance(close_result, dict) else None
+		exit_time = pd.Timestamp(exit_time_raw) if exit_time_raw else now_utc
+		broker_reason = None
+		if isinstance(confirm, dict):
+			broker_reason = str(confirm.get("reason") or "") or None
+		self._record_live_close(
+			position,
+			exit_price=exit_price,
+			exit_time=exit_time,
+			exit_reason="timeout",
+			close_source="bot_max_hold_timeout",
+			close_reason_broker=broker_reason,
+		)
+		self.logger.info(
+			"LIVE TIMEOUT CLOSED deal_id=%s exit=%.4f elapsed=%.1fm",
+			position.deal_id, exit_price, elapsed_minutes,
+		)
+		return True
+
 	def _sync_live_open_position(self) -> None:
 		if self.cfg.mode != "live" or self.state.open_position is None:
 			return
@@ -1743,6 +1796,9 @@ class AlphaGoldTradingBot:
 				self._save_state()
 
 		if self.state.open_position is not None and self.cfg.mode == "live":
+			if self._maybe_timeout_live_position():
+				self._save_state()
+				return
 			self._sync_live_open_position()
 			if self.state.open_position is not None:
 				self._maybe_adjust_open_position_from_previous_minute(raw)
@@ -2479,6 +2535,8 @@ def build_parser() -> argparse.ArgumentParser:
 		help="Optional weak-period cells JSON to block entries in weak hours (default: runtime/bot_assets/weak-filter.json).")
 	p.add_argument("--disable-dynamic-target-stop", action="store_true",
 		help="Disable dynamic target/stop updates while a position is open.")
+	p.add_argument("--max-hold-minutes", type=float, default=None,
+		help="Optional hard timeout in minutes for live positions. Position is force-closed when elapsed >= this value (e.g. 60).")
 	p.add_argument("--once", action="store_true")
 	return p
 
