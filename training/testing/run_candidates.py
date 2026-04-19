@@ -55,6 +55,14 @@ CANDIDATES: dict[str, dict] = {
         "long_target_threshold": 0.008,
         "min_window_range":      50,
     },
+    "C": {
+        "label": "Custom: s1=0.55 s2=0.58 ladv=15 ltgt=0.008 mwr=30",
+        "stage1_min_prob":       0.55,
+        "stage2_min_prob":       0.58,
+        "long_adverse_limit":    15,
+        "long_target_threshold": 0.008,
+        "min_window_range":      30,
+    },
 }
 
 # Fixed params shared by all candidates
@@ -248,10 +256,10 @@ def run_candidate(cid: str) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--candidate", choices=["A", "B"], default=None, help="Run only this candidate (default: both)")
+    ap.add_argument("--candidate", choices=["A", "B", "C"], default=None, help="Run only this candidate (default: all)")
     args = ap.parse_args()
 
-    to_run = [args.candidate] if args.candidate else ["A", "B"]
+    to_run = [args.candidate] if args.candidate else ["A", "B", "C"]
     for cid in to_run:
         run_candidate(cid)
 
