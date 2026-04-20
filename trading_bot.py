@@ -2452,12 +2452,16 @@ class AlphaGoldTradingBot:
 					corrections.append(f"stop_loss {pos.stop_loss:.2f}→{real_stop:.2f}")
 					pos.stop_loss = real_stop
 
-			# Always recalculate target from actual fill using our formula
+			# Recalculate target using signal price (attempt entry_price) for distance,
+			# matching backtest logic: target_distance = signal_price * take_profit_pct%
+			# target_level = fill + target_distance (same as how IG calculated limitLevel)
 			real_fill = pos.entry_price
+			signal_price = float(attempt.get("entry_price", real_fill)) if isinstance(attempt, dict) else real_fill
+			target_distance = signal_price * (self.cfg.take_profit_pct / 100.0)
 			if pos.direction == "SHORT":
-				correct_target = real_fill * (1.0 - self.cfg.take_profit_pct / 100.0)
+				correct_target = real_fill - target_distance
 			else:
-				correct_target = real_fill * (1.0 + self.cfg.take_profit_pct / 100.0)
+				correct_target = real_fill + target_distance
 			if abs(pos.take_profit - correct_target) > 0.01:
 				corrections.append(f"take_profit {pos.take_profit:.2f}→{correct_target:.2f}")
 				pos.take_profit = correct_target
