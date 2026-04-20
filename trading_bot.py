@@ -1481,16 +1481,8 @@ class AlphaGoldTradingBot:
 			return
 		side = str(signal.get("side", "flat"))
 		if position.direction == "LONG" and side != "up":
-			self.logger.info(
-				"Dynamic TP/SL skipped: position=%s signal=%s prob=%.4f — no update (signal does not confirm direction)",
-				position.direction, side, float(signal.get("probability", 0.0)),
-			)
 			return
 		if position.direction == "SHORT" and side != "down":
-			self.logger.info(
-				"Dynamic TP/SL skipped: position=%s signal=%s prob=%.4f — no update (signal does not confirm direction)",
-				position.direction, side, float(signal.get("probability", 0.0)),
-			)
 			return
 		anchor_payload = self._resolve_signal_anchor_price(raw, signal, position.direction)
 		if anchor_payload is None:
