@@ -1633,6 +1633,22 @@ class AlphaGoldTradingBot:
 				close_source="broker_closed_detected",
 				close_reason_broker=close_reason,
 			)
+		else:
+			# Sync actual stop/limit levels from broker into local state
+			pos = position_snapshot.get("position") if isinstance(position_snapshot, dict) else None
+			if isinstance(pos, dict):
+				broker_stop = pos.get("stopLevel") or pos.get("stop_level")
+				broker_limit = pos.get("limitLevel") or pos.get("limit_level")
+				if broker_stop is not None:
+					try:
+						self.state.open_position.stop_loss = float(broker_stop)
+					except (TypeError, ValueError):
+						pass
+				if broker_limit is not None:
+					try:
+						self.state.open_position.take_profit = float(broker_limit)
+					except (TypeError, ValueError):
+						pass
 
 	def _record_live_close(
 		self,
