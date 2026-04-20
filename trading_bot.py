@@ -1481,8 +1481,16 @@ class AlphaGoldTradingBot:
 			return
 		side = str(signal.get("side", "flat"))
 		if position.direction == "LONG" and side != "up":
+			self.logger.info(
+				"Dynamic TP/SL skipped: position=%s signal=%s prob=%.4f — no update (signal does not confirm direction)",
+				position.direction, side, float(signal.get("probability", 0.0)),
+			)
 			return
 		if position.direction == "SHORT" and side != "down":
+			self.logger.info(
+				"Dynamic TP/SL skipped: position=%s signal=%s prob=%.4f — no update (signal does not confirm direction)",
+				position.direction, side, float(signal.get("probability", 0.0)),
+			)
 			return
 		anchor_payload = self._resolve_signal_anchor_price(raw, signal, position.direction)
 		if anchor_payload is None:
@@ -1499,8 +1507,14 @@ class AlphaGoldTradingBot:
 			new_target = anchor_price * (1.0 + self.cfg.take_profit_pct / 100.0)
 
 		if abs(position.stop_loss - new_stop) < 1e-9 and abs(position.take_profit - new_target) < 1e-9:
+			self.logger.info(
+				"Dynamic TP/SL unchanged: deal_id=%s anchor=%.2f stop=%.2f target=%.2f (no change)",
+				position.deal_id, anchor_price, position.stop_loss, position.take_profit,
+			)
 			return
 
+		old_stop = position.stop_loss
+		old_target = position.take_profit
 		position.stop_loss = float(new_stop)
 		position.take_profit = float(new_target)
 		position.target_updates += 1
@@ -1508,6 +1522,7 @@ class AlphaGoldTradingBot:
 		position.last_target_price = float(anchor_price)
 
 		adapter = getattr(self.execution_engine, "broker_adapter", None)
+		amend_status = "local_only"
 		if self.cfg.mode == "live" and adapter is not None and hasattr(adapter, "amend_position_levels"):
 			try:
 				adapter.amend_position_levels(
@@ -1515,18 +1530,23 @@ class AlphaGoldTradingBot:
 					stop_level=position.stop_loss,
 					limit_level=position.take_profit,
 				)
+				amend_status = "sent_to_broker"
 			except Exception as exc:
+				amend_status = f"amend_failed:{exc}"
 				self.logger.warning("Live amend failed deal_id=%s error=%s", position.deal_id, exc)
 
 		self.logger.info(
-			"Dynamic TP/SL update deal_id=%s side=%s anchor_ts=%s anchor=%.4f stop=%.4f target=%.4f updates=%d",
+			"Dynamic TP/SL UPDATED deal_id=%s side=%s signal=%s prob=%.4f anchor_ts=%s anchor=%.2f | stop: %.2f→%.2f (%+.2f) | target: %.2f→%.2f (%+.2f) | updates=%d amend=%s",
 			position.deal_id,
 			position.direction,
+			side,
+			float(signal.get("probability", 0.0)),
 			anchor_ts.isoformat(),
 			anchor_price,
-			position.stop_loss,
-			position.take_profit,
+			old_stop, new_stop, new_stop - old_stop,
+			old_target, new_target, new_target - old_target,
 			position.target_updates,
+			amend_status,
 		)
 
 	def _maybe_timeout_live_position(self) -> bool:
@@ -1789,6 +1809,34 @@ class AlphaGoldTradingBot:
 		if self.cfg.signal_model_family == "legacy_15m_nextbar":
 			signal_qualified = signal_qualified and float(signal.get("probability", 0.0)) >= self.cfg.probability_cutoff
 
+		# Always log signal, even when a position is open
+		if self.cfg.signal_model_family == "best_base_state":
+			payload_info = dict(getattr(self, "last_best_base_payload_info", {}) or {})
+			raw_info = dict(getattr(self, "last_raw_cache_info", {}) or {})
+			self.logger.info(
+				format_best_base_signal_log(
+					signal,
+					raw_rows=int(raw_info["rows"]) if "rows" in raw_info else None,
+					bars_rows=int(payload_info["bars_rows"]) if "bars_rows" in payload_info else None,
+					candidate_samples=int(payload_info["candidate_samples"]) if "candidate_samples" in payload_info else None,
+					is_trading_hour=signal_trading_open,
+					latest_close=float(payload_info["latest_close"]) if payload_info.get("latest_close") is not None else None,
+					range150_ok=bool(payload_info["latest_range150_ok"]) if payload_info.get("latest_range150_ok") is not None else None,
+					drop15m_ok=bool(payload_info["latest_15m_drop_ok"]) if payload_info.get("latest_15m_drop_ok") is not None else None,
+				)
+			)
+			self.logger.info(
+				format_signal_status_line(
+					signal=signal,
+					trading_open_now=signal_trading_open,
+					signal_qualified=signal_qualified,
+					weak_filter_enabled=weak_filter_enabled,
+					weak_period_block=weak_period_block,
+					now_utc=now_cycle_utc,
+					cutoff=None,
+				)
+			)
+
 		if self.state.open_position is not None and self.cfg.mode == "paper":
 			if self.cfg.signal_model_family != "legacy_15m_nextbar":
 				raise ValueError("Paper mode currently supports only --signal-model-family legacy_15m_nextbar. Use --mode signal_only for the best-base model.")
@@ -1819,33 +1867,7 @@ class AlphaGoldTradingBot:
 			self._save_state()
 			return
 
-		if self.cfg.signal_model_family == "best_base_state":
-			payload_info = dict(getattr(self, "last_best_base_payload_info", {}) or {})
-			raw_info = dict(getattr(self, "last_raw_cache_info", {}) or {})
-			self.logger.info(
-				format_best_base_signal_log(
-					signal,
-					raw_rows=int(raw_info["rows"]) if "rows" in raw_info else None,
-					bars_rows=int(payload_info["bars_rows"]) if "bars_rows" in payload_info else None,
-					candidate_samples=int(payload_info["candidate_samples"]) if "candidate_samples" in payload_info else None,
-					is_trading_hour=signal_trading_open,
-					latest_close=float(payload_info["latest_close"]) if payload_info.get("latest_close") is not None else None,
-					range150_ok=bool(payload_info["latest_range150_ok"]) if payload_info.get("latest_range150_ok") is not None else None,
-					drop15m_ok=bool(payload_info["latest_15m_drop_ok"]) if payload_info.get("latest_15m_drop_ok") is not None else None,
-				)
-			)
-			self.logger.info(
-				format_signal_status_line(
-					signal=signal,
-					trading_open_now=signal_trading_open,
-					signal_qualified=signal_qualified,
-					weak_filter_enabled=weak_filter_enabled,
-					weak_period_block=weak_period_block,
-					now_utc=now_cycle_utc,
-					cutoff=None,
-				)
-			)
-		else:
+		if self.cfg.signal_model_family != "best_base_state":
 			self.logger.info(
 				"Latest signal family=%s bar=%s side=%s prob=%.4f cutoff=%.4f market_open=%d",
 				self.cfg.signal_model_family,
