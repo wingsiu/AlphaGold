@@ -2419,48 +2419,76 @@ class AlphaGoldTradingBot:
 		return logger
 
 	def _recover_open_position_on_startup(self) -> None:
-		"""Log recovered open position on restart and fix stop/target if clearly wrong."""
+		"""Log recovered open position on restart and fix entry/stop/target from broker confirm."""
 		pos = self.state.open_position
 		if pos is None:
 			self.logger.info("STARTUP: no open position in state — starting fresh.")
 			return
 
-		# Use actual fill price (entry_price_initial) if available, else entry_price
-		fill_price = float(pos.entry_price_initial) if pos.entry_price_initial is not None else float(pos.entry_price)
-		if pos.direction == "SHORT":
-			correct_stop = fill_price + self.cfg.short_stop_loss_pct
-			correct_target = fill_price * (1.0 - self.cfg.take_profit_pct / 100.0)
+		corrections: list[str] = []
+
+		# Try to pull actual fill price and broker levels from stored confirm
+		attempt = self.state.last_execution_attempt
+		confirm = None
+		if isinstance(attempt, dict):
+			broker_resp = attempt.get("broker_response")
+			if isinstance(broker_resp, dict):
+				confirm = broker_resp.get("confirm")
+
+		if isinstance(confirm, dict):
+			fill_level = confirm.get("level")
+			stop_level = confirm.get("stopLevel")
+			limit_level = confirm.get("limitLevel")
+
+			if fill_level is not None:
+				real_fill = float(fill_level)
+				if abs(pos.entry_price - real_fill) > 0.01:
+					corrections.append(f"entry_price {pos.entry_price:.2f}→{real_fill:.2f}")
+					pos.entry_price = real_fill
+					pos.entry_price_initial = real_fill
+
+			if stop_level is not None:
+				real_stop = float(stop_level)
+				if abs(pos.stop_loss - real_stop) > 0.01:
+					corrections.append(f"stop_loss {pos.stop_loss:.2f}→{real_stop:.2f}")
+					pos.stop_loss = real_stop
+
+			if limit_level is not None:
+				real_limit = float(limit_level)
+				if abs(pos.take_profit - real_limit) > 0.01:
+					corrections.append(f"take_profit {pos.take_profit:.2f}→{real_limit:.2f}")
+					pos.take_profit = real_limit
 		else:
-			correct_stop = fill_price - self.cfg.stop_loss_pct
-			correct_target = fill_price * (1.0 + self.cfg.take_profit_pct / 100.0)
+			# No confirm available — fall back to recalculating from fill price
+			fill_price = float(pos.entry_price_initial) if pos.entry_price_initial is not None else float(pos.entry_price)
+			if pos.direction == "SHORT":
+				correct_stop = fill_price + self.cfg.short_stop_loss_pct
+				correct_target = fill_price * (1.0 - self.cfg.take_profit_pct / 100.0)
+			else:
+				correct_stop = fill_price - self.cfg.stop_loss_pct
+				correct_target = fill_price * (1.0 + self.cfg.take_profit_pct / 100.0)
+			if abs(pos.stop_loss - correct_stop) > 5.0:
+				corrections.append(f"stop_loss {pos.stop_loss:.2f}→{correct_stop:.2f}")
+				pos.stop_loss = correct_stop
+			if abs(pos.take_profit - correct_target) > 5.0:
+				corrections.append(f"take_profit {pos.take_profit:.2f}→{correct_target:.2f}")
+				pos.take_profit = correct_target
 
-		old_stop = pos.stop_loss
-		old_target = pos.take_profit
-
-		# Only correct if clearly wrong (e.g. old % formula left value far off)
-		stop_wrong = abs(old_stop - correct_stop) > 5.0
-		target_wrong = abs(old_target - correct_target) > 5.0
-
-		if stop_wrong:
-			pos.stop_loss = correct_stop
-		if target_wrong:
-			pos.take_profit = correct_target
-
+		correction_str = f" | CORRECTED: {', '.join(corrections)}" if corrections else ""
 		self.logger.info(
 			"STARTUP RECOVERY: found open position deal_id=%s direction=%s size=%.2f "
-			"fill=%.2f stop=%.2f%s target=%.2f%s prob=%.4f entry_time=%s",
+			"entry=%.2f stop=%.2f target=%.2f prob=%.4f entry_time=%s%s",
 			pos.deal_id,
 			pos.direction,
 			pos.size,
-			fill_price,
+			pos.entry_price,
 			pos.stop_loss,
-			f" (corrected from {old_stop:.2f})" if stop_wrong else "",
 			pos.take_profit,
-			f" (corrected from {old_target:.2f})" if target_wrong else "",
 			pos.probability,
 			pos.entry_time,
+			correction_str,
 		)
-		if stop_wrong or target_wrong:
+		if corrections:
 			self._save_state()
 
 	def _load_state(self) -> BotState:
