@@ -1978,12 +1978,36 @@ class AlphaGoldTradingBot:
 				self._save_state()
 				return
 			direction = "LONG" if str(signal.get("side", "up")) == "up" else "SHORT"
+
+			# Extract actual fill price from broker confirm (next bar open = backtest entry price)
+			broker_resp = attempt.get("broker_response") if isinstance(attempt, dict) else None
+			confirm = broker_resp.get("confirm") if isinstance(broker_resp, dict) else None
+			fill_price = float(confirm["level"]) if isinstance(confirm, dict) and confirm.get("level") else float(entry_price)
+
+			# Stop and target both anchored to actual fill (matching backtest: next_bar_open)
 			if direction == "SHORT":
-				stop_loss = entry_price + self.cfg.short_stop_loss_pct
-				take_profit = entry_price * (1.0 - self.cfg.take_profit_pct / 100.0)
+				stop_loss = fill_price + self.cfg.short_stop_loss_pct
+				take_profit = fill_price * (1.0 - self.cfg.take_profit_pct / 100.0)
 			else:
-				stop_loss = entry_price - self.cfg.stop_loss_pct
-				take_profit = entry_price * (1.0 + self.cfg.take_profit_pct / 100.0)
+				stop_loss = fill_price - self.cfg.stop_loss_pct
+				take_profit = fill_price * (1.0 + self.cfg.take_profit_pct / 100.0)
+
+			# If fill differs from signal price, amend IG with correct levels
+			if abs(fill_price - float(entry_price)) > 0.01:
+				adapter = getattr(self.execution_engine, "broker_adapter", None)
+				if adapter is not None and hasattr(adapter, "amend_position_levels"):
+					try:
+						adapter.amend_position_levels(
+							deal_id=deal_id,
+							stop_level=stop_loss,
+							limit_level=take_profit,
+						)
+						self.logger.info(
+							"LIVE ENTRY fill=%.2f (signal=%.2f) — amend sent stop=%.2f target=%.2f",
+							fill_price, float(entry_price), stop_loss, take_profit,
+						)
+					except Exception as exc:
+						self.logger.warning("LIVE ENTRY amend failed deal_id=%s error=%s", deal_id, exc)
 			entry_bar_time = pd.Timestamp(signal.get("entry_bar_time", entry_time))
 			self.state.open_position = PaperPosition(
 				direction=direction,
@@ -1991,20 +2015,16 @@ class AlphaGoldTradingBot:
 				signal_bar_time=signal_bar_time.isoformat(),
 				entry_bar_time=entry_bar_time.isoformat(),
 				entry_time=entry_time.isoformat(),
-				entry_price=float(entry_price),
+				entry_price=float(fill_price),
 				stop_loss=float(stop_loss),
 				take_profit=float(take_profit),
 				probability=float(signal["probability"]),
 				size=float(self.cfg.size),
-				entry_price_initial=float(entry_price),
+				entry_price_initial=float(fill_price),
 			)
 			self.logger.info(
-				"LIVE ENTRY submitted deal_id=%s side=%s entry=%.4f stop=%.4f target=%.4f",
-				deal_id,
-				direction,
-				entry_price,
-				stop_loss,
-				take_profit,
+				"LIVE ENTRY deal_id=%s side=%s signal=%.4f fill=%.4f stop=%.4f target=%.4f",
+				deal_id, direction, float(entry_price), fill_price, stop_loss, take_profit,
 			)
 			self._save_state()
 			return
@@ -2446,22 +2466,17 @@ class AlphaGoldTradingBot:
 					pos.entry_price = real_fill
 					pos.entry_price_initial = real_fill
 
-			if stop_level is not None:
-				real_stop = float(stop_level)
-				if abs(pos.stop_loss - real_stop) > 0.01:
-					corrections.append(f"stop_loss {pos.stop_loss:.2f}→{real_stop:.2f}")
-					pos.stop_loss = real_stop
-
-			# Recalculate target using signal price (attempt entry_price) for distance,
-			# matching backtest logic: target_distance = signal_price * take_profit_pct%
-			# target_level = fill + target_distance (same as how IG calculated limitLevel)
+			# Recalculate stop and target both from fill price (backtest: next_bar_open)
 			real_fill = pos.entry_price
-			signal_price = float(attempt.get("entry_price", real_fill)) if isinstance(attempt, dict) else real_fill
-			target_distance = signal_price * (self.cfg.take_profit_pct / 100.0)
 			if pos.direction == "SHORT":
-				correct_target = real_fill - target_distance
+				correct_stop = real_fill + self.cfg.short_stop_loss_pct
+				correct_target = real_fill * (1.0 - self.cfg.take_profit_pct / 100.0)
 			else:
-				correct_target = real_fill + target_distance
+				correct_stop = real_fill - self.cfg.stop_loss_pct
+				correct_target = real_fill * (1.0 + self.cfg.take_profit_pct / 100.0)
+			if abs(pos.stop_loss - correct_stop) > 0.01:
+				corrections.append(f"stop_loss {pos.stop_loss:.2f}→{correct_stop:.2f}")
+				pos.stop_loss = correct_stop
 			if abs(pos.take_profit - correct_target) > 0.01:
 				corrections.append(f"take_profit {pos.take_profit:.2f}→{correct_target:.2f}")
 				pos.take_profit = correct_target
