@@ -395,8 +395,12 @@ def _build_stage1_day_ohl_features(
     the day's Dopen. DHigh/DLow are cumulative intraday high/low up to the
     current signal bar, so they do not use future information.
 
-    Features are stored relative to the current signal-bar close to keep them
-    scale-stationary across different price regimes.
+    Features are normalised by DRange = (DHigh - DLow) so each value expresses
+    how far the price level is from the current bar's close, scaled by today's
+    intraday volatility:
+      Dopen_utc2_rel = (Dopen - curr_close) / DRange
+      Dhigh_utc2_rel = (Dhigh - curr_close) / DRange   (upside to day high)
+      Dlow_utc2_rel  = (Dlow  - curr_close) / DRange   (downside to day low)
     """
     if len(sample_ts) != len(curr_close):
         raise ValueError("stage1 day OHLC feature inputs must have matching lengths")
@@ -418,11 +422,12 @@ def _build_stage1_day_ohl_features(
         raise ValueError("Could not align UTC+2 stage1 day OHLC features to sample timestamps")
 
     ref = np.asarray(curr_close, dtype=np.float64)
-    ref_safe = np.where(np.abs(ref) < 1e-9, 1.0, ref)
+    drange = (aligned["Dhigh"].to_numpy(dtype=np.float64) - aligned["Dlow"].to_numpy(dtype=np.float64))
+    drange_safe = np.where(np.abs(drange) < 1e-9, 1.0, drange)
     return np.column_stack([
-        aligned["Dopen"].to_numpy(dtype=np.float64) / ref_safe - 1.0,
-        aligned["Dhigh"].to_numpy(dtype=np.float64) / ref_safe - 1.0,
-        aligned["Dlow"].to_numpy(dtype=np.float64) / ref_safe - 1.0,
+        (aligned["Dopen"].to_numpy(dtype=np.float64) - ref) / drange_safe,
+        (aligned["Dhigh"].to_numpy(dtype=np.float64) - ref) / drange_safe,
+        (aligned["Dlow"].to_numpy(dtype=np.float64) - ref) / drange_safe,
     ]).astype(np.float64)
 
 
