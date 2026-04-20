@@ -1227,6 +1227,7 @@ class AlphaGoldTradingBot:
 		self.state_path.parent.mkdir(parents=True, exist_ok=True)
 		self.status_path.parent.mkdir(parents=True, exist_ok=True)
 		self.state = self._load_state()
+		self._recover_open_position_on_startup()
 		self.image_trend = None
 		self.model_bundle: Optional[dict[str, Any]] = None
 		self.system: Optional[object] = None
@@ -2416,6 +2417,49 @@ class AlphaGoldTradingBot:
 		stream_handler.setFormatter(formatter)
 		logger.addHandler(stream_handler)
 		return logger
+
+	def _recover_open_position_on_startup(self) -> None:
+		"""Log recovered open position on restart and fix stop/target from actual entry price."""
+		pos = self.state.open_position
+		if pos is None:
+			self.logger.info("STARTUP: no open position in state — starting fresh.")
+			return
+
+		# Recalculate correct stop/target from actual entry price
+		entry = float(pos.entry_price)
+		if pos.direction == "SHORT":
+			correct_stop = entry + self.cfg.short_stop_loss_pct
+			correct_target = entry * (1.0 - self.cfg.take_profit_pct / 100.0)
+		else:
+			correct_stop = entry - self.cfg.stop_loss_pct
+			correct_target = entry * (1.0 + self.cfg.take_profit_pct / 100.0)
+
+		old_stop = pos.stop_loss
+		old_target = pos.take_profit
+		stop_corrected = abs(old_stop - correct_stop) > 0.01
+		target_corrected = abs(old_target - correct_target) > 0.01
+
+		if stop_corrected:
+			pos.stop_loss = correct_stop
+		if target_corrected:
+			pos.take_profit = correct_target
+
+		self.logger.info(
+			"STARTUP RECOVERY: found open position deal_id=%s direction=%s size=%.2f entry=%.2f "
+			"stop=%.2f%s target=%.2f%s prob=%.4f entry_time=%s",
+			pos.deal_id,
+			pos.direction,
+			pos.size,
+			entry,
+			pos.stop_loss,
+			f" (corrected from {old_stop:.2f})" if stop_corrected else "",
+			pos.take_profit,
+			f" (corrected from {old_target:.2f})" if target_corrected else "",
+			pos.probability,
+			pos.entry_time,
+		)
+		if stop_corrected or target_corrected:
+			self._save_state()
 
 	def _load_state(self) -> BotState:
 		if not self.state_path.exists():
