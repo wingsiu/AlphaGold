@@ -2438,7 +2438,6 @@ class AlphaGoldTradingBot:
 		if isinstance(confirm, dict):
 			fill_level = confirm.get("level")
 			stop_level = confirm.get("stopLevel")
-			limit_level = confirm.get("limitLevel")
 
 			if fill_level is not None:
 				real_fill = float(fill_level)
@@ -2453,11 +2452,15 @@ class AlphaGoldTradingBot:
 					corrections.append(f"stop_loss {pos.stop_loss:.2f}→{real_stop:.2f}")
 					pos.stop_loss = real_stop
 
-			if limit_level is not None:
-				real_limit = float(limit_level)
-				if abs(pos.take_profit - real_limit) > 0.01:
-					corrections.append(f"take_profit {pos.take_profit:.2f}→{real_limit:.2f}")
-					pos.take_profit = real_limit
+			# Always recalculate target from actual fill using our formula
+			real_fill = pos.entry_price
+			if pos.direction == "SHORT":
+				correct_target = real_fill * (1.0 - self.cfg.take_profit_pct / 100.0)
+			else:
+				correct_target = real_fill * (1.0 + self.cfg.take_profit_pct / 100.0)
+			if abs(pos.take_profit - correct_target) > 0.01:
+				corrections.append(f"take_profit {pos.take_profit:.2f}→{correct_target:.2f}")
+				pos.take_profit = correct_target
 		else:
 			# No confirm available — fall back to recalculating from fill price
 			fill_price = float(pos.entry_price_initial) if pos.entry_price_initial is not None else float(pos.entry_price)
