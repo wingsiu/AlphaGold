@@ -1227,7 +1227,6 @@ class AlphaGoldTradingBot:
 		self.state_path.parent.mkdir(parents=True, exist_ok=True)
 		self.status_path.parent.mkdir(parents=True, exist_ok=True)
 		self.state = self._load_state()
-		self._recover_open_position_on_startup()
 		self.image_trend = None
 		self.model_bundle: Optional[dict[str, Any]] = None
 		self.system: Optional[object] = None
@@ -1280,6 +1279,7 @@ class AlphaGoldTradingBot:
 		weak_path = (PROJECT_ROOT / cfg.weak_periods_json) if cfg.weak_periods_json and not Path(cfg.weak_periods_json).is_absolute() else Path(cfg.weak_periods_json) if cfg.weak_periods_json else None
 		self.weak_period_cells = load_weak_period_cells(str(weak_path)) if weak_path is not None else []
 		self._log_model_startup_config()
+		self._recover_open_position_on_startup()
 
 	def _log_model_startup_config(self) -> None:
 		if self.cfg.market_sync_only:
@@ -2419,46 +2419,48 @@ class AlphaGoldTradingBot:
 		return logger
 
 	def _recover_open_position_on_startup(self) -> None:
-		"""Log recovered open position on restart and fix stop/target from actual entry price."""
+		"""Log recovered open position on restart and fix stop/target if clearly wrong."""
 		pos = self.state.open_position
 		if pos is None:
 			self.logger.info("STARTUP: no open position in state — starting fresh.")
 			return
 
-		# Recalculate correct stop/target from actual entry price
-		entry = float(pos.entry_price)
+		# Use actual fill price (entry_price_initial) if available, else entry_price
+		fill_price = float(pos.entry_price_initial) if pos.entry_price_initial is not None else float(pos.entry_price)
 		if pos.direction == "SHORT":
-			correct_stop = entry + self.cfg.short_stop_loss_pct
-			correct_target = entry * (1.0 - self.cfg.take_profit_pct / 100.0)
+			correct_stop = fill_price + self.cfg.short_stop_loss_pct
+			correct_target = fill_price * (1.0 - self.cfg.take_profit_pct / 100.0)
 		else:
-			correct_stop = entry - self.cfg.stop_loss_pct
-			correct_target = entry * (1.0 + self.cfg.take_profit_pct / 100.0)
+			correct_stop = fill_price - self.cfg.stop_loss_pct
+			correct_target = fill_price * (1.0 + self.cfg.take_profit_pct / 100.0)
 
 		old_stop = pos.stop_loss
 		old_target = pos.take_profit
-		stop_corrected = abs(old_stop - correct_stop) > 0.01
-		target_corrected = abs(old_target - correct_target) > 0.01
 
-		if stop_corrected:
+		# Only correct if clearly wrong (e.g. old % formula left value far off)
+		stop_wrong = abs(old_stop - correct_stop) > 5.0
+		target_wrong = abs(old_target - correct_target) > 5.0
+
+		if stop_wrong:
 			pos.stop_loss = correct_stop
-		if target_corrected:
+		if target_wrong:
 			pos.take_profit = correct_target
 
 		self.logger.info(
-			"STARTUP RECOVERY: found open position deal_id=%s direction=%s size=%.2f entry=%.2f "
-			"stop=%.2f%s target=%.2f%s prob=%.4f entry_time=%s",
+			"STARTUP RECOVERY: found open position deal_id=%s direction=%s size=%.2f "
+			"fill=%.2f stop=%.2f%s target=%.2f%s prob=%.4f entry_time=%s",
 			pos.deal_id,
 			pos.direction,
 			pos.size,
-			entry,
+			fill_price,
 			pos.stop_loss,
-			f" (corrected from {old_stop:.2f})" if stop_corrected else "",
+			f" (corrected from {old_stop:.2f})" if stop_wrong else "",
 			pos.take_profit,
-			f" (corrected from {old_target:.2f})" if target_corrected else "",
+			f" (corrected from {old_target:.2f})" if target_wrong else "",
 			pos.probability,
 			pos.entry_time,
 		)
-		if stop_corrected or target_corrected:
+		if stop_wrong or target_wrong:
 			self._save_state()
 
 	def _load_state(self) -> BotState:
