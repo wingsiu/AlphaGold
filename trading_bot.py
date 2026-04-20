@@ -1110,7 +1110,7 @@ class PaperBroker:
 		else:
 			normalized_entry_time = normalized_entry_time.tz_convert(UTC)
 		resolved_deal_id = str(deal_id) if deal_id else f"paper-{normalized_entry_time.strftime('%Y%m%dT%H%M%S')}"
-		stop_loss = entry_price * (1.0 - self.cfg.stop_loss_pct / 100.0)
+		stop_loss = entry_price - self.cfg.stop_loss_pct
 		take_profit = entry_price * (1.0 + self.cfg.take_profit_pct / 100.0)
 		position = PaperPosition(
 			direction="LONG",
@@ -1436,10 +1436,10 @@ class AlphaGoldTradingBot:
 			return
 		position.entry_price = anchor_price
 		if position.direction == "SHORT":
-			position.stop_loss = anchor_price * (1.0 + self.cfg.stop_loss_pct / 100.0)
+			position.stop_loss = anchor_price + self.cfg.short_stop_loss_pct
 			position.take_profit = anchor_price * (1.0 - self.cfg.take_profit_pct / 100.0)
 		else:
-			position.stop_loss = anchor_price * (1.0 - self.cfg.stop_loss_pct / 100.0)
+			position.stop_loss = anchor_price - self.cfg.stop_loss_pct
 			position.take_profit = anchor_price * (1.0 + self.cfg.take_profit_pct / 100.0)
 		position.target_stop_adjusted = True
 		position.target_stop_adjusted_at = latest_raw_ts.isoformat()
@@ -1492,10 +1492,10 @@ class AlphaGoldTradingBot:
 			return
 
 		if position.direction == "SHORT":
-			new_stop = anchor_price * (1.0 + self.cfg.stop_loss_pct / 100.0)
+			new_stop = anchor_price + self.cfg.short_stop_loss_pct
 			new_target = anchor_price * (1.0 - self.cfg.take_profit_pct / 100.0)
 		else:
-			new_stop = anchor_price * (1.0 - self.cfg.stop_loss_pct / 100.0)
+			new_stop = anchor_price - self.cfg.stop_loss_pct
 			new_target = anchor_price * (1.0 + self.cfg.take_profit_pct / 100.0)
 
 		if abs(position.stop_loss - new_stop) < 1e-9 and abs(position.take_profit - new_target) < 1e-9:
@@ -1948,10 +1948,10 @@ class AlphaGoldTradingBot:
 				return
 			direction = "LONG" if str(signal.get("side", "up")) == "up" else "SHORT"
 			if direction == "SHORT":
-				stop_loss = entry_price * (1.0 + self.cfg.stop_loss_pct / 100.0)
+				stop_loss = entry_price + self.cfg.short_stop_loss_pct
 				take_profit = entry_price * (1.0 - self.cfg.take_profit_pct / 100.0)
 			else:
-				stop_loss = entry_price * (1.0 - self.cfg.stop_loss_pct / 100.0)
+				stop_loss = entry_price - self.cfg.stop_loss_pct
 				take_profit = entry_price * (1.0 + self.cfg.take_profit_pct / 100.0)
 			entry_bar_time = pd.Timestamp(signal.get("entry_bar_time", entry_time))
 			self.state.open_position = PaperPosition(
