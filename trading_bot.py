@@ -2490,6 +2490,24 @@ class AlphaGoldTradingBot:
 		)
 		if corrections:
 			self._save_state()
+			# Push corrected stop/target to IG broker
+			adapter = getattr(self.execution_engine, "broker_adapter", None)
+			if self.cfg.mode == "live" and adapter is not None and hasattr(adapter, "amend_position_levels"):
+				try:
+					adapter.amend_position_levels(
+						deal_id=pos.deal_id,
+						stop_level=pos.stop_loss,
+						limit_level=pos.take_profit,
+					)
+					self.logger.info(
+						"STARTUP RECOVERY: amend sent to broker deal_id=%s stop=%.2f target=%.2f",
+						pos.deal_id, pos.stop_loss, pos.take_profit,
+					)
+				except Exception as exc:
+					self.logger.warning(
+						"STARTUP RECOVERY: amend failed deal_id=%s error=%s",
+						pos.deal_id, exc,
+					)
 
 	def _load_state(self) -> BotState:
 		if not self.state_path.exists():
