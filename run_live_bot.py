@@ -44,7 +44,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--take-profit-pct", type=float, default=0.80,
         help="Target as %% of entry price (default: 0.80 = 0.8%%)")
     p.add_argument("--disable-dynamic-target-stop", action="store_true", help="Disable dynamic TP/SL updates.")
-    p.add_argument("--max-hold-minutes", type=float, default=25.0)
+    p.add_argument("--max-hold-minutes", type=float, default=60.0)
     p.add_argument("--signal-model-path", default=None)
     p.add_argument("--weak-periods-json", default=DEFAULT_WEAK_PERIODS_JSON)
     return p
