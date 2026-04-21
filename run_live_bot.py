@@ -45,6 +45,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Target as %% of entry price (default: 0.80 = 0.8%%)")
     p.add_argument("--disable-dynamic-target-stop", action="store_true", help="Disable dynamic TP/SL updates.")
     p.add_argument("--max-hold-minutes", type=float, default=60.0)
+    # Optional best-base model-config overrides (passed through to trading_bot.py)
+    p.add_argument("--stage1-min-prob", type=float, default=None)
+    p.add_argument("--stage2-min-prob", type=float, default=None)
+    p.add_argument("--stage2-min-prob-up", type=float, default=None)
+    p.add_argument("--stage2-min-prob-down", type=float, default=None)
+    p.add_argument("--min-window-range", type=float, default=None)
+    p.add_argument("--long-adverse-limit", type=float, default=None)
+    p.add_argument("--long-target-threshold", type=float, default=None)
     p.add_argument("--signal-model-path", default=None)
     p.add_argument("--weak-periods-json", default=DEFAULT_WEAK_PERIODS_JSON)
     return p
@@ -96,6 +104,19 @@ def main() -> int:
         cmd.append("--disable-dynamic-target-stop")
     if args.signal_model_path:
         cmd.extend(["--signal-model-path", str(args.signal_model_path)])
+
+    override_args = {
+        "--stage1-min-prob": args.stage1_min_prob,
+        "--stage2-min-prob": args.stage2_min_prob,
+        "--stage2-min-prob-up": args.stage2_min_prob_up,
+        "--stage2-min-prob-down": args.stage2_min_prob_down,
+        "--min-window-range": args.min_window_range,
+        "--long-adverse-limit": args.long_adverse_limit,
+        "--long-target-threshold": args.long_target_threshold,
+    }
+    for key, value in override_args.items():
+        if value is not None:
+            cmd.extend([key, str(value)])
 
     return subprocess.call(cmd, cwd=str(PROJECT_ROOT))
 

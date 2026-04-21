@@ -67,7 +67,7 @@ DEFAULT_SIGNAL_MODEL_FAMILY = "best_base_state"
 DEFAULT_MODEL_DIR = "training/ml_models_15m_nextbar_060_corr"
 DEFAULT_BEST_BASE_MODEL_PATH = "runtime/bot_assets/backtest_model_best_base_weak_nostate.joblib"
 DEFAULT_WEAK_PERIODS_JSON = "runtime/bot_assets/weak-filter.json"
-DEFAULT_MAX_ADVERSE_LOW_PCT = 15.0   # absolute points (matches backtest long_adverse_limit=15, short=18)
+DEFAULT_MAX_ADVERSE_LOW_PCT = 12.0   # absolute points (matches backtest long_adverse_limit=12, short=18)
 DEFAULT_FORWARD_BARS = 4
 DEFAULT_THRESHOLD_PCT = 0.80         # % of entry price (matches backtest long/short_target_threshold=0.008 = 0.8%)
 PREDICTION_POLL_SECOND = 5
@@ -133,7 +133,15 @@ class BotConfig:
 	prediction_cache_max_rows: int = 1200
 	weak_periods_json: Optional[str] = DEFAULT_WEAK_PERIODS_JSON
 	dynamic_target_stop_enabled: bool = True
-	max_hold_minutes: Optional[float] = None  # hard timeout for live positions (60 = Candidate E)
+	max_hold_minutes: Optional[float] = 50.0  # hard timeout cap (h25+cap50 sweep, bundle trained on h25)
+	# CLI overrides for model-bundle cfg values (None = use bundle default)
+	stage1_min_prob: Optional[float] = None
+	stage2_min_prob: Optional[float] = None
+	stage2_min_prob_up: Optional[float] = None
+	stage2_min_prob_down: Optional[float] = None
+	min_window_range: Optional[float] = None
+	long_adverse_limit: Optional[float] = None
+	long_target_threshold: Optional[float] = None
 
 
 @dataclass
@@ -601,14 +609,18 @@ def format_signal_status_line(
 	signal: dict[str, object],
 	trading_open_now: bool,
 	signal_qualified: bool,
+	model_gate_block: bool,
 	weak_filter_enabled: bool,
 	weak_period_block: bool,
+	cutoff_block: bool = False,
 	now_utc: Optional[pd.Timestamp] = None,
 	cutoff: Optional[float] = None,
 ) -> str:
 	hour_mark = "[OK]" if trading_open_now else "[X]"
 	signal_mark = "🟢✓" if signal_qualified else "🔴✗"
+	model_mark = "[X]" if model_gate_block else "[OK]"
 	weak_mark = "[X]" if weak_period_block else ("[OK]" if weak_filter_enabled else "[?]")
+	cutoff_mark = "[X]" if cutoff_block else ("[OK]" if cutoff is not None else "[?]")
 	lag_mark = "[?]"
 	lag_minutes: Optional[float] = None
 	if now_utc is not None:
@@ -621,12 +633,24 @@ def format_signal_status_line(
 	parts = [
 		"SIGNAL STATUS:",
 		f"hour={hour_mark}",
+		f"model_gate={model_mark}",
 		f"signal={signal_mark}",
 		f"weak_filter={weak_mark}",
+		f"cutoff_gate={cutoff_mark}",
 		f"side={signal.get('side', 'flat')}",
 		f"prob={float(signal.get('probability', 0.0)):.4f}",
 		f"tradable={int(bool(signal.get('tradable', False)))}",
 	]
+	blocked_by: list[str] = []
+	if not trading_open_now:
+		blocked_by.append("market_hours")
+	if model_gate_block:
+		blocked_by.append("model_stage")
+	if weak_period_block:
+		blocked_by.append("weak_filter")
+	if cutoff_block:
+		blocked_by.append("cutoff")
+	parts.append(f"blocked_by={','.join(blocked_by) if blocked_by else 'none'}")
 	if signal.get("reject_reason"):
 		parts.append(f"reason={signal['reject_reason']}")
 	if lag_minutes is not None:
@@ -636,6 +660,40 @@ def format_signal_status_line(
 		parts.append(f"cutoff={float(cutoff):.4f}")
 	if "pred" in signal:
 		parts.append(f"pred={signal['pred']}")
+	return " ".join(parts)
+
+
+def format_gate_compact_summary(
+	*,
+	signal: dict[str, object],
+	trading_open_now: bool,
+	model_gate_block: bool,
+	weak_period_block: bool,
+	cutoff_block: bool,
+	has_open_position: bool,
+	candidate_samples: Optional[int] = None,
+) -> str:
+	blocked_by: list[str] = []
+	if not trading_open_now:
+		blocked_by.append("market_hours")
+	if model_gate_block:
+		blocked_by.append("model_stage")
+	if weak_period_block:
+		blocked_by.append("weak_filter")
+	if cutoff_block:
+		blocked_by.append("cutoff")
+	if has_open_position:
+		blocked_by.append("position_open")
+	parts = [
+		"GATE SUMMARY:",
+		f"side={signal.get('side', 'flat')}",
+		f"prob={float(signal.get('probability', 0.0)):.4f}",
+		f"pred={signal.get('pred', 'na')}",
+		f"tradable={int(bool(signal.get('tradable', False)))}",
+		f"blocked_by={','.join(blocked_by) if blocked_by else 'none'}",
+	]
+	if candidate_samples is not None:
+		parts.append(f"candidates={candidate_samples}")
 	return " ".join(parts)
 
 
@@ -1219,6 +1277,22 @@ class PaperBroker:
 
 
 class AlphaGoldTradingBot:
+	def _apply_cfg_overrides(self, cfg: dict) -> dict:
+		"""Apply BotConfig CLI overrides on top of a model-bundle config dict."""
+		overrides = {
+			"stage1_min_prob": self.cfg.stage1_min_prob,
+			"stage2_min_prob": self.cfg.stage2_min_prob,
+			"stage2_min_prob_up": self.cfg.stage2_min_prob_up,
+			"stage2_min_prob_down": self.cfg.stage2_min_prob_down,
+			"min_window_range": self.cfg.min_window_range,
+			"long_adverse_limit": self.cfg.long_adverse_limit,
+			"long_target_threshold": self.cfg.long_target_threshold,
+		}
+		for k, v in overrides.items():
+			if v is not None:
+				cfg[k] = v
+		return cfg
+
 	def __init__(self, cfg: BotConfig):
 		self.cfg = cfg
 		self.logger = self._build_logger(PROJECT_ROOT / cfg.log_path)
@@ -1291,7 +1365,7 @@ class AlphaGoldTradingBot:
 			)
 			return
 		if self.cfg.signal_model_family == "best_base_state" and isinstance(self.model_bundle, dict):
-			cfg = dict(self.model_bundle.get("config") or {})
+			cfg = self._apply_cfg_overrides(dict(self.model_bundle.get("config") or {}))
 			disable_time_filter = bool(cfg.get("disable_time_filter", False))
 			blocked_utc = self.model_bundle.get("blocked_utc")
 			if blocked_utc is None:
@@ -1811,12 +1885,15 @@ class AlphaGoldTradingBot:
 		now_cycle_utc = pd.Timestamp(datetime.now(UTC))
 		signal_trading_open = instrument_trading_hours_open(Price.Gold, now_cycle_utc)
 		weak_filter_enabled = bool(getattr(self, "weak_period_cells", None))
+		model_gate_block = not bool(signal.get("tradable", True))
 		weak_period_block = self._is_weak_period_entry(pd.Timestamp(signal.get("entry_bar_time", signal.get("signal_bar_time"))))
 		if weak_period_block:
 			signal["tradable"] = False
 		signal_qualified = bool(signal.get("tradable", True))
+		cutoff_block = False
 		if self.cfg.signal_model_family == "legacy_15m_nextbar":
-			signal_qualified = signal_qualified and float(signal.get("probability", 0.0)) >= self.cfg.probability_cutoff
+			cutoff_block = float(signal.get("probability", 0.0)) < self.cfg.probability_cutoff
+			signal_qualified = signal_qualified and not cutoff_block
 
 		# Always log signal, even when a position is open
 		if self.cfg.signal_model_family == "best_base_state":
@@ -1839,8 +1916,10 @@ class AlphaGoldTradingBot:
 					signal=signal,
 					trading_open_now=signal_trading_open,
 					signal_qualified=signal_qualified,
+					model_gate_block=model_gate_block,
 					weak_filter_enabled=weak_filter_enabled,
 					weak_period_block=weak_period_block,
+					cutoff_block=cutoff_block,
 					now_utc=now_cycle_utc,
 					cutoff=None,
 				)
@@ -1891,12 +1970,31 @@ class AlphaGoldTradingBot:
 					signal=signal,
 					trading_open_now=signal_trading_open,
 					signal_qualified=signal_qualified,
+					model_gate_block=model_gate_block,
 					weak_filter_enabled=weak_filter_enabled,
 					weak_period_block=weak_period_block,
+					cutoff_block=cutoff_block,
 					now_utc=now_cycle_utc,
 					cutoff=self.cfg.probability_cutoff,
 				)
 			)
+
+		candidate_samples = None
+		if self.cfg.signal_model_family == "best_base_state":
+			payload_info = dict(getattr(self, "last_best_base_payload_info", {}) or {})
+			if payload_info.get("candidate_samples") is not None:
+				candidate_samples = int(payload_info["candidate_samples"])
+		self.logger.info(
+			format_gate_compact_summary(
+				signal=signal,
+				trading_open_now=signal_trading_open,
+				model_gate_block=model_gate_block,
+				weak_period_block=weak_period_block,
+				cutoff_block=cutoff_block,
+				has_open_position=self.state.open_position is not None,
+				candidate_samples=candidate_samples,
+			)
+		)
 
 		if not bool(signal.get("tradable", True)):
 			self._save_state()
@@ -2079,7 +2177,7 @@ class AlphaGoldTradingBot:
 	def _build_live_best_base_samples(self, raw: pd.DataFrame, *, require_future_horizon: bool = False) -> dict[str, object]:
 		if self.image_trend is None or self.model_bundle is None:
 			raise ValueError("Best-base signal model is not loaded")
-		cfg = dict(self.model_bundle.get("config") or {})
+		cfg = self._apply_cfg_overrides(dict(self.model_bundle.get("config") or {}))
 		bars = self.image_trend._prepare_ohlcv(raw, str(cfg.get("timeframe", "1min")))
 		window = int(cfg.get("window", 150))
 		horizon = int(cfg.get("horizon", 25))
@@ -2121,12 +2219,11 @@ class AlphaGoldTradingBot:
 		entry_ts_list: list[pd.Timestamp] = []
 		fut_list: list[float] = []
 		fut_ts_list: list[pd.Timestamp] = []
-		apply_time_filter = not bool(cfg.get("disable_time_filter", False))
+		# Live FIFO mode: do not prefilter candidate windows here.
+		# Gating/qualification is handled downstream in signal/trade logic.
 		min_window_range = float(cfg.get("min_window_range", 0.0))
 		min_15m_drop = float(cfg.get("min_15m_drop", 0.0))
 		min_15m_rise = float(cfg.get("min_15m_rise", 0.0))
-		last_bar_wr90_high = cfg.get("last_bar_wr90_high")
-		last_bar_wr90_low = cfg.get("last_bar_wr90_low")
 		use_15m_wick_features = bool(self.model_bundle.get("use_15m_wick_features", cfg.get("use_15m_wick_features", False)))
 		wick_feature_min_range = float(self.model_bundle.get("wick_feature_min_range", cfg.get("wick_feature_min_range", 40.0)))
 		wick_feature_min_pct = float(self.model_bundle.get("wick_feature_min_pct", cfg.get("wick_feature_min_pct", 35.0)))
@@ -2145,37 +2242,7 @@ class AlphaGoldTradingBot:
 			self.last_best_base_payload_info["latest_15m_drop_ok"] = bool(drop15_ok)
 		for i in range(window - 1, max_i_exclusive):
 			signal_ts = pd.Timestamp(bars.index[i])
-			if apply_time_filter and self.image_trend._is_blocked(signal_ts):
-				continue
 			w = bars.iloc[i - window + 1 : i + 1]
-			if float(w["high"].max() - w["low"].min()) <= min_window_range:
-				continue
-			if (min_15m_drop > 0 or min_15m_rise > 0) and len(w) >= 15:
-				h = w["high"].to_numpy()
-				l = w["low"].to_numpy()
-				c = w["close"].to_numpy()
-				roll_h = np.lib.stride_tricks.sliding_window_view(h, 15).max(axis=1)
-				roll_l = np.lib.stride_tricks.sliding_window_view(l, 15).min(axis=1)
-				roll_c0 = np.lib.stride_tricks.sliding_window_view(c, 15)[:, 0]
-				drop_ok = False if min_15m_drop <= 0 else bool(((roll_h - roll_l) >= min_15m_drop).any())
-				rise_ok = False if min_15m_rise <= 0 else bool(((roll_h - roll_c0) >= min_15m_rise).any())
-				if not (drop_ok or rise_ok):
-					continue
-			if last_bar_wr90_high is not None or last_bar_wr90_low is not None:
-				if len(w) < 90:
-					continue
-				wr_src = w.iloc[-90:]
-				wr_high = float(wr_src["high"].max())
-				wr_low = float(wr_src["low"].min())
-				wr_close = float(wr_src["close"].iloc[-1])
-				wr_span = wr_high - wr_low
-				if wr_span <= 0.0:
-					continue
-				wr90_last = -100.0 * ((wr_high - wr_close) / wr_span)
-				high_ok = False if last_bar_wr90_high is None else (wr90_last >= float(last_bar_wr90_high))
-				low_ok = False if last_bar_wr90_low is None else (wr90_last <= float(last_bar_wr90_low))
-				if not (high_ok or low_ok):
-					continue
 			wick_extra = None
 			if use_15m_wick_features:
 				wick_flags = list(self.image_trend._last_completed_15m_wick_flags(
@@ -2269,7 +2336,7 @@ class AlphaGoldTradingBot:
 				"trend_prob": np.zeros(0, dtype=np.float64),
 				"up_prob": np.full(0, np.nan, dtype=np.float64),
 			}
-		cfg = dict(self.model_bundle.get("config") or {})
+		cfg = self._apply_cfg_overrides(dict(self.model_bundle.get("config") or {}))
 		m1 = self.model_bundle["stage1"]
 		m2 = self.model_bundle["stage2"]
 		use_state = bool(self.model_bundle.get("use_state_features", cfg.get("use_state_features", False)))
@@ -2688,6 +2755,14 @@ def build_parser() -> argparse.ArgumentParser:
 	p.add_argument("--max-hold-minutes", type=float, default=None,
 		help="Optional hard timeout in minutes for live positions. Position is force-closed when elapsed >= this value (e.g. 60).")
 	p.add_argument("--once", action="store_true")
+	# Model-bundle cfg overrides
+	p.add_argument("--stage1-min-prob", type=float, default=None, help="Override stage1 minimum probability threshold.")
+	p.add_argument("--stage2-min-prob", type=float, default=None, help="Override stage2 minimum probability threshold (fallback).")
+	p.add_argument("--stage2-min-prob-up", type=float, default=None, help="Override stage2 minimum probability for long signals.")
+	p.add_argument("--stage2-min-prob-down", type=float, default=None, help="Override stage2 minimum probability for short signals.")
+	p.add_argument("--min-window-range", type=float, default=None, help="Override minimum window range filter.")
+	p.add_argument("--long-adverse-limit", type=float, default=None, help="Override long adverse limit (stop distance in points).")
+	p.add_argument("--long-target-threshold", type=float, default=None, help="Override long target threshold.")
 	return p
 
 
