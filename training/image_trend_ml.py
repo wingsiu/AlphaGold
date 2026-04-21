@@ -127,7 +127,7 @@ SESSION_PERIOD_SPECS: dict[str, dict[str, object]] = {
 }
 SIGNAL_REFERENCE_MODE = "signal_bar_close"
 ENTRY_EXECUTION_MODE = "next_bar_open"
-PREP_CACHE_SCHEMA_VERSION = 1
+PREP_CACHE_SCHEMA_VERSION = 2  # bumped: bars cache now includes bars_ask / bars_bid
 
 LABEL_DOWN = 0
 LABEL_FLAT = 1
@@ -588,6 +588,57 @@ def _prepare_ohlcv(raw: pd.DataFrame, timeframe: str) -> pd.DataFrame:
     return out.dropna(subset=["open", "high", "low", "close"]).copy()
 
 
+def _prepare_ask_bid_ohlcv(raw: pd.DataFrame, timeframe: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Resample ask and bid OHLCV from raw data.  Returns (df_ask, df_bid)."""
+    idx = pd.to_datetime(raw["timestamp"], unit="ms", utc=True)
+    agg = {"open": "first", "high": "max", "low": "min", "close": "last"}
+
+    def _build(suffix: str) -> pd.DataFrame:
+        frame = pd.DataFrame(
+            {
+                "open":  raw[f"openPrice_{suffix}"].astype(float).to_numpy(),
+                "high":  raw[f"highPrice_{suffix}"].astype(float).to_numpy(),
+                "low":   raw[f"lowPrice_{suffix}"].astype(float).to_numpy(),
+                "close": raw[f"closePrice_{suffix}"].astype(float).to_numpy(),
+            },
+            index=idx,
+        ).sort_index()
+        out = frame.resample(timeframe, label="left", closed="left").agg(agg)
+        return out.dropna(subset=["open", "high", "low", "close"]).copy()
+
+    return _build("ask"), _build("bid")
+
+
+def _build_spread_price_arrays(
+    ts_a: pd.DatetimeIndex,
+    entry_ts_a: pd.DatetimeIndex,
+    fut_ts_a: pd.DatetimeIndex,
+    bars_ask: pd.DataFrame,
+    bars_bid: pd.DataFrame,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Return (entry_ask, entry_bid, curr_ask, curr_bid, fut_ask, fut_bid).
+
+    - entry_ask/bid : ask/bid open of the entry bar (next bar after signal)
+    - curr_ask/bid  : ask/bid close of the signal bar (used for stop/target monitoring)
+    - fut_ask/bid   : ask/bid close of the horizon bar (used for planned/timeout exit)
+    """
+    def _align_open(df: pd.DataFrame, ts: pd.DatetimeIndex) -> np.ndarray:
+        idx = df.index.get_indexer(ts, method="nearest")
+        return df["open"].to_numpy(dtype=np.float64)[idx]
+
+    def _align_close(df: pd.DataFrame, ts: pd.DatetimeIndex) -> np.ndarray:
+        idx = df.index.get_indexer(ts, method="nearest")
+        return df["close"].to_numpy(dtype=np.float64)[idx]
+
+    entry_ask = _align_open(bars_ask, entry_ts_a)
+    entry_bid = _align_open(bars_bid, entry_ts_a)
+    curr_ask  = _align_close(bars_ask, ts_a)
+    curr_bid  = _align_close(bars_bid, ts_a)
+    fut_ask   = _align_close(bars_ask, fut_ts_a)
+    fut_bid   = _align_close(bars_bid, fut_ts_a)
+    return entry_ask, entry_bid, curr_ask, curr_bid, fut_ask, fut_bid
+
+
 def _resolve_prep_cache_dir(raw: Optional[str]) -> Optional[Path]:
     if raw is None or not str(raw).strip():
         return None
@@ -653,12 +704,14 @@ def _dataset_cache_key_payload(
     }
 
 
-def _load_or_build_bars(cfg: Config) -> tuple[pd.DataFrame, dict[str, object]]:
+def _load_or_build_bars(cfg: Config) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[str, object]]:
+    """Return (bars_mid, bars_ask, bars_bid, cache_info)."""
     cache_root = _resolve_prep_cache_dir(cfg.prep_cache_dir)
     if cache_root is None:
         raw = DataLoader().load_data(cfg.table, start_date=cfg.start_date, end_date=cfg.end_date)
         bars = _prepare_ohlcv(raw, cfg.timeframe)
-        return bars, {"enabled": False, "kind": "bars"}
+        bars_ask, bars_bid = _prepare_ask_bid_ohlcv(raw, cfg.timeframe)
+        return bars, bars_ask, bars_bid, {"enabled": False, "kind": "bars"}
 
     key = _cache_key(_bars_cache_key_payload(cfg))
     cache_path = cache_root / "bars" / f"{key}.joblib"
@@ -672,24 +725,30 @@ def _load_or_build_bars(cfg: Config) -> tuple[pd.DataFrame, dict[str, object]]:
     }
     if cache_path.exists() and not cfg.refresh_prep_cache:
         payload = joblib.load(cache_path)
-        status["hit"] = True
-        _log(f"Prep cache HIT (bars): {cache_path.relative_to(PROJECT_ROOT)}")
-        return payload["bars"], status
+        # Invalidate old caches that don't have bars_ask/bars_bid.
+        if "bars_ask" in payload and "bars_bid" in payload:
+            status["hit"] = True
+            _log(f"Prep cache HIT (bars): {cache_path.relative_to(PROJECT_ROOT)}")
+            return payload["bars"], payload["bars_ask"], payload["bars_bid"], status
+        _log(f"Prep cache stale (no ask/bid bars): rebuilding {cache_path.relative_to(PROJECT_ROOT)}")
 
     raw = DataLoader().load_data(cfg.table, start_date=cfg.start_date, end_date=cfg.end_date)
     bars = _prepare_ohlcv(raw, cfg.timeframe)
+    bars_ask, bars_bid = _prepare_ask_bid_ohlcv(raw, cfg.timeframe)
     joblib.dump(
         {
             "schema": PREP_CACHE_SCHEMA_VERSION,
             "kind": "bars",
             "cache_key": key,
             "bars": bars,
+            "bars_ask": bars_ask,
+            "bars_bid": bars_bid,
         },
         cache_path,
         compress=3,
     )
     _log(f"Prep cache MISS (bars): saved {cache_path.relative_to(PROJECT_ROOT)}")
-    return bars, status
+    return bars, bars_ask, bars_bid, status
 
 
 def _load_or_build_supervised_dataset(
@@ -2304,6 +2363,14 @@ def _backtest_trades_df(
     reverse_exit_prob: float = DEFAULT_REVERSE_EXIT_PROB,
     max_hold_minutes: Optional[float] = None,
     weak_period_cells: Optional[list[dict[str, str]]] = None,
+    # Ask/bid spread arrays – when provided, entries use ask/bid open and
+    # exits use bid/ask close (long buys at ask, exits at bid; short sells at bid, exits at ask).
+    entry_px_ask: Optional[np.ndarray] = None,
+    entry_px_bid: Optional[np.ndarray] = None,
+    curr_ask: Optional[np.ndarray] = None,
+    curr_bid: Optional[np.ndarray] = None,
+    fut_ask: Optional[np.ndarray] = None,
+    fut_bid: Optional[np.ndarray] = None,
 ) -> pd.DataFrame:
     columns = [
         "signal_idx",
@@ -2350,6 +2417,30 @@ def _backtest_trades_df(
         if signal_prob is None:
             return 0.0
         return float(signal_prob[i])
+
+    def _spread_entry(i: int, side_num: float) -> float:
+        """Long buys at ask; short sells at bid."""
+        if side_num > 0 and entry_px_ask is not None:
+            return float(entry_px_ask[i])
+        if side_num < 0 and entry_px_bid is not None:
+            return float(entry_px_bid[i])
+        return float(entry_px[i])
+
+    def _spread_curr(i: int, side_num: float) -> float:
+        """Long position monitored/closed at bid; short at ask."""
+        if side_num > 0 and curr_bid is not None:
+            return float(curr_bid[i])
+        if side_num < 0 and curr_ask is not None:
+            return float(curr_ask[i])
+        return float(curr[i])
+
+    def _spread_fut(i: int, side_num: float) -> float:
+        """Long exits at horizon bid; short exits at horizon ask."""
+        if side_num > 0 and fut_bid is not None:
+            return float(fut_bid[i])
+        if side_num < 0 and fut_ask is not None:
+            return float(fut_ask[i])
+        return float(fut[i])
 
     def _append_trade(trade: dict[str, object], exit_ts: pd.Timestamp, exit_price: float, exit_reason: str) -> None:
         side = float(trade["side_num"])
@@ -2404,10 +2495,11 @@ def _backtest_trades_df(
 
             side = 1.0 if int(pred[i]) == LABEL_UP else -1.0
             stop_abs = _stop_abs_for_pred(int(pred[i]))
-            raw_exit = float(fut[i])
+            adj_entry = _spread_entry(i, side)
+            raw_exit = _spread_fut(i, side)
             exit_reason = "timeout"
-            if stop_abs > 0.0 and (raw_exit - float(entry_px[i])) * side < -stop_abs:
-                raw_exit = float(entry_px[i] - side * stop_abs)
+            if stop_abs > 0.0 and (raw_exit - adj_entry) * side < -stop_abs:
+                raw_exit = float(adj_entry - side * stop_abs)
                 exit_reason = "stop_loss"
             rows.append(
                 {
@@ -2417,17 +2509,17 @@ def _backtest_trades_df(
                     "exit_time": exit_ts.isoformat(),
                     "pred": int(pred[i]),
                     "side": "up" if pred[i] == 2 else "down",
-                    "entry_price": float(entry_px[i]),
+                    "entry_price": adj_entry,
                     "exit_price": raw_exit,
-                    "pnl": float((raw_exit - entry_px[i]) * side),
+                    "pnl": float((raw_exit - adj_entry) * side),
                     "stop_abs": stop_abs,
-                    "target_abs": _target_abs_for_pred(int(pred[i]), float(entry_px[i])),
+                    "target_abs": _target_abs_for_pred(int(pred[i]), adj_entry),
                     "entry_signal_prob": _sig_prob(i),
                     "last_signal_prob": _sig_prob(i),
                     "target_updates": 0,
                     "last_target_signal_idx": i,
                     "last_target_time": exit_ts.isoformat(),
-                    "last_target_price": float(fut[i]),
+                    "last_target_price": _spread_fut(i, side),
                     "exit_reason": exit_reason,
                 }
             )
@@ -2447,11 +2539,12 @@ def _backtest_trades_df(
             entry_price = float(open_trade["entry_price"])
             stop_px = entry_price - side_num * stop_abs
             target_px = entry_price + side_num * target_abs
-            if stop_abs > 0.0 and (float(curr[i]) - entry_price) * side_num <= -stop_abs:
+            curr_exit_px = _spread_curr(i, side_num)
+            if stop_abs > 0.0 and (curr_exit_px - entry_price) * side_num <= -stop_abs:
                 _append_trade(open_trade, signal_ts, float(stop_px), "stop_loss")
                 next_entry_allowed_ts = signal_ts
                 open_trade = None
-            elif target_abs > 0.0 and (float(curr[i]) - entry_price) * side_num >= target_abs:
+            elif target_abs > 0.0 and (curr_exit_px - entry_price) * side_num >= target_abs:
                 _append_trade(open_trade, signal_ts, float(target_px), "target_hit")
                 next_entry_allowed_ts = signal_ts
                 open_trade = None
@@ -2459,8 +2552,17 @@ def _backtest_trades_df(
         if open_trade is not None and max_hold_delta is not None:
             max_hold_deadline = open_trade.get("max_hold_deadline")
             if max_hold_deadline is not None and signal_ts >= pd.Timestamp(max_hold_deadline):
-                _append_trade(open_trade, signal_ts, float(curr[i]), "timeout")
+                _append_trade(open_trade, signal_ts, _spread_curr(i, float(open_trade["side_num"])), "timeout")
                 next_entry_allowed_ts = signal_ts
+                open_trade = None
+
+        # Check reverse signal BEFORE planned-exit-time so a reverse bar is never
+        # mis-labelled as "signal_target" / "timeout".
+        if open_trade is not None and int(pred[i]) not in NO_TRADE_LABELS:
+            if int(pred[i]) != int(open_trade["pred"]) and _sig_prob(i) > reverse_exit_prob:
+                _reverse_exit_px = _spread_entry(i, -float(open_trade["side_num"]))
+                _append_trade(open_trade, trade_entry_ts, _reverse_exit_px, "reverse_signal")
+                next_entry_allowed_ts = trade_entry_ts
                 open_trade = None
 
         if open_trade is not None and signal_ts >= pd.Timestamp(open_trade["planned_exit_time"]):
@@ -2485,18 +2587,23 @@ def _backtest_trades_df(
                 "side": "up" if int(pred[i]) == LABEL_UP else "down",
                 "side_num": 1.0 if int(pred[i]) == LABEL_UP else -1.0,
                 "stop_abs": _stop_abs_for_pred(int(pred[i])),
-                "target_abs": _target_abs_for_pred(int(pred[i]), float(entry_px[i])),
-                "entry_price": float(entry_px[i]),
+            }
+            _new_side_num = float(open_trade["side_num"])
+            _adj_entry = _spread_entry(i, _new_side_num)
+            _adj_fut   = _spread_fut(i, _new_side_num)
+            open_trade.update({
+                "target_abs": _target_abs_for_pred(int(pred[i]), _adj_entry),
+                "entry_price": _adj_entry,
                 "entry_signal_prob": _sig_prob(i),
                 "last_signal_prob": _sig_prob(i),
                 "target_updates": 0,
                 "last_target_signal_idx": i,
                 "last_target_time": exit_ts,
-                "last_target_price": float(fut[i]),
+                "last_target_price": _adj_fut,
                 "planned_exit_time": exit_ts,
-                "planned_exit_price": float(fut[i]),
+                "planned_exit_price": _adj_fut,
                 "max_hold_deadline": (trade_entry_ts + max_hold_delta) if max_hold_delta is not None else None,
-            }
+            })
             continue
 
         same_direction = int(pred[i]) == int(open_trade["pred"])
@@ -2505,20 +2612,17 @@ def _backtest_trades_df(
             side_num = float(open_trade["side_num"])
             entry_price = float(open_trade["entry_price"])
             current_target_profit = (float(open_trade["planned_exit_price"]) - entry_price) * side_num
-            new_target_profit = (float(fut[i]) - entry_price) * side_num
+            new_adj_fut = _spread_fut(i, side_num)
+            new_target_profit = (new_adj_fut - entry_price) * side_num
             if new_target_profit > current_target_profit:
                 open_trade["target_updates"] = int(open_trade["target_updates"]) + 1
                 open_trade["last_target_signal_idx"] = i
                 open_trade["last_target_time"] = exit_ts
-                open_trade["last_target_price"] = float(fut[i])
+                open_trade["last_target_price"] = new_adj_fut
                 open_trade["planned_exit_time"] = exit_ts
-                open_trade["planned_exit_price"] = float(fut[i])
+                open_trade["planned_exit_price"] = new_adj_fut
             continue
-
-        if _sig_prob(i) > reverse_exit_prob:
-            _append_trade(open_trade, trade_entry_ts, float(entry_px[i]), "reverse_signal")
-            next_entry_allowed_ts = trade_entry_ts
-            open_trade = None
+        # Opposite-direction signal with prob <= reverse_exit_prob: hold open trade.
 
     if open_trade is not None:
         planned_exit_ts = pd.Timestamp(open_trade["planned_exit_time"])
@@ -2545,6 +2649,12 @@ def directional_pnl_report(
     reverse_exit_prob: float = DEFAULT_REVERSE_EXIT_PROB,
     max_hold_minutes: Optional[float] = None,
     weak_period_cells: Optional[list[dict[str, str]]] = None,
+    entry_px_ask: Optional[np.ndarray] = None,
+    entry_px_bid: Optional[np.ndarray] = None,
+    curr_ask: Optional[np.ndarray] = None,
+    curr_bid: Optional[np.ndarray] = None,
+    fut_ask: Optional[np.ndarray] = None,
+    fut_bid: Optional[np.ndarray] = None,
 ) -> tuple[dict, pd.DataFrame]:
     pdf = _backtest_trades_df(
         ts,
@@ -2564,6 +2674,12 @@ def directional_pnl_report(
         reverse_exit_prob=reverse_exit_prob,
         max_hold_minutes=max_hold_minutes,
         weak_period_cells=weak_period_cells,
+        entry_px_ask=entry_px_ask,
+        entry_px_bid=entry_px_bid,
+        curr_ask=curr_ask,
+        curr_bid=curr_bid,
+        fut_ask=fut_ask,
+        fut_bid=fut_bid,
     )
     def _streak_stats(pnl_vals: np.ndarray) -> dict[str, int]:
         max_win = 0
@@ -3177,7 +3293,7 @@ def main() -> int:
     cache_info: dict[str, object] = {}
 
     t = _log("Preparing bars...")
-    bars, bars_cache_info = _load_or_build_bars(cfg)
+    bars, bars_ask, bars_bid, bars_cache_info = _load_or_build_bars(cfg)
     cache_info["bars"] = bars_cache_info
     _log(f"Bars after resample: {len(bars):,}", t0=t)
 
@@ -3919,6 +4035,11 @@ def main() -> int:
     ))
 
     # ── PnL check ─────────────────────────────────────────────────────────────
+    # Build ask/bid price arrays so the backtest uses realistic fill prices
+    # (longs enter at ask / exit at bid; shorts enter at bid / exit at ask).
+    _spread_entry_ask, _spread_entry_bid, _spread_curr_ask, _spread_curr_bid, _spread_fut_ask, _spread_fut_bid = (
+        _build_spread_price_arrays(ts_te, entry_ts_te, fut_ts_te, bars_ask, bars_bid)
+    )
     pnl, trades_df = directional_pnl_report(
         ts_te,
         entry_ts_te,
@@ -3937,6 +4058,12 @@ def main() -> int:
         reverse_exit_prob=cfg.reverse_exit_prob,
         max_hold_minutes=cfg.max_hold_minutes,
         weak_period_cells=weak_period_cells,
+        entry_px_ask=_spread_entry_ask,
+        entry_px_bid=_spread_entry_bid,
+        curr_ask=_spread_curr_ask,
+        curr_bid=_spread_curr_bid,
+        fut_ask=_spread_fut_ask,
+        fut_bid=_spread_fut_bid,
     )
     print("── Directional PnL check ───────────────────────────────────────")
     print(f"   trades={pnl['trades']}  total=${pnl['total_pnl']:.2f}  avg_trade=${pnl['avg_trade']:.2f}")
