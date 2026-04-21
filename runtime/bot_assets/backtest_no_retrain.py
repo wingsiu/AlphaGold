@@ -30,14 +30,21 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from training.rebuild_directional_pnl_from_trades import rebuild_directional_pnl
+from config.runtime_paths import load_runtime_paths
 
 
-MODEL_IN = PROJECT_ROOT / "runtime/bot_assets/backtest_model_best_base_weak_nostate.joblib"
+RUNTIME_PATHS = load_runtime_paths()
+MODEL_IN = PROJECT_ROOT / RUNTIME_PATHS["signal_model_path"]
 SCRIPT = PROJECT_ROOT / "training/image_trend_ml.py"
-DEFAULT_WEAK_FILTER_PATH = PROJECT_ROOT / "runtime/bot_assets/weak-filter.json"
+DEFAULT_WEAK_FILTER_PATH = PROJECT_ROOT / RUNTIME_PATHS["weak_periods_json"]
 
-# Best-base constants — Candidate E (promoted 2026-04-20)
-# D + max_hold_minutes=60  → PnL=$5,217  WR=53.4%  PF=1.749  DD=-$171 (unchanged)
+# Best-base constants — Candidate E (promoted 2026-04-20), stops updated 2026-04-21
+# D + max_hold_minutes=60  → PnL=$5,217  WR=53.4%  PF=1.749  DD=-$171
+# Stop update: long_adverse=12, short_adverse=18, max_hold_minutes=50
+#   → h25+cap50 sweep p2 PnL=3114, WR=50.2%, PF=1.466, DD=-143
+#   NOTE: horizon stays at 25 — the bundle was trained with h25 labels.
+#         h45 sweep results used --model-in (no retrain), so horizon=45
+#         there means a longer exit window, NOT a re-trained h45 model.
 BASE_PARAMS = {
     "timeframe": "1min",
     "eval_mode": "single_split",
@@ -52,7 +59,7 @@ BASE_PARAMS = {
     "adverse_limit": 15,
     "long_target_threshold": 0.008,
     "short_target_threshold": 0.008,
-    "long_adverse_limit": 15,
+    "long_adverse_limit": 12,
     "short_adverse_limit": 18,
     "classifier": "gradient_boosting",
     "max_flat_ratio": 2.5,
@@ -60,7 +67,7 @@ BASE_PARAMS = {
     "stage2_min_prob": 0.58,       # fallback (overridden by up/down below)
     "stage2_min_prob_up": 0.65,    # long threshold (Candidate D)
     "stage2_min_prob_down": 0.62,  # short threshold (Candidate D)
-    "max_hold_minutes": 60,        # hard timeout cap (Candidate E)
+    "max_hold_minutes": 50,        # hard timeout cap (h25+cap50 sweep)
 }
 
 DAY_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -467,16 +474,20 @@ def _build_signals_detail_by_time(trades_path: Path) -> pd.DataFrame:
 
     rows: list[dict[str, Any]] = []
     for _, row in t.iterrows():
-        entry_price = row.get("entry_price", None)
         target_price = row.get("last_target_price", None)
         side = row.get("side", "")
+        signal_ts = row.get("ts", pd.NaT)
+        entry_price = row.get("entry_price", None)
+        signal_close = row.get("signal_ts_close", None)
+        
         rows.append(
             {
                 "trigger_event": "entry",
                 "signal_idx": row.get("signal_idx", None),
-                "ts": row.get("ts", pd.NaT),
+                "ts": signal_ts,
                 "side": side,
                 "entry_price": entry_price,
+                "current_close": signal_close,
                 "target_price": target_price,
                 "signal_prob": row.get("entry_signal_prob", None),
                 "trade_exit_reason": row.get("exit_reason", ""),
@@ -485,15 +496,19 @@ def _build_signals_detail_by_time(trades_path: Path) -> pd.DataFrame:
 
         updates = int(row.get("target_updates", 0) or 0)
         if updates > 0:
-            event_price = row.get("last_target_price", entry_price)
+            updated_target_price = row.get("last_target_price", None)
+            update_ts = row.get("last_target_time", pd.NaT)
+            update_close = row.get("update_ts_close", None)
+            
             rows.append(
                 {
                     "trigger_event": "change_target_stop",
                     "signal_idx": row.get("last_target_signal_idx", None),
-                    "ts": row.get("last_target_time", pd.NaT),
+                    "ts": update_ts,
                     "side": side,
-                    "entry_price": event_price,
-                    "target_price": target_price,
+                    "entry_price": updated_target_price,
+                    "current_close": update_close,
+                    "target_price": updated_target_price,
                     "signal_prob": row.get("last_signal_prob", None),
                     "trade_exit_reason": row.get("exit_reason", ""),
                 }
@@ -515,25 +530,27 @@ def _print_signals_table_hkt(signals_df: pd.DataFrame, max_rows: int = 100) -> N
 
     ts_hkt = shown["ts"].dt.tz_convert("Asia/Hong_Kong") if "ts" in shown.columns else pd.Series(dtype="datetime64[ns]")
     print(
-        f"{'#':<5} {'Date':<12} {'Time (HKT)':<12} {'Side':<8} {'Price':<10} {'Target':<10} {'Prob':<8} {'Event':<20} {'Signal#':<8}"
+        f"{'#':<5} {'Date':<12} {'Time (HKT)':<12} {'Side':<8} {'Price':<10} {'Curr Close':<10} {'Target':<10} {'Prob':<8} {'Event':<20} {'Signal#':<8}"
     )
-    print("-" * 108)
+    print("-" * 120)
     for i, row in shown.iterrows():
         ts_i = ts_hkt.iloc[i] if i < len(ts_hkt) else pd.NaT
         date_str = ts_i.strftime("%Y-%m-%d") if pd.notna(ts_i) else "-"
         time_str = ts_i.strftime("%H:%M") if pd.notna(ts_i) else "-"
         side = str(row.get("side", ""))
         entry_price = row.get("entry_price", None)
+        current_close = row.get("current_close", None)
         target_price = row.get("target_price", None)
         prob = row.get("signal_prob", None)
         event = str(row.get("trigger_event", ""))
         signal_idx = row.get("signal_idx", None)
         entry_str = f"{float(entry_price):.2f}" if pd.notna(entry_price) else "-"
+        current_close_str = f"{float(current_close):.2f}" if pd.notna(current_close) else "-"
         target_str = f"{float(target_price):.2f}" if pd.notna(target_price) else "-"
         prob_str = f"{float(prob):.3f}" if pd.notna(prob) else "-"
         idx_str = str(int(signal_idx)) if pd.notna(signal_idx) else "-"
         print(
-            f"{i + 1:<5} {date_str:<12} {time_str:<12} {side:<8} {entry_str:<10} {target_str:<10} "
+            f"{i + 1:<5} {date_str:<12} {time_str:<12} {side:<8} {entry_str:<10} {current_close_str:<10} {target_str:<10} "
             f"{prob_str:<8} {event:<20} {idx_str:<8}"
         )
 
@@ -662,6 +679,13 @@ def main() -> int:
         raise FileNotFoundError(f"Missing no-retrain model: {MODEL_IN}")
 
     weak_filter_path = _resolve_weak_filter_path(DEFAULT_WEAK_FILTER_PATH)
+    print("\n[backtest_no_retrain] startup files:")
+    print(f"- model: {MODEL_IN}")
+    print(f"- weak_filter_default: {DEFAULT_WEAK_FILTER_PATH}")
+    if weak_filter_path is None:
+        print("- weak_filter_effective: disabled (missing/empty)")
+    else:
+        print(f"- weak_filter_effective: {weak_filter_path}")
 
     spec = _choose_option(
         args.latest_days,

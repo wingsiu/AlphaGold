@@ -1,0 +1,5 @@
+{
+  "signal_model_path": "config/artifacts/model_bundle.joblib",
+  "weak_periods_json": "config/artifacts/weak-filter.json"
+}
+

@@ -56,6 +56,7 @@ from ig_scripts.ig_data_api import (
 	insert_prices,
 	snapshot_to_price_row,
 )
+from config.runtime_paths import load_runtime_paths
 
 
 UTC = timezone.utc
@@ -65,8 +66,9 @@ BAR_INTERVAL = pd.Timedelta(minutes=15)
 MIN_FEATURE_BARS = 120
 DEFAULT_SIGNAL_MODEL_FAMILY = "best_base_state"
 DEFAULT_MODEL_DIR = "training/ml_models_15m_nextbar_060_corr"
-DEFAULT_BEST_BASE_MODEL_PATH = "runtime/bot_assets/backtest_model_best_base_weak_nostate.joblib"
-DEFAULT_WEAK_PERIODS_JSON = "runtime/bot_assets/weak-filter.json"
+RUNTIME_PATHS = load_runtime_paths()
+DEFAULT_BEST_BASE_MODEL_PATH = RUNTIME_PATHS["signal_model_path"]
+DEFAULT_WEAK_PERIODS_JSON = RUNTIME_PATHS["weak_periods_json"]
 DEFAULT_MAX_ADVERSE_LOW_PCT = 12.0   # absolute points (matches backtest long_adverse_limit=12, short=18)
 DEFAULT_FORWARD_BARS = 4
 DEFAULT_THRESHOLD_PCT = 0.80         # % of entry price (matches backtest long/short_target_threshold=0.008 = 0.8%)
@@ -1309,6 +1311,8 @@ class AlphaGoldTradingBot:
 		self.last_best_base_payload_info: dict[str, object] = {}
 		self._last_prediction_wait_bucket_utc: Optional[pd.Timestamp] = None
 		self.weak_period_cells: list[dict[str, str]] = []
+		self.resolved_signal_model_path: Optional[Path] = None
+		self.resolved_weak_periods_path: Optional[Path] = None
 		self.prediction_cache = IGPredictionDataCache(cfg, self.logger)
 		if not cfg.market_sync_only:
 			if cfg.signal_model_family == "legacy_15m_nextbar":
@@ -1325,6 +1329,7 @@ class AlphaGoldTradingBot:
 			elif cfg.signal_model_family == "best_base_state":
 				self.image_trend = _load_image_trend_module()
 				bundle_path = PROJECT_ROOT / cfg.signal_model_path
+				self.resolved_signal_model_path = bundle_path
 				self.model_bundle = joblib.load(bundle_path)
 				if not isinstance(self.model_bundle, dict) or "stage1" not in self.model_bundle or "stage2" not in self.model_bundle:
 					raise ValueError(f"Best-base model artifact is invalid: {bundle_path}")
@@ -1351,6 +1356,7 @@ class AlphaGoldTradingBot:
 		self.execution_engine = ExecutionEngine(broker_adapter)
 		self.market_data_collector = IGMarketDataCollector(cfg, self.logger)
 		weak_path = (PROJECT_ROOT / cfg.weak_periods_json) if cfg.weak_periods_json and not Path(cfg.weak_periods_json).is_absolute() else Path(cfg.weak_periods_json) if cfg.weak_periods_json else None
+		self.resolved_weak_periods_path = weak_path
 		self.weak_period_cells = load_weak_period_cells(str(weak_path)) if weak_path is not None else []
 		self._log_model_startup_config()
 		self._recover_open_position_on_startup()
@@ -1366,6 +1372,11 @@ class AlphaGoldTradingBot:
 			return
 		if self.cfg.signal_model_family == "best_base_state" and isinstance(self.model_bundle, dict):
 			cfg = self._apply_cfg_overrides(dict(self.model_bundle.get("config") or {}))
+			self.logger.info(
+				"STARTUP FILES: model=%s weak_filter=%s",
+				self.resolved_signal_model_path,
+				self.resolved_weak_periods_path,
+			)
 			disable_time_filter = bool(cfg.get("disable_time_filter", False))
 			blocked_utc = self.model_bundle.get("blocked_utc")
 			if blocked_utc is None:

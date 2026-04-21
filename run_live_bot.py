@@ -15,7 +15,12 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 TRADING_BOT_SCRIPT = PROJECT_ROOT / "trading_bot.py"
-DEFAULT_WEAK_PERIODS_JSON = "runtime/bot_assets/weak-filter.json"
+
+from config.runtime_paths import load_runtime_paths
+
+RUNTIME_PATHS = load_runtime_paths()
+DEFAULT_WEAK_PERIODS_JSON = RUNTIME_PATHS["weak_periods_json"]
+DEFAULT_SIGNAL_MODEL_PATH = RUNTIME_PATHS["signal_model_path"]
 
 
 def _weak_cells_count(path: Path) -> int:
@@ -53,7 +58,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--min-window-range", type=float, default=None)
     p.add_argument("--long-adverse-limit", type=float, default=None)
     p.add_argument("--long-target-threshold", type=float, default=None)
-    p.add_argument("--signal-model-path", default=None)
+    p.add_argument("--signal-model-path", default=DEFAULT_SIGNAL_MODEL_PATH)
     p.add_argument("--weak-periods-json", default=DEFAULT_WEAK_PERIODS_JSON)
     return p
 
@@ -80,6 +85,16 @@ def main() -> int:
                 f"[run_live_bot] weak filter override '{args.weak_periods_json}' is missing/empty, "
                 "and fallback weak-filter is also missing/empty; continuing with requested path."
             )
+
+    model_arg_path = Path(args.signal_model_path)
+    model_abs_path = model_arg_path if model_arg_path.is_absolute() else (PROJECT_ROOT / model_arg_path)
+    effective_weak_abs_path = Path(effective_weak_periods_json)
+    if not effective_weak_abs_path.is_absolute():
+        effective_weak_abs_path = PROJECT_ROOT / effective_weak_abs_path
+    print(
+        "[run_live_bot] startup files: "
+        f"model={model_abs_path} weak_filter={effective_weak_abs_path}"
+    )
 
     cmd = [
         sys.executable,
