@@ -2,7 +2,7 @@
   <configuration default="false" name="Live Bot Loop" type="PythonConfigurationType" factoryName="Python">
     <module name="AlphaGold" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/run_live_bot.py" />
-    <option name="PARAMETERS" value="--size 2 --max-hold-minutes 60" />
+    <option name="PARAMETERS" value="--size 2 --stage1-min-prob 0.55 --stage2-min-prob 0.58 --stage2-min-prob-up 0.65 --stage2-min-prob-down 0.62 --max-hold-minutes 50 --min-window-range 30 --long-adverse-limit 15 --long-target-threshold 0.008" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
