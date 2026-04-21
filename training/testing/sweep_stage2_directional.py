@@ -18,15 +18,16 @@ from __future__ import annotations
 import argparse
 import csv
 import itertools
-import json
 import subprocess
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from training.rebuild_directional_pnl_from_trades import rebuild_directional_pnl
+from training.testing.sweep_utils import (
+    fmt_sec, generate_weak_filter, parse_report, print_progress, print_top,
+)
 
 PROJECT_ROOT   = Path(__file__).resolve().parents[2]
 IMAGE_TREND_ML = PROJECT_ROOT / "training" / "image_trend_ml.py"
@@ -58,20 +59,15 @@ PARAM_GRID = {
     "stage2_down": [0.50, 0.55, 0.58, 0.62, 0.65],
 }
 
-# Weak-filter thresholds
-WEAK_MIN_TRADES   = 3
-WEAK_MAX_WIN_RATE = 40.0
-DAY_ORDER = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
 
-
-def _build_cmd(stage2_up: float, stage2_down: float, out_base: Path, weak_filter: Path | None) -> list[str]:
+def _build_cmd(stage2_up: float, stage2_down: float, out_base: Path, weak_filter: "Path | None") -> list[str]:
     cmd = [
         sys.executable, str(IMAGE_TREND_ML),
-        "--start-date",       "2025-05-20",
-        "--end-date",         "2026-04-10",
-        "--test-start-date",  "2025-11-25T17:02:00+00:00",
-        "--timeframe",        "1min",
-        "--eval-mode",        "single_split",
+        "--start-date",           "2025-05-20",
+        "--end-date",             "2026-04-10",
+        "--test-start-date",      "2025-11-25T17:02:00+00:00",
+        "--timeframe",            "1min",
+        "--eval-mode",            "single_split",
         "--disable-time-filter",
         "--window",                     str(FIXED["window"]),
         "--window-15m",                 "0",
@@ -101,73 +97,6 @@ def _build_cmd(stage2_up: float, stage2_down: float, out_base: Path, weak_filter
     return cmd
 
 
-def _generate_weak_filter(trades_csv: Path, out_json: Path) -> list[dict]:
-    pnl = rebuild_directional_pnl(trades_csv)
-    try:
-        session_heatmaps = pnl["all"]["time_distribution"]["session_heatmaps"]
-    except KeyError:
-        out_json.write_text(json.dumps({"weak_cells": []}, indent=2))
-        return []
-
-    weak_cells: list[dict] = []
-    for session in ("hkt", "london", "ny"):
-        day_map = session_heatmaps.get(session, {}).get("cell_stats", {})
-        for day, hour_map in day_map.items():
-            for hour, st in hour_map.items():
-                if not st:
-                    continue
-                t = int(st.get("trades", 0))
-                pnl_total = float(st.get("total_pnl", 0.0))
-                wr = st.get("win_rate_pct", None)
-                wr = float(wr) if wr is not None else None
-                if t >= WEAK_MIN_TRADES and pnl_total < 0.0 and wr is not None and wr < WEAK_MAX_WIN_RATE:
-                    weak_cells.append({"session": session, "day": str(day), "hour": hour})
-
-    payload = {"weak_cells": weak_cells}
-    out_json.write_text(json.dumps(payload, indent=2))
-    return weak_cells
-
-
-def _parse_report(report_path: Path) -> dict:
-    try:
-        r = json.loads(report_path.read_text())
-        dp = r.get("directional_pnl", r)
-        a  = dp.get("all", dp)
-        long_s  = dp.get("long_up",    {})
-        short_s = dp.get("short_down", {})
-        return {
-            "trades":             int(a.get("trades", 0)),
-            "total_pnl":          round(float(a.get("total_pnl", 0)), 2),
-            "avg_trade":          round(float(a.get("avg_trade", 0)), 4),
-            "win_rate_pct":       round(float(a.get("win_rate_pct", 0)), 2),
-            "profit_factor":      round(float(a.get("profit_factor") or 0), 3),
-            "avg_trades_per_day": round(float(a.get("avg_trades_per_day", 0)), 2),
-            "avg_day":            round(float(dp.get("avg_day") or 0), 2),
-            "positive_days_pct":  round(float(dp.get("positive_days_pct") or 0), 2),
-            "trade_max_drawdown": round(float(a.get("trade_max_drawdown", 0)), 2),
-            "daily_max_drawdown": round(float(a.get("daily_max_drawdown", 0)), 2),
-            "long_trades":        int(long_s.get("trades", 0)),
-            "long_wr":            round(float(long_s.get("win_rate_pct", 0)), 1),
-            "long_pnl":           round(float(long_s.get("total_pnl", 0)), 2),
-            "short_trades":       int(short_s.get("trades", 0)),
-            "short_wr":           round(float(short_s.get("win_rate_pct", 0)), 1),
-            "short_pnl":          round(float(short_s.get("total_pnl", 0)), 2),
-        }
-    except Exception as e:
-        return {"error": str(e)}
-
-
-def _fmt_sec(s: float) -> str:
-    m, sec = divmod(int(s), 60)
-    return f"{m}m{sec:02d}s" if m else f"{sec}s"
-
-
-def _bar(done: int, total: int, width: int = 20) -> str:
-    filled = int(width * done / total) if total else 0
-    pct = int(100 * done / total) if total else 0
-    return f"[{'█' * filled}{'░' * (width - filled)}] {pct:3d}%"
-
-
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
@@ -185,100 +114,81 @@ def main() -> None:
             print(f"  {i:3d}: up={c['stage2_up']}  down={c['stage2_down']}")
         return
 
-    timestamp  = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp   = datetime.now().strftime("%Y%m%d_%H%M%S")
     summary_csv = RESULTS_DIR / f"sweep_s2dir_{timestamp}.csv"
-    fieldnames  = ["stage2_up", "stage2_down",
-                   "trades", "total_pnl", "avg_trade", "win_rate_pct", "profit_factor",
-                   "avg_trades_per_day", "avg_day", "positive_days_pct",
-                   "trade_max_drawdown", "daily_max_drawdown",
-                   "long_trades", "long_wr", "long_pnl",
-                   "short_trades", "short_wr", "short_pnl", "error"]
+    fieldnames  = [
+        "stage2_up", "stage2_down",
+        "trades", "total_pnl", "avg_trade", "win_rate_pct", "profit_factor",
+        "avg_trades_per_day", "avg_day", "positive_days_pct",
+        "trade_max_drawdown", "daily_max_drawdown",
+        "long_trades", "long_wr", "long_pnl",
+        "short_trades", "short_wr", "short_pnl", "error",
+    ]
 
     sweep_start = time.time()
     durations: list[float] = []
+    all_rows: list[dict]   = []
 
     with open(summary_csv, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
 
         for i, combo in enumerate(combos, 1):
-            now_str = datetime.now().strftime("%H:%M:%S")
-            elapsed = time.time() - sweep_start
-            if durations:
-                avg_sec = sum(durations) / len(durations)
-                eta_str = (datetime.now() + timedelta(seconds=avg_sec * (len(combos) - i + 1))).strftime("%H:%M:%S")
-                print(f"\n{_bar(i-1, len(combos))} [{i}/{len(combos)}] {now_str}  elapsed={_fmt_sec(elapsed)}  eta={eta_str}")
-            else:
-                print(f"\n[{i}/{len(combos)}] {now_str}  elapsed={_fmt_sec(elapsed)}")
-
             up, dn = combo["stage2_up"], combo["stage2_down"]
+            print_progress(i, len(combos), sweep_start, durations)
             print(f"  stage2_up={up}  stage2_down={dn}")
-
             t0     = time.time()
             prefix = RESULTS_DIR / f"s2dir_{timestamp}_{i:03d}"
 
-            # Pass 1 — no weak filter
+            # Pass 1 — no weak filter (stream output so errors are visible)
             base1 = Path(str(prefix) + "_p1")
-            rc1   = subprocess.run(_build_cmd(up, dn, base1, None),
-                                   capture_output=True, cwd=str(PROJECT_ROOT)).returncode
+            rc1   = subprocess.run(
+                _build_cmd(up, dn, base1, None),
+                cwd=str(PROJECT_ROOT), check=False,
+            ).returncode
 
             metrics: dict = {}
             if rc1 != 0:
                 metrics = {"error": f"pass1 rc={rc1}"}
             else:
-                # Generate weak filter from pass-1 trades
                 trades1   = Path(str(base1) + "_trades.csv")
                 weak_json = Path(str(prefix) + "_wf.json")
-                cells = _generate_weak_filter(trades1, weak_json)
+                cells     = generate_weak_filter(trades1, weak_json)
 
                 # Pass 2 — with weak filter
                 base2 = Path(str(prefix) + "_p2")
-                rc2   = subprocess.run(_build_cmd(up, dn, base2, weak_json if cells else None),
-                                       capture_output=True, cwd=str(PROJECT_ROOT)).returncode
+                rc2   = subprocess.run(
+                    _build_cmd(up, dn, base2, weak_json if cells else None),
+                    cwd=str(PROJECT_ROOT), check=False,
+                ).returncode
 
                 report2 = Path(str(base2) + "_report.json")
-                metrics = _parse_report(report2) if (rc2 == 0 and report2.exists()) else {"error": f"pass2 rc={rc2}"}
+                if rc2 == 0 and report2.exists():
+                    metrics = parse_report(report2)
+                else:
+                    metrics = {"error": f"pass2 rc={rc2}"}
 
             durations.append(time.time() - t0)
-
             row = {**combo, **metrics}
             for fn in fieldnames:
                 row.setdefault(fn, "")
-            writer.writerow(row)
-            f.flush()
+            all_rows.append(row)
+            writer.writerow(row); f.flush()
 
-            if "error" in metrics:
+            if "error" in metrics and metrics["error"]:
                 print(f"  ⚠ {metrics['error']}")
             else:
-                print(f"  → {_fmt_sec(durations[-1])}  "
-                      f"trades={metrics['trades']}  pnl={metrics['total_pnl']}  "
-                      f"avg={metrics['avg_trade']}  wr={metrics['win_rate_pct']}%  "
-                      f"pf={metrics['profit_factor']}  dd={metrics['trade_max_drawdown']}")
-                print(f"     long: {metrics['long_trades']}t  wr={metrics['long_wr']}%  pnl={metrics['long_pnl']} | "
-                      f"short: {metrics['short_trades']}t  wr={metrics['short_wr']}%  pnl={metrics['short_pnl']}")
+                print(f"  → {fmt_sec(durations[-1])}  "
+                      f"trades={metrics.get('trades')}  pnl={metrics.get('total_pnl')}  "
+                      f"avg={metrics.get('avg_trade')}  wr={metrics.get('win_rate_pct')}%  "
+                      f"pf={metrics.get('profit_factor')}  dd={metrics.get('trade_max_drawdown')}")
+                print(f"     long: {metrics.get('long_trades')}t  wr={metrics.get('long_wr')}%  "
+                      f"pnl={metrics.get('long_pnl')} | "
+                      f"short: {metrics.get('short_trades')}t  wr={metrics.get('short_wr')}%  "
+                      f"pnl={metrics.get('short_pnl')}")
 
-    print(f"\n✅ Sweep done in {_fmt_sec(time.time()-sweep_start)}. Results: {summary_csv}")
-    _print_top(summary_csv)
-
-
-def _print_top(csv_path: Path, n: int = 10) -> None:
-    rows = []
-    with open(csv_path) as f:
-        for row in csv.DictReader(f):
-            rows.append(row)
-    rows = [r for r in rows if not r.get("error")]
-    rows.sort(key=lambda r: float(r.get("total_pnl", 0)), reverse=True)
-    print(f"\n=== Top {min(n, len(rows))} by Total PnL ===")
-    print(f"{'up':>5} {'down':>5} | {'total_pnl':>10} {'avg':>8} {'wr%':>6} {'pf':>5} "
-          f"{'trades':>7} {'avg_day':>8} {'dd':>9} | {'l_wr':>6} {'s_wr':>6}")
-    print("-" * 90)
-    for r in rows[:n]:
-        print(f"{r['stage2_up']:>5} {r['stage2_down']:>5} | "
-              f"{float(r['total_pnl']):>10.2f} {float(r['avg_trade']):>8.4f} "
-              f"{float(r['win_rate_pct']):>6.1f} {float(r['profit_factor']):>5.3f} "
-              f"{int(r['trades']):>7} {float(r['avg_day']):>8.2f} "
-              f"{float(r['trade_max_drawdown']):>9.2f} | "
-              f"{float(r['long_wr']):>6.1f} {float(r['short_wr']):>6.1f}")
+    print(f"\n✅ Sweep done in {fmt_sec(time.time()-sweep_start)}. Results: {summary_csv}")
+    print_top(all_rows, sort_key="total_pnl", param_keys=["stage2_up", "stage2_down"])
 
 
 if __name__ == "__main__":

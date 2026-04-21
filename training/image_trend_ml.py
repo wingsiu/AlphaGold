@@ -2387,6 +2387,8 @@ def _backtest_trades_df(
         "target_updates",
         "last_target_signal_idx",
         "last_target_time",
+        "signal_ts_close",
+        "update_ts_close",
         "last_target_price",
         "exit_reason",
     ]
@@ -2456,7 +2458,12 @@ def _backtest_trades_df(
         final_pnl = float((effective_exit_price - entry_price) * side)
         if exit_reason == "signal_target":
             target_abs = float(trade.get("target_abs", 0.0))
-            exit_reason = "target_hit" if target_abs > 0.0 and final_pnl >= target_abs else "timeout"
+            updated_targets = int(trade.get("target_updates", 0) or 0)
+            if updated_targets > 0:
+                # A rolled/updated signal target closed as planned, not a pure timeout.
+                exit_reason = "target_hit"
+            else:
+                exit_reason = "target_hit" if target_abs > 0.0 and final_pnl >= target_abs else "timeout"
         elif exit_reason == "horizon":
             exit_reason = "timeout"
         rows.append(
@@ -2475,6 +2482,8 @@ def _backtest_trades_df(
                 "target_updates": int(trade["target_updates"]),
                 "last_target_signal_idx": int(trade["last_target_signal_idx"]),
                 "last_target_time": pd.Timestamp(trade["last_target_time"]).isoformat(),
+                "signal_ts_close": float(trade.get("signal_ts_close", np.nan)),
+                "update_ts_close": float(trade.get("update_ts_close", np.nan)),
                 "last_target_price": float(trade["last_target_price"]),
                 "exit_reason": exit_reason,
             }
@@ -2519,6 +2528,8 @@ def _backtest_trades_df(
                     "target_updates": 0,
                     "last_target_signal_idx": i,
                     "last_target_time": exit_ts.isoformat(),
+                    "signal_ts_close": _spread_curr(i, side),
+                    "update_ts_close": _spread_fut(i, side),
                     "last_target_price": _spread_fut(i, side),
                     "exit_reason": exit_reason,
                 }
@@ -2549,25 +2560,50 @@ def _backtest_trades_df(
                 next_entry_allowed_ts = signal_ts
                 open_trade = None
 
-        if open_trade is not None and max_hold_delta is not None:
-            max_hold_deadline = open_trade.get("max_hold_deadline")
-            if max_hold_deadline is not None and signal_ts >= pd.Timestamp(max_hold_deadline):
-                _append_trade(open_trade, signal_ts, _spread_curr(i, float(open_trade["side_num"])), "timeout")
-                next_entry_allowed_ts = signal_ts
-                open_trade = None
-
-        # Check reverse signal BEFORE planned-exit-time so a reverse bar is never
-        # mis-labelled as "signal_target" / "timeout".
+        same_direction_signal = False
+        # Check reverse/same-direction signal BEFORE planned-exit-time so a signal
+        # bar can update state first instead of being prematurely labelled timeout.
         if open_trade is not None and int(pred[i]) not in NO_TRADE_LABELS:
             if int(pred[i]) != int(open_trade["pred"]) and _sig_prob(i) > reverse_exit_prob:
                 _reverse_exit_px = _spread_entry(i, -float(open_trade["side_num"]))
                 _append_trade(open_trade, trade_entry_ts, _reverse_exit_px, "reverse_signal")
                 next_entry_allowed_ts = trade_entry_ts
                 open_trade = None
+            elif int(pred[i]) == int(open_trade["pred"]):
+                same_direction_signal = True
+                open_trade["last_signal_prob"] = _sig_prob(i)
+                side_num = float(open_trade["side_num"])
+                entry_price = float(open_trade["entry_price"])
+                target_abs = float(open_trade.get("target_abs", 0.0))
+                current_target_profit = target_abs  # Original target in absolute points
+                
+                # New signal bar close price
+                signal_bar_close = _spread_curr(i, side_num)
+                # Calculate new target: signal_bar_close + (signal_bar_close * threshold)
+                new_target_abs = _target_abs_for_pred(int(pred[i]), signal_bar_close)
+                new_target_profit = new_target_abs
+                
+                # Dynamic hold: roll timeout on improving updates, capped by max-hold when set.
+                timeout_cap_time = open_trade.get("timeout_cap_time")
+                if new_target_profit > current_target_profit:
+                    rolled_deadline = exit_ts
+                    if timeout_cap_time is not None:
+                        cap_ts = pd.Timestamp(timeout_cap_time)
+                        if rolled_deadline > cap_ts:
+                            rolled_deadline = cap_ts
+                    if signal_ts < rolled_deadline:
+                        new_planned_exit = signal_bar_close + side_num * new_target_abs
+                        open_trade["target_updates"] = int(open_trade["target_updates"]) + 1
+                        open_trade["last_target_signal_idx"] = i
+                        open_trade["last_target_time"] = exit_ts
+                        open_trade["update_ts_close"] = _spread_fut(i, side_num)
+                        open_trade["last_target_price"] = new_planned_exit
+                        open_trade["planned_exit_time"] = rolled_deadline
+                        open_trade["planned_exit_price"] = new_planned_exit
 
         if open_trade is not None and signal_ts >= pd.Timestamp(open_trade["planned_exit_time"]):
             planned_exit_ts = pd.Timestamp(open_trade["planned_exit_time"])
-            _append_trade(open_trade, planned_exit_ts, float(open_trade["planned_exit_price"]), "signal_target")
+            _append_trade(open_trade, planned_exit_ts, _spread_curr(i, float(open_trade["side_num"])), "timeout")
             next_entry_allowed_ts = planned_exit_ts
             open_trade = None
 
@@ -2591,36 +2627,28 @@ def _backtest_trades_df(
             _new_side_num = float(open_trade["side_num"])
             _adj_entry = _spread_entry(i, _new_side_num)
             _adj_fut   = _spread_fut(i, _new_side_num)
+            _signal_close = _spread_curr(i, _new_side_num)
+            _target_abs = _target_abs_for_pred(int(pred[i]), _adj_entry)
+            _planned_exit = _adj_entry + _new_side_num * _target_abs
+            _timeout_deadline = (trade_entry_ts + max_hold_delta) if max_hold_delta is not None else exit_ts
             open_trade.update({
-                "target_abs": _target_abs_for_pred(int(pred[i]), _adj_entry),
+                "target_abs": _target_abs,
                 "entry_price": _adj_entry,
                 "entry_signal_prob": _sig_prob(i),
                 "last_signal_prob": _sig_prob(i),
                 "target_updates": 0,
                 "last_target_signal_idx": i,
                 "last_target_time": exit_ts,
-                "last_target_price": _adj_fut,
-                "planned_exit_time": exit_ts,
-                "planned_exit_price": _adj_fut,
-                "max_hold_deadline": (trade_entry_ts + max_hold_delta) if max_hold_delta is not None else None,
+                "signal_ts_close": _signal_close,
+                "update_ts_close": _adj_fut,
+                "last_target_price": _planned_exit,
+                "planned_exit_time": _timeout_deadline,
+                "planned_exit_price": _planned_exit,
+                "timeout_cap_time": (trade_entry_ts + max_hold_delta) if max_hold_delta is not None else None,
             })
             continue
 
-        same_direction = int(pred[i]) == int(open_trade["pred"])
-        if same_direction:
-            open_trade["last_signal_prob"] = _sig_prob(i)
-            side_num = float(open_trade["side_num"])
-            entry_price = float(open_trade["entry_price"])
-            current_target_profit = (float(open_trade["planned_exit_price"]) - entry_price) * side_num
-            new_adj_fut = _spread_fut(i, side_num)
-            new_target_profit = (new_adj_fut - entry_price) * side_num
-            if new_target_profit > current_target_profit:
-                open_trade["target_updates"] = int(open_trade["target_updates"]) + 1
-                open_trade["last_target_signal_idx"] = i
-                open_trade["last_target_time"] = exit_ts
-                open_trade["last_target_price"] = new_adj_fut
-                open_trade["planned_exit_time"] = exit_ts
-                open_trade["planned_exit_price"] = new_adj_fut
+        if open_trade is not None and same_direction_signal:
             continue
         # Opposite-direction signal with prob <= reverse_exit_prob: hold open trade.
 
@@ -3316,6 +3344,15 @@ def main() -> int:
         cfg.long_adverse_limit,
         cfg.short_adverse_limit,
     )
+    # When --model-in is used the model is not retrained, so the dataset cache
+    # key does not need to vary with la/sa — pin both to adverse_limit so all
+    # stop-sweep combos share a single cached dataset.
+    if cfg.model_in is not None:
+        dataset_long_adverse_limit  = float(cfg.adverse_limit)
+        dataset_short_adverse_limit = float(cfg.adverse_limit)
+    else:
+        dataset_long_adverse_limit  = long_adverse_limit
+        dataset_short_adverse_limit = short_adverse_limit
     if cfg.optimize:
         min_window_range = optimize_min_range(
             train_bars,
@@ -3349,8 +3386,8 @@ def main() -> int:
         threshold,
         long_target_threshold,
         short_target_threshold,
-        long_adverse_limit,
-        short_adverse_limit,
+        dataset_long_adverse_limit,
+        dataset_short_adverse_limit,
     )
     cache_info["dataset"] = dataset_cache_info
     _log(f"Dataset ready: kept={kept:,} skipped={skipped:,}", t0=t)

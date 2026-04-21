@@ -1,0 +1,159 @@
+{
+  "weak_cells": [
+    {
+      "session": "hkt",
+      "day": "Monday",
+      "hour": "13:00"
+    },
+    {
+      "session": "hkt",
+      "day": "Monday",
+      "hour": "14:00"
+    },
+    {
+      "session": "hkt",
+      "day": "Tuesday",
+      "hour": "08:00"
+    },
+    {
+      "session": "hkt",
+      "day": "Tuesday",
+      "hour": "12:00"
+    },
+    {
+      "session": "hkt",
+      "day": "Wednesday",
+      "hour": "08:00"
+    },
+    {
+      "session": "hkt",
+      "day": "Wednesday",
+      "hour": "10:00"
+    },
+    {
+      "session": "hkt",
+      "day": "Thursday",
+      "hour": "14:00"
+    },
+    {
+      "session": "hkt",
+      "day": "Friday",
+      "hour": "10:00"
+    },
+    {
+      "session": "hkt",
+      "day": "Friday",
+      "hour": "13:00"
+    },
+    {
+      "session": "london",
+      "day": "Monday",
+      "hour": "13:00"
+    },
+    {
+      "session": "london",
+      "day": "Monday",
+      "hour": "14:00"
+    },
+    {
+      "session": "london",
+      "day": "Monday",
+      "hour": "15:00"
+    },
+    {
+      "session": "london",
+      "day": "Tuesday",
+      "hour": "16:00"
+    },
+    {
+      "session": "london",
+      "day": "Wednesday",
+      "hour": "11:00"
+    },
+    {
+      "session": "london",
+      "day": "Wednesday",
+      "hour": "15:00"
+    },
+    {
+      "session": "london",
+      "day": "Thursday",
+      "hour": "10:00"
+    },
+    {
+      "session": "london",
+      "day": "Thursday",
+      "hour": "15:00"
+    },
+    {
+      "session": "london",
+      "day": "Friday",
+      "hour": "12:00"
+    },
+    {
+      "session": "london",
+      "day": "Friday",
+      "hour": "14:00"
+    },
+    {
+      "session": "ny",
+      "day": "Monday",
+      "hour": "08:00"
+    },
+    {
+      "session": "ny",
+      "day": "Monday",
+      "hour": "09:00"
+    },
+    {
+      "session": "ny",
+      "day": "Monday",
+      "hour": "10:00"
+    },
+    {
+      "session": "ny",
+      "day": "Tuesday",
+      "hour": "10:00"
+    },
+    {
+      "session": "ny",
+      "day": "Tuesday",
+      "hour": "11:00"
+    },
+    {
+      "session": "ny",
+      "day": "Tuesday",
+      "hour": "12:00"
+    },
+    {
+      "session": "ny",
+      "day": "Tuesday",
+      "hour": "14:00"
+    },
+    {
+      "session": "ny",
+      "day": "Wednesday",
+      "hour": "14:00"
+    },
+    {
+      "session": "ny",
+      "day": "Wednesday",
+      "hour": "15:00"
+    },
+    {
+      "session": "ny",
+      "day": "Thursday",
+      "hour": "10:00"
+    },
+    {
+      "session": "ny",
+      "day": "Thursday",
+      "hour": "15:00"
+    },
+    {
+      "session": "ny",
+      "day": "Friday",
+      "hour": "12:00"
+    }
+  ]
+}
