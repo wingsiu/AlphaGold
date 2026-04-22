@@ -2595,7 +2595,7 @@ def _backtest_trades_df(
                         new_planned_exit = signal_bar_close + side_num * new_target_abs
                         open_trade["target_updates"] = int(open_trade["target_updates"]) + 1
                         open_trade["last_target_signal_idx"] = i
-                        open_trade["last_target_time"] = exit_ts
+                        open_trade["last_target_time"] = signal_ts
                         open_trade["update_ts_close"] = _spread_fut(i, side_num)
                         open_trade["last_target_price"] = new_planned_exit
                         open_trade["planned_exit_time"] = rolled_deadline
@@ -2638,7 +2638,7 @@ def _backtest_trades_df(
                 "last_signal_prob": _sig_prob(i),
                 "target_updates": 0,
                 "last_target_signal_idx": i,
-                "last_target_time": exit_ts,
+                "last_target_time": signal_ts,
                 "signal_ts_close": _signal_close,
                 "update_ts_close": _adj_fut,
                 "last_target_price": _planned_exit,
