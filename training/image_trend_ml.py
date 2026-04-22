@@ -2390,6 +2390,7 @@ def _backtest_trades_df(
         "signal_ts_close",
         "update_ts_close",
         "last_target_price",
+        "entry_target_price",
         "exit_reason",
     ]
     rows: list[dict[str, object]] = []
@@ -2485,6 +2486,7 @@ def _backtest_trades_df(
                 "signal_ts_close": float(trade.get("signal_ts_close", np.nan)),
                 "update_ts_close": float(trade.get("update_ts_close", np.nan)),
                 "last_target_price": float(trade["last_target_price"]),
+                "entry_target_price": float(trade.get("entry_target_price", trade["last_target_price"])),
                 "exit_reason": exit_reason,
             }
         )
@@ -2580,10 +2582,9 @@ def _backtest_trades_df(
                 # Calculate new target: signal_bar_close + (signal_bar_close * threshold)
                 new_target_abs = _target_abs_for_pred(int(pred[i]), signal_bar_close)
                 new_planned_exit = signal_bar_close + side_num * new_target_abs
-                current_planned_exit = float(open_trade.get("planned_exit_price", 0.0))
 
-                # Dynamic hold: only update if new target price is strictly higher (for long) / lower (for short)
-                if (new_planned_exit - current_planned_exit) * side_num > 0:
+                # Dynamic hold: update target only if current price is already above entry (in profit)
+                if (signal_bar_close - entry_price) * side_num > 0:
                     # Roll cap forward from the update signal (gives a full new window)
                     new_cap_ts = (signal_ts + max_hold_delta) if max_hold_delta is not None else None
                     rolled_deadline = exit_ts
@@ -2643,6 +2644,7 @@ def _backtest_trades_df(
                 "signal_ts_close": _signal_close,
                 "update_ts_close": _adj_fut,
                 "last_target_price": _planned_exit,
+                "entry_target_price": _planned_exit,
                 "planned_exit_time": _timeout_deadline,
                 "planned_exit_price": _planned_exit,
                 "timeout_cap_time": (trade_entry_ts + max_hold_delta) if max_hold_delta is not None else None,

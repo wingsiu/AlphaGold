@@ -474,12 +474,13 @@ def _build_signals_detail_by_time(trades_path: Path) -> pd.DataFrame:
 
     rows: list[dict[str, Any]] = []
     for _, row in t.iterrows():
-        target_price = row.get("last_target_price", None)
         side = row.get("side", "")
         signal_ts = row.get("ts", pd.NaT)
         entry_price = row.get("entry_price", None)
         signal_close = row.get("signal_ts_close", None)
-        
+        # Use entry_target_price (original at open) for the entry row if available
+        entry_target = row.get("entry_target_price", row.get("last_target_price", None))
+
         rows.append(
             {
                 "trigger_event": "entry",
@@ -488,7 +489,7 @@ def _build_signals_detail_by_time(trades_path: Path) -> pd.DataFrame:
                 "side": side,
                 "entry_price": entry_price,
                 "current_close": signal_close,
-                "target_price": target_price,
+                "target_price": entry_target,
                 "signal_prob": row.get("entry_signal_prob", None),
                 "trade_exit_reason": row.get("exit_reason", ""),
             }
