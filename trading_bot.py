@@ -164,6 +164,7 @@ class PaperPosition:
 	target_updates: int = 0
 	last_target_signal_time: Optional[str] = None
 	last_target_price: Optional[float] = None
+	entry_take_profit: Optional[float] = None
 	timeout_cap_time: Optional[str] = None
 	bars_checked: int = 0
 
@@ -1578,17 +1579,32 @@ class AlphaGoldTradingBot:
 		if anchor_price <= 0.0:
 			return
 
+		# ── Always roll timeout cap on any same-direction confirming signal ──────
+		if self.cfg.max_hold_minutes:
+			new_cap = anchor_ts + pd.Timedelta(minutes=float(self.cfg.max_hold_minutes))
+			old_cap = position.timeout_cap_time
+			position.timeout_cap_time = new_cap.isoformat()
+			self.logger.info(
+				"Timeout cap rolled to %s (anchor_ts=%s + max_hold=%.1fm, was %s)",
+				new_cap.isoformat(), anchor_ts.isoformat(), float(self.cfg.max_hold_minutes), old_cap,
+			)
+
+		# ── Only update TP/SL if new target is strictly better than current ──────
+		# Self-regulating: once target is raised, weaker signals can't over-escalate.
 		if position.direction == "SHORT":
 			new_stop = anchor_price + self.cfg.short_stop_loss_pct
 			new_target = anchor_price * (1.0 - self.cfg.take_profit_pct / 100.0)
+			target_improves = new_target < position.take_profit  # lower is better for short
 		else:
 			new_stop = anchor_price - self.cfg.stop_loss_pct
 			new_target = anchor_price * (1.0 + self.cfg.take_profit_pct / 100.0)
+			target_improves = new_target > position.take_profit  # higher is better for long
 
-		if abs(position.stop_loss - new_stop) < 1e-9 and abs(position.take_profit - new_target) < 1e-9:
+		if not target_improves:
 			self.logger.info(
-				"Dynamic TP/SL unchanged: deal_id=%s anchor=%.2f stop=%.2f target=%.2f (no change)",
-				position.deal_id, anchor_price, position.stop_loss, position.take_profit,
+				"Dynamic TP/SL skipped (target not improving): deal_id=%s anchor=%.2f "
+				"new_target=%.2f current_target=%.2f",
+				position.deal_id, anchor_price, new_target, position.take_profit,
 			)
 			return
 
@@ -1600,14 +1616,6 @@ class AlphaGoldTradingBot:
 		position.last_target_signal_time = pd.Timestamp(signal.get("signal_bar_time", anchor_ts)).isoformat()
 		position.last_target_price = float(anchor_price)
 
-		# Roll the timeout cap forward from this update signal (matching backtest rolling-cap logic)
-		if self.cfg.max_hold_minutes:
-			new_cap = anchor_ts + pd.Timedelta(minutes=float(self.cfg.max_hold_minutes))
-			position.timeout_cap_time = new_cap.isoformat()
-			self.logger.info(
-				"Timeout cap rolled to %s (anchor_ts=%s + max_hold=%.1fm)",
-				new_cap.isoformat(), anchor_ts.isoformat(), float(self.cfg.max_hold_minutes),
-			)
 
 		adapter = getattr(self.execution_engine, "broker_adapter", None)
 		amend_status = "local_only"
@@ -2149,6 +2157,7 @@ class AlphaGoldTradingBot:
 				probability=float(signal["probability"]),
 				size=float(self.cfg.size),
 				entry_price_initial=float(fill_price),
+				entry_take_profit=float(take_profit),
 			)
 			self.logger.info(
 				"LIVE ENTRY deal_id=%s side=%s signal=%.4f fill=%.4f stop=%.4f target=%.4f",
