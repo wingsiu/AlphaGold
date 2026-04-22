@@ -2592,11 +2592,14 @@ def _backtest_trades_df(
                         rolled_deadline = new_cap_ts
                     if signal_ts < rolled_deadline:
                         new_planned_exit = signal_bar_close + side_num * new_target_abs
+                        # Update target_abs so the target-hit check triggers at the new level
+                        new_target_abs_from_entry = (new_planned_exit - entry_price) * side_num
                         open_trade["target_updates"] = int(open_trade["target_updates"]) + 1
                         open_trade["last_target_signal_idx"] = i
                         open_trade["last_target_time"] = signal_ts
                         open_trade["update_ts_close"] = _spread_fut(i, side_num)
                         open_trade["last_target_price"] = new_planned_exit
+                        open_trade["target_abs"] = new_target_abs_from_entry
                         open_trade["planned_exit_time"] = rolled_deadline
                         open_trade["planned_exit_price"] = new_planned_exit
                         open_trade["timeout_cap_time"] = new_cap_ts
