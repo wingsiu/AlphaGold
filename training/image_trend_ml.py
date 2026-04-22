@@ -2592,8 +2592,11 @@ def _backtest_trades_df(
                     open_trade["planned_exit_time"] = rolled_deadline
                     open_trade["timeout_cap_time"] = new_cap_ts
 
-                    # Only update target if price is already above entry (in profit)
-                    if (signal_bar_close - entry_price) * side_num > 0:
+                    # Update target only if new signal's expected margin (from current price)
+                    # exceeds the best margin seen so far — self-regulating: once target_abs
+                    # is raised, weaker signals can't over-escalate it further.
+                    current_target_abs = float(open_trade.get("target_abs", 0.0))
+                    if new_target_abs > current_target_abs:
                         new_target_abs_from_entry = (new_planned_exit - entry_price) * side_num
                         open_trade["target_updates"] = int(open_trade["target_updates"]) + 1
                         open_trade["last_target_signal_idx"] = i
