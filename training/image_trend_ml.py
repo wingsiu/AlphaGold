@@ -2574,24 +2574,22 @@ def _backtest_trades_df(
                 open_trade["last_signal_prob"] = _sig_prob(i)
                 side_num = float(open_trade["side_num"])
                 entry_price = float(open_trade["entry_price"])
-                target_abs = float(open_trade.get("target_abs", 0.0))
-                current_target_profit = target_abs  # Original target in absolute points
                 
                 # New signal bar close price
                 signal_bar_close = _spread_curr(i, side_num)
                 # Calculate new target: signal_bar_close + (signal_bar_close * threshold)
                 new_target_abs = _target_abs_for_pred(int(pred[i]), signal_bar_close)
-                new_target_profit = new_target_abs
-                
-                # Dynamic hold: roll timeout on improving updates, cap rolls from update signal.
-                if new_target_profit > current_target_profit:
+                new_planned_exit = signal_bar_close + side_num * new_target_abs
+                current_planned_exit = float(open_trade.get("planned_exit_price", 0.0))
+
+                # Dynamic hold: only update if new target price is strictly higher (for long) / lower (for short)
+                if (new_planned_exit - current_planned_exit) * side_num > 0:
                     # Roll cap forward from the update signal (gives a full new window)
                     new_cap_ts = (signal_ts + max_hold_delta) if max_hold_delta is not None else None
                     rolled_deadline = exit_ts
                     if new_cap_ts is not None and rolled_deadline > new_cap_ts:
                         rolled_deadline = new_cap_ts
                     if signal_ts < rolled_deadline:
-                        new_planned_exit = signal_bar_close + side_num * new_target_abs
                         # Update target_abs so the target-hit check triggers at the new level
                         new_target_abs_from_entry = (new_planned_exit - entry_price) * side_num
                         open_trade["target_updates"] = int(open_trade["target_updates"]) + 1
