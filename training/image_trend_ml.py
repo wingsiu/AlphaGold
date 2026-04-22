@@ -2585,9 +2585,9 @@ def _backtest_trades_df(
 
                 # Always roll the timeout cap on any same-direction signal
                 new_cap_ts = (signal_ts + max_hold_delta) if max_hold_delta is not None else None
-                rolled_deadline = exit_ts
-                if new_cap_ts is not None and rolled_deadline > new_cap_ts:
-                    rolled_deadline = new_cap_ts
+                # Use new_cap_ts (signal_ts + max_hold) as the rolled deadline — gives a full
+                # new window from the update signal. Fall back to horizon exit_ts if no max_hold.
+                rolled_deadline = new_cap_ts if new_cap_ts is not None else exit_ts
                 if signal_ts < rolled_deadline:
                     open_trade["planned_exit_time"] = rolled_deadline
                     open_trade["timeout_cap_time"] = new_cap_ts
