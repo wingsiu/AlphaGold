@@ -164,6 +164,7 @@ class PaperPosition:
 	target_updates: int = 0
 	last_target_signal_time: Optional[str] = None
 	last_target_price: Optional[float] = None
+	timeout_cap_time: Optional[str] = None
 	bars_checked: int = 0
 
 
@@ -1599,6 +1600,15 @@ class AlphaGoldTradingBot:
 		position.last_target_signal_time = pd.Timestamp(signal.get("signal_bar_time", anchor_ts)).isoformat()
 		position.last_target_price = float(anchor_price)
 
+		# Roll the timeout cap forward from this update signal (matching backtest rolling-cap logic)
+		if self.cfg.max_hold_minutes:
+			new_cap = anchor_ts + pd.Timedelta(minutes=float(self.cfg.max_hold_minutes))
+			position.timeout_cap_time = new_cap.isoformat()
+			self.logger.info(
+				"Timeout cap rolled to %s (anchor_ts=%s + max_hold=%.1fm)",
+				new_cap.isoformat(), anchor_ts.isoformat(), float(self.cfg.max_hold_minutes),
+			)
+
 		adapter = getattr(self.execution_engine, "broker_adapter", None)
 		amend_status = "local_only"
 		if self.cfg.mode == "live" and adapter is not None and hasattr(adapter, "amend_position_levels"):
@@ -1637,9 +1647,18 @@ class AlphaGoldTradingBot:
 		entry_ts = pd.Timestamp(position.entry_time)
 		entry_ts = entry_ts.tz_convert("UTC") if entry_ts.tzinfo else entry_ts.tz_localize("UTC")
 		now_utc = pd.Timestamp(datetime.now(UTC))
-		elapsed_minutes = (now_utc - entry_ts).total_seconds() / 60.0
-		if elapsed_minutes < float(self.cfg.max_hold_minutes):
+
+		# Use rolling cap time if set (rolled forward on each target update), else fall back to entry + max_hold
+		if position.timeout_cap_time:
+			cap_ts = pd.Timestamp(position.timeout_cap_time)
+			cap_ts = cap_ts.tz_convert("UTC") if cap_ts.tzinfo else cap_ts.tz_localize("UTC")
+		else:
+			cap_ts = entry_ts + pd.Timedelta(minutes=float(self.cfg.max_hold_minutes))
+
+		if now_utc < cap_ts:
 			return False
+
+		elapsed_minutes = (now_utc - entry_ts).total_seconds() / 60.0
 		self.logger.info(
 			"LIVE TIMEOUT deal_id=%s elapsed=%.1fm max_hold_minutes=%.1f — closing position",
 			position.deal_id, elapsed_minutes, float(self.cfg.max_hold_minutes),
