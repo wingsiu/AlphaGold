@@ -2576,22 +2576,24 @@ def _backtest_trades_df(
                 open_trade["last_signal_prob"] = _sig_prob(i)
                 side_num = float(open_trade["side_num"])
                 entry_price = float(open_trade["entry_price"])
-                
+
                 # New signal bar close price
                 signal_bar_close = _spread_curr(i, side_num)
                 # Calculate new target: signal_bar_close + (signal_bar_close * threshold)
                 new_target_abs = _target_abs_for_pred(int(pred[i]), signal_bar_close)
                 new_planned_exit = signal_bar_close + side_num * new_target_abs
 
-                # Dynamic hold: update target only if current price is already above entry (in profit)
-                if (signal_bar_close - entry_price) * side_num > 0:
-                    # Roll cap forward from the update signal (gives a full new window)
-                    new_cap_ts = (signal_ts + max_hold_delta) if max_hold_delta is not None else None
-                    rolled_deadline = exit_ts
-                    if new_cap_ts is not None and rolled_deadline > new_cap_ts:
-                        rolled_deadline = new_cap_ts
-                    if signal_ts < rolled_deadline:
-                        # Update target_abs so the target-hit check triggers at the new level
+                # Always roll the timeout cap on any same-direction signal
+                new_cap_ts = (signal_ts + max_hold_delta) if max_hold_delta is not None else None
+                rolled_deadline = exit_ts
+                if new_cap_ts is not None and rolled_deadline > new_cap_ts:
+                    rolled_deadline = new_cap_ts
+                if signal_ts < rolled_deadline:
+                    open_trade["planned_exit_time"] = rolled_deadline
+                    open_trade["timeout_cap_time"] = new_cap_ts
+
+                    # Only update target if price is already above entry (in profit)
+                    if (signal_bar_close - entry_price) * side_num > 0:
                         new_target_abs_from_entry = (new_planned_exit - entry_price) * side_num
                         open_trade["target_updates"] = int(open_trade["target_updates"]) + 1
                         open_trade["last_target_signal_idx"] = i
@@ -2599,9 +2601,7 @@ def _backtest_trades_df(
                         open_trade["update_ts_close"] = _spread_fut(i, side_num)
                         open_trade["last_target_price"] = new_planned_exit
                         open_trade["target_abs"] = new_target_abs_from_entry
-                        open_trade["planned_exit_time"] = rolled_deadline
                         open_trade["planned_exit_price"] = new_planned_exit
-                        open_trade["timeout_cap_time"] = new_cap_ts
 
         if open_trade is not None and signal_ts >= pd.Timestamp(open_trade["planned_exit_time"]):
             planned_exit_ts = pd.Timestamp(open_trade["planned_exit_time"])
