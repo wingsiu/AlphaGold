@@ -1562,8 +1562,6 @@ class AlphaGoldTradingBot:
 		return price, pd.Timestamp(anchor_ts)
 
 	def _maybe_dynamic_target_stop_from_signal(self, raw: pd.DataFrame, signal: dict[str, object]) -> None:
-		if not self.cfg.dynamic_target_stop_enabled:
-			return
 		position = self.state.open_position
 		if position is None:
 			return
@@ -1589,7 +1587,10 @@ class AlphaGoldTradingBot:
 				new_cap.isoformat(), anchor_ts.isoformat(), float(self.cfg.max_hold_minutes), old_cap,
 			)
 
-		# ── Only update TP/SL if new target is strictly better than current ──────
+		# ── Only update TP/SL if feature enabled and new target strictly better ──
+		if not self.cfg.dynamic_target_stop_enabled:
+			return
+
 		# Self-regulating: once target is raised, weaker signals can't over-escalate.
 		if position.direction == "SHORT":
 			new_stop = anchor_price + self.cfg.short_stop_loss_pct
