@@ -2583,14 +2583,13 @@ def _backtest_trades_df(
                 new_target_abs = _target_abs_for_pred(int(pred[i]), signal_bar_close)
                 new_target_profit = new_target_abs
                 
-                # Dynamic hold: roll timeout on improving updates, capped by max-hold when set.
-                timeout_cap_time = open_trade.get("timeout_cap_time")
+                # Dynamic hold: roll timeout on improving updates, cap rolls from update signal.
                 if new_target_profit > current_target_profit:
+                    # Roll cap forward from the update signal (gives a full new window)
+                    new_cap_ts = (signal_ts + max_hold_delta) if max_hold_delta is not None else None
                     rolled_deadline = exit_ts
-                    if timeout_cap_time is not None:
-                        cap_ts = pd.Timestamp(timeout_cap_time)
-                        if rolled_deadline > cap_ts:
-                            rolled_deadline = cap_ts
+                    if new_cap_ts is not None and rolled_deadline > new_cap_ts:
+                        rolled_deadline = new_cap_ts
                     if signal_ts < rolled_deadline:
                         new_planned_exit = signal_bar_close + side_num * new_target_abs
                         open_trade["target_updates"] = int(open_trade["target_updates"]) + 1
@@ -2600,6 +2599,7 @@ def _backtest_trades_df(
                         open_trade["last_target_price"] = new_planned_exit
                         open_trade["planned_exit_time"] = rolled_deadline
                         open_trade["planned_exit_price"] = new_planned_exit
+                        open_trade["timeout_cap_time"] = new_cap_ts
 
         if open_trade is not None and signal_ts >= pd.Timestamp(open_trade["planned_exit_time"]):
             planned_exit_ts = pd.Timestamp(open_trade["planned_exit_time"])
