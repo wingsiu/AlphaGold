@@ -158,7 +158,6 @@ Friday           71%     66%     67%     94%     57%     50%     75%     50%
 AlphaGold/
 ├── trading_bot_v13.py              ← Live bot
 ├── backtest.py                     ← ✅ Unified backtest (replaces 3 old files)
-├── run_live_bot.py                 ← Bot launcher
 ├── daily_reconciliation.py        ← Daily P&L reconciliation
 ├── config/v13_config.py           ← ✅ SINGLE CONFIG for all params
 ├── xgboost_filter_model/
@@ -189,7 +188,7 @@ python3 backtest.py 2025-03-01
 python3 backtest.py 2025-03-01 2025-04-30
 
 # Start live bot:
-python3 run_live_bot.py
+python3 trading_bot_v13.py --mode live --signal-model-family best_base_state
 ```
 
 ---
