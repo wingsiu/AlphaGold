@@ -1,0 +1,250 @@
+2026-05-14 20:02:36,529 | INFO | --- AlphaGold v13 Bot Startup ---
+2026-05-14 20:02:36,529 | INFO | Execution Config: {
+  "tp": 40.0,
+  "sl": 25.0,
+  "horizon": 45,
+  "s1_threshold": 0.5,
+  "s2_threshold": 0.55,
+  "spread_default": 0.25,
+  "size": 1.0,
+  "take_profit_pct": 0.8
+}
+2026-05-14 20:02:36,530 | INFO | Target Config: {
+  "tp": 20.0,
+  "sl": 10.0,
+  "horizon": 45,
+  "er_threshold": 0.3,
+  "move_threshold": 10.0
+}
+2026-05-14 20:02:36,530 | INFO | Filter Config: {
+  "min_bar_move": 3.0,
+  "min_volume": 250
+}
+2026-05-14 20:02:37,406 | INFO | Performing cache warmup (syncing latest from IG and loading 2500 bars from DB)...
+Data successfully loaded: 356403 rows.
+2026-05-14 20:02:40,676 | INFO | Cache warmed up with 2500 rows from database.
+2026-05-14 20:02:40,676 | INFO | Bot execution loop started.
+2026-05-14 20:03:05,407 | INFO | Polling IG (stream update)...
+2026-05-14 20:03:05,769 | INFO | [2026-05-14 12:03:00+00:00] Bar filtered (move=0.14, vol=39.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:03:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:03:30,537 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:03:30,537 | INFO | Polling IG (stream update)...
+2026-05-14 20:03:30,836 | INFO | [2026-05-14 12:03:00+00:00] Bar filtered (move=0.23, vol=147.0) — thresholds move>3.0, vol>250
+2026-05-14 20:04:05,299 | INFO | Polling IG (stream update)...
+2026-05-14 20:04:05,664 | INFO | [2026-05-14 12:04:00+00:00] Bar filtered (move=0.38, vol=34.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:04:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:04:30,425 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:04:30,426 | INFO | Polling IG (stream update)...
+2026-05-14 20:04:30,745 | INFO | [2026-05-14 12:04:00+00:00] Bar filtered (move=0.87, vol=157.0) — thresholds move>3.0, vol>250
+2026-05-14 20:05:05,204 | INFO | Polling IG (stream update)...
+2026-05-14 20:05:05,522 | INFO | [2026-05-14 12:05:00+00:00] Bar filtered (move=1.90, vol=34.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:05:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:05:30,803 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:05:30,803 | INFO | Polling IG (stream update)...
+2026-05-14 20:05:31,187 | INFO | [2026-05-14 12:05:00+00:00] Bar filtered (move=1.53, vol=169.0) — thresholds move>3.0, vol>250
+2026-05-14 20:06:05,161 | INFO | Polling IG (stream update)...
+2026-05-14 20:06:05,491 | INFO | [2026-05-14 12:06:00+00:00] Bar filtered (move=0.39, vol=39.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:06:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:06:30,821 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:06:30,821 | INFO | Polling IG (stream update)...
+2026-05-14 20:06:31,208 | INFO | [2026-05-14 12:06:00+00:00] Bar filtered (move=0.17, vol=146.0) — thresholds move>3.0, vol>250
+2026-05-14 20:07:05,176 | INFO | Polling IG (stream update)...
+2026-05-14 20:07:05,498 | INFO | [2026-05-14 12:07:00+00:00] Bar filtered (move=0.35, vol=33.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:07:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:07:30,745 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:07:30,745 | INFO | Polling IG (stream update)...
+2026-05-14 20:07:31,094 | INFO | [2026-05-14 12:07:00+00:00] Bar filtered (move=1.08, vol=157.0) — thresholds move>3.0, vol>250
+2026-05-14 20:08:05,033 | INFO | Polling IG (stream update)...
+2026-05-14 20:08:05,394 | INFO | [2026-05-14 12:08:00+00:00] Bar filtered (move=0.01, vol=19.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:08:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:08:30,680 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:08:30,681 | INFO | Polling IG (stream update)...
+2026-05-14 20:08:31,003 | INFO | [2026-05-14 12:08:00+00:00] Bar filtered (move=0.32, vol=122.0) — thresholds move>3.0, vol>250
+2026-05-14 20:09:05,481 | INFO | Polling IG (stream update)...
+2026-05-14 20:09:06,466 | INFO | [2026-05-14 12:09:00+00:00] Bar filtered (move=0.14, vol=17.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:09:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:09:30,694 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:09:30,694 | INFO | Polling IG (stream update)...
+2026-05-14 20:09:30,999 | INFO | [2026-05-14 12:09:00+00:00] Bar filtered (move=0.01, vol=74.0) — thresholds move>3.0, vol>250
+2026-05-14 20:10:05,447 | INFO | Polling IG (stream update)...
+2026-05-14 20:10:05,789 | INFO | [2026-05-14 12:10:00+00:00] Bar filtered (move=0.35, vol=20.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:10:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:10:30,512 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:10:30,512 | INFO | Polling IG (stream update)...
+2026-05-14 20:10:30,806 | INFO | [2026-05-14 12:10:00+00:00] Bar filtered (move=0.01, vol=137.0) — thresholds move>3.0, vol>250
+2026-05-14 20:11:05,284 | INFO | Polling IG (stream update)...
+2026-05-14 20:11:05,593 | INFO | [2026-05-14 12:11:00+00:00] Bar filtered (move=0.15, vol=32.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:11:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:11:30,831 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:11:30,831 | INFO | Polling IG (stream update)...
+2026-05-14 20:11:31,131 | INFO | [2026-05-14 12:11:00+00:00] Bar filtered (move=0.84, vol=116.0) — thresholds move>3.0, vol>250
+2026-05-14 20:12:05,079 | INFO | Polling IG (stream update)...
+2026-05-14 20:12:05,590 | INFO | [2026-05-14 12:12:00+00:00] Bar filtered (move=0.05, vol=18.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:12:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:12:30,917 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:12:30,917 | INFO | Polling IG (stream update)...
+2026-05-14 20:12:31,224 | INFO | [2026-05-14 12:12:00+00:00] Bar filtered (move=0.23, vol=92.0) — thresholds move>3.0, vol>250
+2026-05-14 20:13:05,186 | INFO | Polling IG (stream update)...
+2026-05-14 20:13:05,491 | INFO | [2026-05-14 12:13:00+00:00] Bar filtered (move=0.45, vol=36.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:13:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:13:30,718 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:13:30,718 | INFO | Polling IG (stream update)...
+2026-05-14 20:13:31,050 | INFO | [2026-05-14 12:13:00+00:00] Bar filtered (move=0.97, vol=190.0) — thresholds move>3.0, vol>250
+2026-05-14 20:14:05,018 | INFO | Polling IG (stream update)...
+2026-05-14 20:14:05,379 | INFO | [2026-05-14 12:14:00+00:00] Bar filtered (move=0.51, vol=29.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:14:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:14:30,613 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:14:30,613 | INFO | Polling IG (stream update)...
+2026-05-14 20:14:31,001 | INFO | [2026-05-14 12:14:00+00:00] Bar filtered (move=0.00, vol=165.0) — thresholds move>3.0, vol>250
+2026-05-14 20:15:05,469 | INFO | Polling IG (stream update)...
+2026-05-14 20:15:05,790 | INFO | [2026-05-14 12:15:00+00:00] Bar filtered (move=0.36, vol=34.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:15:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:15:30,542 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:15:30,543 | INFO | Polling IG (stream update)...
+2026-05-14 20:15:30,876 | INFO | [2026-05-14 12:15:00+00:00] Bar filtered (move=1.81, vol=153.0) — thresholds move>3.0, vol>250
+2026-05-14 20:16:05,357 | INFO | Polling IG (stream update)...
+2026-05-14 20:16:05,715 | INFO | [2026-05-14 12:16:00+00:00] Bar filtered (move=0.15, vol=43.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:16:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:16:30,478 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:16:30,479 | INFO | Polling IG (stream update)...
+2026-05-14 20:16:30,807 | INFO | [2026-05-14 12:16:00+00:00] Bar filtered (move=1.10, vol=174.0) — thresholds move>3.0, vol>250
+2026-05-14 20:17:05,279 | INFO | Polling IG (stream update)...
+2026-05-14 20:17:05,621 | INFO | [2026-05-14 12:17:00+00:00] Bar filtered (move=0.48, vol=18.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:17:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:17:30,839 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:17:30,839 | INFO | Polling IG (stream update)...
+2026-05-14 20:17:31,147 | INFO | [2026-05-14 12:17:00+00:00] Bar filtered (move=1.44, vol=108.0) — thresholds move>3.0, vol>250
+2026-05-14 20:18:05,130 | INFO | Polling IG (stream update)...
+2026-05-14 20:18:05,442 | INFO | [2026-05-14 12:18:00+00:00] Bar filtered (move=0.07, vol=18.0) — thresholds move>3.0, vol>250
+
+--- Account Status Update [2026-05-14 12:18:30] ---
+Account:   CFD (NYQTO)
+Balance:   624.64 USD
+Equity:    624.64
+Available: 624.64
+P&L:       0.0
+--------------------------------------------------
+
+2026-05-14 20:18:30,675 | INFO | Account Update: Equity=624.64, P&L=0.0
+2026-05-14 20:18:30,675 | INFO | Polling IG (stream update)...
+2026-05-14 20:18:31,019 | INFO | [2026-05-14 12:18:00+00:00] Bar filtered (move=0.15, vol=108.0) — thresholds move>3.0, vol>250

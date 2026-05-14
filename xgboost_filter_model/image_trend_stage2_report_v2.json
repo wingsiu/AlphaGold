@@ -1,0 +1,503 @@
+{
+  "config": {
+    "table": "gold_prices",
+    "start_date": "2025-05-20",
+    "end_date": "2026-04-10",
+    "timeframe": "1min",
+    "disable_time_filter": false,
+    "window": 120,
+    "window_15m": 40,
+    "min_window_range": 25.0,
+    "min_15m_drop": 0.0,
+    "min_15m_rise": 0.0,
+    "last_bar_wr90_high": null,
+    "last_bar_wr90_low": null,
+    "horizon": 25,
+    "trend_threshold": 0.012,
+    "adverse_limit": 15.0,
+    "long_target_threshold": null,
+    "short_target_threshold": null,
+    "long_adverse_limit": null,
+    "short_adverse_limit": null,
+    "test_start_date": "2025-11-25",
+    "test_size": 0.3,
+    "max_samples": null,
+    "optimize": false,
+    "optimize_prob": false,
+    "two_branch": true,
+    "two_branch_stage": "stage2",
+    "max_flat_ratio": 4.0,
+    "classifier": "gradient_boosting",
+    "stage1_min_prob": 0.55,
+    "stage2_min_prob": 0.55,
+    "stage2_min_prob_up": null,
+    "stage2_min_prob_down": null,
+    "stage1_min_prob_1m": null,
+    "stage1_min_prob_15m": null,
+    "stage2_min_prob_1m": null,
+    "stage2_min_prob_15m": null,
+    "use_state_features": false,
+    "use_15m_wick_features": false,
+    "wick_feature_min_range": 40.0,
+    "wick_feature_min_pct": 35.0,
+    "wick_feature_min_volume": 3000.0,
+    "use_stage1_day_ohl_utc2": false,
+    "state_oof_splits": 5,
+    "pred_history_len": 150,
+    "allow_overlap_backtest": false,
+    "reverse_exit_prob": 0.7,
+    "max_hold_minutes": null,
+    "weak_periods_json": null,
+    "eval_mode": "single_split",
+    "wf_init_train_months": 6,
+    "wf_retrain_days": 14,
+    "wf_max_train_days": 365,
+    "wf_min_train_samples": 300,
+    "wf_disable_sweep": false,
+    "wf_sweep_flat_ratios": [
+      3.0,
+      4.0,
+      5.0
+    ],
+    "wf_sweep_stage1_probs": [],
+    "wf_sweep_stage2_probs": [],
+    "wf_sweep_stage2_long_probs": [],
+    "wf_sweep_stage2_short_probs": [],
+    "wf_sweep_val_ratio": 0.2,
+    "wf_sweep_min_val_samples": 50,
+    "wf_anchor_mode": "weekend_fri_close",
+    "wf_cycle_model_dir": null,
+    "wf_save_cycle_models": true,
+    "prep_cache_dir": null,
+    "refresh_prep_cache": false,
+    "random_state": 42,
+    "model_in": null,
+    "model_out": "/Users/alpha/Desktop/python/AlphaGold/xgboost_filter_model/image_trend_stage2_v2.joblib",
+    "report_out": "/Users/alpha/Desktop/python/AlphaGold/xgboost_filter_model/image_trend_stage2_report_v2.json",
+    "trades_out": "/Users/alpha/Desktop/python/AlphaGold/xgboost_filter_model/image_trend_stage2_trades_v2.csv"
+  },
+  "execution_semantics": {
+    "signal_reference": "signal_bar_close",
+    "entry_execution": "next_bar_open",
+    "signal_price_field": "curr_close",
+    "entry_price_field": "next_bar_open",
+    "signal_time_field": "ts",
+    "entry_time_field": "entry_time",
+    "notes": "Labels and features stay anchored to the signal bar close, while simulated trade entries execute on the next bar open."
+  },
+  "threshold_used": 0.012,
+  "horizon_used": 25,
+  "long_target_threshold_used": 0.012,
+  "short_target_threshold_used": 0.012,
+  "long_adverse_limit_used": 15.0,
+  "short_adverse_limit_used": 15.0,
+  "min_window_range_used": 25.0,
+  "window_15m": 40,
+  "min_15m_drop": 0.0,
+  "min_15m_rise": 0.0,
+  "two_branch": true,
+  "two_branch_stage": "stage2",
+  "n_1m_feats": 1080,
+  "use_state_features": false,
+  "use_15m_wick_features": false,
+  "wick_feature_min_range": 40.0,
+  "wick_feature_min_pct": 35.0,
+  "wick_feature_min_volume": 3000.0,
+  "image_channel_names": [
+    "open_rel",
+    "high_rel",
+    "low_rel",
+    "close_rel",
+    "body_rel",
+    "range_rel",
+    "vol_z",
+    "vol_rel",
+    "vol_diff_norm"
+  ],
+  "state_feature_names": [],
+  "stage1_extra_feature_names": [],
+  "feature_shape": [
+    9,
+    160
+  ],
+  "evaluation_mode": "single_split",
+  "split_mode": "date:2025-11-25T00:00:00+00:00",
+  "n_kept": 71805,
+  "n_skipped": 245008,
+  "train_samples": 20227,
+  "test_samples": 51578,
+  "stage1": {
+    "accuracy": 0.9754546512078793,
+    "balanced_accuracy": 0.5,
+    "confusion_matrix": [
+      [
+        50312,
+        0
+      ],
+      [
+        1266,
+        0
+      ]
+    ],
+    "confusion_labels": [
+      "flat",
+      "trend"
+    ],
+    "classification_report": {
+      "flat": {
+        "precision": 0.9754546512078793,
+        "recall": 1.0,
+        "f1-score": 0.9875748356070272,
+        "support": 50312.0
+      },
+      "trend": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 1266.0
+      },
+      "accuracy": 0.9754546512078793,
+      "macro avg": {
+        "precision": 0.48772732560393967,
+        "recall": 0.5,
+        "f1-score": 0.4937874178035136,
+        "support": 51578.0
+      },
+      "weighted avg": {
+        "precision": 0.9515117765630855,
+        "recall": 0.9754546512078793,
+        "f1-score": 0.9633344668087315,
+        "support": 51578.0
+      }
+    }
+  },
+  "stage2": {
+    "accuracy": 0.0,
+    "balanced_accuracy": 0.0,
+    "confusion_matrix": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "confusion_labels": [
+      "down",
+      "up"
+    ],
+    "classification_report": {}
+  },
+  "full_confusion_matrix": [
+    [
+      0,
+      864,
+      0,
+      0
+    ],
+    [
+      0,
+      50018,
+      0,
+      0
+    ],
+    [
+      0,
+      402,
+      0,
+      0
+    ],
+    [
+      0,
+      294,
+      0,
+      0
+    ]
+  ],
+  "full_confusion_labels": [
+    "down",
+    "flat",
+    "up",
+    "risky"
+  ],
+  "directional_pnl": {
+    "trades": 0,
+    "total_pnl": 0.0,
+    "avg_trade": 0.0,
+    "n_days": 0,
+    "avg_trades_per_day": 0.0,
+    "avg_day": null,
+    "positive_days_pct": null,
+    "max_drawdown": 0.0,
+    "long": {
+      "trades": 0,
+      "wins": 0,
+      "losses": 0,
+      "win_rate": null,
+      "total_pnl": 0.0,
+      "avg_trade": 0.0
+    },
+    "short": {
+      "trades": 0,
+      "wins": 0,
+      "losses": 0,
+      "win_rate": null,
+      "total_pnl": 0.0,
+      "avg_trade": 0.0
+    },
+    "streaks": {
+      "max_win_streak": 0,
+      "max_loss_streak": 0,
+      "current_win_streak": 0,
+      "current_loss_streak": 0
+    },
+    "reverse_signal": {
+      "trades": 0,
+      "wins": 0,
+      "losses": 0,
+      "breakeven": 0,
+      "avg_pnl": null,
+      "win_rate_pct": null,
+      "loss_rate_pct": null
+    },
+    "target_hit": {
+      "trades": 0,
+      "avg_pnl": null
+    },
+    "timeout": {
+      "trades": 0,
+      "wins": 0,
+      "losses": 0,
+      "breakeven": 0,
+      "avg_pnl": null,
+      "win_rate_pct": null,
+      "loss_rate_pct": null
+    },
+    "all": {
+      "trades": 0,
+      "total_pnl": 0.0,
+      "avg_trade": 0.0,
+      "median_trade": 0.0,
+      "win_rate_pct": 0.0,
+      "gross_profit": 0.0,
+      "gross_loss": 0.0,
+      "profit_factor": null,
+      "best_trade": 0.0,
+      "worst_trade": 0.0,
+      "avg_win": null,
+      "avg_loss": null,
+      "max_win_streak": 0,
+      "max_loss_streak": 0,
+      "current_streak": 0,
+      "current_win_streak": 0,
+      "current_loss_streak": 0,
+      "avg_duration_min": 0.0,
+      "median_duration_min": 0.0,
+      "min_duration_min": 0.0,
+      "max_duration_min": 0.0,
+      "n_days": 0,
+      "avg_trades_per_day": 0.0,
+      "avg_day": null,
+      "median_day": null,
+      "best_day": null,
+      "worst_day": null,
+      "positive_days_pct": null,
+      "trade_max_drawdown": 0.0,
+      "daily_max_drawdown": 0.0,
+      "exit_reason_counts": {},
+      "reverse_signal_stats": {
+        "trades": 0,
+        "wins": 0,
+        "losses": 0,
+        "breakeven": 0,
+        "avg_pnl": null,
+        "win_rate_pct": null,
+        "loss_rate_pct": null
+      },
+      "target_hit_stats": {
+        "trades": 0,
+        "avg_pnl": null
+      },
+      "timeout_stats": {
+        "trades": 0,
+        "wins": 0,
+        "losses": 0,
+        "breakeven": 0,
+        "avg_pnl": null,
+        "win_rate_pct": null,
+        "loss_rate_pct": null
+      },
+      "target_updates_mean": 0.0,
+      "target_updates_median": 0.0,
+      "target_updates_max": 0,
+      "time_distribution": {
+        "timezone_labels": {
+          "hkt": "Asia/Hong_Kong",
+          "ny": "America/New_York"
+        },
+        "by_weekday_hkt": [],
+        "by_hour_hkt": [],
+        "by_hour_ny": [],
+        "by_session": [],
+        "weekday_hour_hkt_heatmap": {}
+      }
+    },
+    "long_up": {
+      "trades": 0,
+      "total_pnl": 0.0,
+      "avg_trade": 0.0,
+      "median_trade": 0.0,
+      "win_rate_pct": 0.0,
+      "gross_profit": 0.0,
+      "gross_loss": 0.0,
+      "profit_factor": null,
+      "best_trade": 0.0,
+      "worst_trade": 0.0,
+      "avg_win": null,
+      "avg_loss": null,
+      "max_win_streak": 0,
+      "max_loss_streak": 0,
+      "current_streak": 0,
+      "current_win_streak": 0,
+      "current_loss_streak": 0,
+      "avg_duration_min": 0.0,
+      "median_duration_min": 0.0,
+      "min_duration_min": 0.0,
+      "max_duration_min": 0.0,
+      "n_days": 0,
+      "avg_trades_per_day": 0.0,
+      "avg_day": null,
+      "median_day": null,
+      "best_day": null,
+      "worst_day": null,
+      "positive_days_pct": null,
+      "trade_max_drawdown": 0.0,
+      "daily_max_drawdown": 0.0,
+      "exit_reason_counts": {},
+      "reverse_signal_stats": {
+        "trades": 0,
+        "wins": 0,
+        "losses": 0,
+        "breakeven": 0,
+        "avg_pnl": null,
+        "win_rate_pct": null,
+        "loss_rate_pct": null
+      },
+      "target_hit_stats": {
+        "trades": 0,
+        "avg_pnl": null
+      },
+      "timeout_stats": {
+        "trades": 0,
+        "wins": 0,
+        "losses": 0,
+        "breakeven": 0,
+        "avg_pnl": null,
+        "win_rate_pct": null,
+        "loss_rate_pct": null
+      },
+      "target_updates_mean": 0.0,
+      "target_updates_median": 0.0,
+      "target_updates_max": 0,
+      "time_distribution": {
+        "timezone_labels": {
+          "hkt": "Asia/Hong_Kong",
+          "ny": "America/New_York"
+        },
+        "by_weekday_hkt": [],
+        "by_hour_hkt": [],
+        "by_hour_ny": [],
+        "by_session": [],
+        "weekday_hour_hkt_heatmap": {}
+      }
+    },
+    "short_down": {
+      "trades": 0,
+      "total_pnl": 0.0,
+      "avg_trade": 0.0,
+      "median_trade": 0.0,
+      "win_rate_pct": 0.0,
+      "gross_profit": 0.0,
+      "gross_loss": 0.0,
+      "profit_factor": null,
+      "best_trade": 0.0,
+      "worst_trade": 0.0,
+      "avg_win": null,
+      "avg_loss": null,
+      "max_win_streak": 0,
+      "max_loss_streak": 0,
+      "current_streak": 0,
+      "current_win_streak": 0,
+      "current_loss_streak": 0,
+      "avg_duration_min": 0.0,
+      "median_duration_min": 0.0,
+      "min_duration_min": 0.0,
+      "max_duration_min": 0.0,
+      "n_days": 0,
+      "avg_trades_per_day": 0.0,
+      "avg_day": null,
+      "median_day": null,
+      "best_day": null,
+      "worst_day": null,
+      "positive_days_pct": null,
+      "trade_max_drawdown": 0.0,
+      "daily_max_drawdown": 0.0,
+      "exit_reason_counts": {},
+      "reverse_signal_stats": {
+        "trades": 0,
+        "wins": 0,
+        "losses": 0,
+        "breakeven": 0,
+        "avg_pnl": null,
+        "win_rate_pct": null,
+        "loss_rate_pct": null
+      },
+      "target_hit_stats": {
+        "trades": 0,
+        "avg_pnl": null
+      },
+      "timeout_stats": {
+        "trades": 0,
+        "wins": 0,
+        "losses": 0,
+        "breakeven": 0,
+        "avg_pnl": null,
+        "win_rate_pct": null,
+        "loss_rate_pct": null
+      },
+      "target_updates_mean": 0.0,
+      "target_updates_median": 0.0,
+      "target_updates_max": 0,
+      "time_distribution": {
+        "timezone_labels": {
+          "hkt": "Asia/Hong_Kong",
+          "ny": "America/New_York"
+        },
+        "by_weekday_hkt": [],
+        "by_hour_hkt": [],
+        "by_hour_ny": [],
+        "by_session": [],
+        "weekday_hour_hkt_heatmap": {}
+      }
+    }
+  },
+  "trading_day_cutoff": {
+    "timezone": "America/New_York",
+    "hour": 17
+  },
+  "walkforward_config": null,
+  "walkforward_cycles": [],
+  "model_reuse": null,
+  "cache_info": {
+    "bars": {
+      "enabled": false,
+      "kind": "bars"
+    },
+    "dataset": {
+      "enabled": false,
+      "kind": "supervised_dataset"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+pandas-ta
+xgboost
+ta
+matplotlib
+seaborn
+

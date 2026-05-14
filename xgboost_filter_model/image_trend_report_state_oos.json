@@ -1,0 +1,3135 @@
+{
+  "config": {
+    "table": "gold_prices",
+    "start_date": "2025-05-20",
+    "end_date": "2026-04-10",
+    "timeframe": "1min",
+    "disable_time_filter": false,
+    "window": 120,
+    "window_15m": 0,
+    "min_window_range": 25.0,
+    "min_15m_drop": 15.0,
+    "min_15m_rise": 0.0,
+    "last_bar_wr90_high": null,
+    "last_bar_wr90_low": null,
+    "horizon": 60,
+    "trend_threshold": 0.012,
+    "adverse_limit": 15.0,
+    "long_target_threshold": null,
+    "short_target_threshold": null,
+    "long_adverse_limit": null,
+    "short_adverse_limit": null,
+    "test_start_date": "2025-11-25",
+    "test_size": 0.3,
+    "max_samples": null,
+    "optimize": false,
+    "optimize_prob": false,
+    "two_branch": false,
+    "two_branch_stage": "both",
+    "max_flat_ratio": 4.0,
+    "classifier": "gradient_boosting",
+    "stage1_min_prob": 0.55,
+    "stage2_min_prob": 0.55,
+    "stage2_min_prob_up": null,
+    "stage2_min_prob_down": null,
+    "stage1_min_prob_1m": null,
+    "stage1_min_prob_15m": null,
+    "stage2_min_prob_1m": null,
+    "stage2_min_prob_15m": null,
+    "use_state_features": true,
+    "use_15m_wick_features": false,
+    "wick_feature_min_range": 40.0,
+    "wick_feature_min_pct": 35.0,
+    "wick_feature_min_volume": 3000.0,
+    "use_stage1_day_ohl_utc2": false,
+    "state_oof_splits": 5,
+    "pred_history_len": 150,
+    "allow_overlap_backtest": false,
+    "reverse_exit_prob": 0.7,
+    "max_hold_minutes": null,
+    "weak_periods_json": null,
+    "eval_mode": "single_split",
+    "wf_init_train_months": 6,
+    "wf_retrain_days": 14,
+    "wf_max_train_days": 365,
+    "wf_min_train_samples": 300,
+    "wf_disable_sweep": false,
+    "wf_sweep_flat_ratios": [
+      3.0,
+      4.0,
+      5.0
+    ],
+    "wf_sweep_stage1_probs": [],
+    "wf_sweep_stage2_probs": [],
+    "wf_sweep_stage2_long_probs": [],
+    "wf_sweep_stage2_short_probs": [],
+    "wf_sweep_val_ratio": 0.2,
+    "wf_sweep_min_val_samples": 50,
+    "wf_anchor_mode": "weekend_fri_close",
+    "wf_cycle_model_dir": null,
+    "wf_save_cycle_models": true,
+    "prep_cache_dir": null,
+    "refresh_prep_cache": false,
+    "random_state": 42,
+    "model_in": null,
+    "model_out": "/Users/alpha/Desktop/python/AlphaGold/xgboost_filter_model/image_trend_model_state_oos.joblib",
+    "report_out": "/Users/alpha/Desktop/python/AlphaGold/xgboost_filter_model/image_trend_report_state_oos.json",
+    "trades_out": "/Users/alpha/Desktop/python/AlphaGold/xgboost_filter_model/image_trend_trades_state_oos.csv"
+  },
+  "execution_semantics": {
+    "signal_reference": "signal_bar_close",
+    "entry_execution": "next_bar_open",
+    "signal_price_field": "curr_close",
+    "entry_price_field": "next_bar_open",
+    "signal_time_field": "ts",
+    "entry_time_field": "entry_time",
+    "notes": "Labels and features stay anchored to the signal bar close, while simulated trade entries execute on the next bar open."
+  },
+  "threshold_used": 0.012,
+  "horizon_used": 60,
+  "long_target_threshold_used": 0.012,
+  "short_target_threshold_used": 0.012,
+  "long_adverse_limit_used": 15.0,
+  "short_adverse_limit_used": 15.0,
+  "min_window_range_used": 25.0,
+  "window_15m": 0,
+  "min_15m_drop": 15.0,
+  "min_15m_rise": 0.0,
+  "two_branch": false,
+  "two_branch_stage": "both",
+  "n_1m_feats": 1080,
+  "use_state_features": true,
+  "use_15m_wick_features": false,
+  "wick_feature_min_range": 40.0,
+  "wick_feature_min_pct": 35.0,
+  "wick_feature_min_volume": 3000.0,
+  "image_channel_names": [
+    "open_rel",
+    "high_rel",
+    "low_rel",
+    "close_rel",
+    "body_rel",
+    "range_rel",
+    "vol_z",
+    "vol_rel",
+    "vol_diff_norm"
+  ],
+  "state_feature_names": [
+    "pred_lag1_down",
+    "pred_lag1_flat",
+    "pred_lag1_up",
+    "pred_lag2_down",
+    "pred_lag2_flat",
+    "pred_lag2_up",
+    "pred_lag3_down",
+    "pred_lag3_flat",
+    "pred_lag3_up",
+    "pred_lag4_down",
+    "pred_lag4_flat",
+    "pred_lag4_up",
+    "pred_lag5_down",
+    "pred_lag5_flat",
+    "pred_lag5_up",
+    "pred_lag6_down",
+    "pred_lag6_flat",
+    "pred_lag6_up",
+    "pred_lag7_down",
+    "pred_lag7_flat",
+    "pred_lag7_up",
+    "pred_lag8_down",
+    "pred_lag8_flat",
+    "pred_lag8_up",
+    "pred_lag9_down",
+    "pred_lag9_flat",
+    "pred_lag9_up",
+    "pred_lag10_down",
+    "pred_lag10_flat",
+    "pred_lag10_up",
+    "pred_lag11_down",
+    "pred_lag11_flat",
+    "pred_lag11_up",
+    "pred_lag12_down",
+    "pred_lag12_flat",
+    "pred_lag12_up",
+    "pred_lag13_down",
+    "pred_lag13_flat",
+    "pred_lag13_up",
+    "pred_lag14_down",
+    "pred_lag14_flat",
+    "pred_lag14_up",
+    "pred_lag15_down",
+    "pred_lag15_flat",
+    "pred_lag15_up",
+    "pred_lag16_down",
+    "pred_lag16_flat",
+    "pred_lag16_up",
+    "pred_lag17_down",
+    "pred_lag17_flat",
+    "pred_lag17_up",
+    "pred_lag18_down",
+    "pred_lag18_flat",
+    "pred_lag18_up",
+    "pred_lag19_down",
+    "pred_lag19_flat",
+    "pred_lag19_up",
+    "pred_lag20_down",
+    "pred_lag20_flat",
+    "pred_lag20_up",
+    "pred_lag21_down",
+    "pred_lag21_flat",
+    "pred_lag21_up",
+    "pred_lag22_down",
+    "pred_lag22_flat",
+    "pred_lag22_up",
+    "pred_lag23_down",
+    "pred_lag23_flat",
+    "pred_lag23_up",
+    "pred_lag24_down",
+    "pred_lag24_flat",
+    "pred_lag24_up",
+    "pred_lag25_down",
+    "pred_lag25_flat",
+    "pred_lag25_up",
+    "pred_lag26_down",
+    "pred_lag26_flat",
+    "pred_lag26_up",
+    "pred_lag27_down",
+    "pred_lag27_flat",
+    "pred_lag27_up",
+    "pred_lag28_down",
+    "pred_lag28_flat",
+    "pred_lag28_up",
+    "pred_lag29_down",
+    "pred_lag29_flat",
+    "pred_lag29_up",
+    "pred_lag30_down",
+    "pred_lag30_flat",
+    "pred_lag30_up",
+    "pred_lag31_down",
+    "pred_lag31_flat",
+    "pred_lag31_up",
+    "pred_lag32_down",
+    "pred_lag32_flat",
+    "pred_lag32_up",
+    "pred_lag33_down",
+    "pred_lag33_flat",
+    "pred_lag33_up",
+    "pred_lag34_down",
+    "pred_lag34_flat",
+    "pred_lag34_up",
+    "pred_lag35_down",
+    "pred_lag35_flat",
+    "pred_lag35_up",
+    "pred_lag36_down",
+    "pred_lag36_flat",
+    "pred_lag36_up",
+    "pred_lag37_down",
+    "pred_lag37_flat",
+    "pred_lag37_up",
+    "pred_lag38_down",
+    "pred_lag38_flat",
+    "pred_lag38_up",
+    "pred_lag39_down",
+    "pred_lag39_flat",
+    "pred_lag39_up",
+    "pred_lag40_down",
+    "pred_lag40_flat",
+    "pred_lag40_up",
+    "pred_lag41_down",
+    "pred_lag41_flat",
+    "pred_lag41_up",
+    "pred_lag42_down",
+    "pred_lag42_flat",
+    "pred_lag42_up",
+    "pred_lag43_down",
+    "pred_lag43_flat",
+    "pred_lag43_up",
+    "pred_lag44_down",
+    "pred_lag44_flat",
+    "pred_lag44_up",
+    "pred_lag45_down",
+    "pred_lag45_flat",
+    "pred_lag45_up",
+    "pred_lag46_down",
+    "pred_lag46_flat",
+    "pred_lag46_up",
+    "pred_lag47_down",
+    "pred_lag47_flat",
+    "pred_lag47_up",
+    "pred_lag48_down",
+    "pred_lag48_flat",
+    "pred_lag48_up",
+    "pred_lag49_down",
+    "pred_lag49_flat",
+    "pred_lag49_up",
+    "pred_lag50_down",
+    "pred_lag50_flat",
+    "pred_lag50_up",
+    "pred_lag51_down",
+    "pred_lag51_flat",
+    "pred_lag51_up",
+    "pred_lag52_down",
+    "pred_lag52_flat",
+    "pred_lag52_up",
+    "pred_lag53_down",
+    "pred_lag53_flat",
+    "pred_lag53_up",
+    "pred_lag54_down",
+    "pred_lag54_flat",
+    "pred_lag54_up",
+    "pred_lag55_down",
+    "pred_lag55_flat",
+    "pred_lag55_up",
+    "pred_lag56_down",
+    "pred_lag56_flat",
+    "pred_lag56_up",
+    "pred_lag57_down",
+    "pred_lag57_flat",
+    "pred_lag57_up",
+    "pred_lag58_down",
+    "pred_lag58_flat",
+    "pred_lag58_up",
+    "pred_lag59_down",
+    "pred_lag59_flat",
+    "pred_lag59_up",
+    "pred_lag60_down",
+    "pred_lag60_flat",
+    "pred_lag60_up",
+    "pred_lag61_down",
+    "pred_lag61_flat",
+    "pred_lag61_up",
+    "pred_lag62_down",
+    "pred_lag62_flat",
+    "pred_lag62_up",
+    "pred_lag63_down",
+    "pred_lag63_flat",
+    "pred_lag63_up",
+    "pred_lag64_down",
+    "pred_lag64_flat",
+    "pred_lag64_up",
+    "pred_lag65_down",
+    "pred_lag65_flat",
+    "pred_lag65_up",
+    "pred_lag66_down",
+    "pred_lag66_flat",
+    "pred_lag66_up",
+    "pred_lag67_down",
+    "pred_lag67_flat",
+    "pred_lag67_up",
+    "pred_lag68_down",
+    "pred_lag68_flat",
+    "pred_lag68_up",
+    "pred_lag69_down",
+    "pred_lag69_flat",
+    "pred_lag69_up",
+    "pred_lag70_down",
+    "pred_lag70_flat",
+    "pred_lag70_up",
+    "pred_lag71_down",
+    "pred_lag71_flat",
+    "pred_lag71_up",
+    "pred_lag72_down",
+    "pred_lag72_flat",
+    "pred_lag72_up",
+    "pred_lag73_down",
+    "pred_lag73_flat",
+    "pred_lag73_up",
+    "pred_lag74_down",
+    "pred_lag74_flat",
+    "pred_lag74_up",
+    "pred_lag75_down",
+    "pred_lag75_flat",
+    "pred_lag75_up",
+    "pred_lag76_down",
+    "pred_lag76_flat",
+    "pred_lag76_up",
+    "pred_lag77_down",
+    "pred_lag77_flat",
+    "pred_lag77_up",
+    "pred_lag78_down",
+    "pred_lag78_flat",
+    "pred_lag78_up",
+    "pred_lag79_down",
+    "pred_lag79_flat",
+    "pred_lag79_up",
+    "pred_lag80_down",
+    "pred_lag80_flat",
+    "pred_lag80_up",
+    "pred_lag81_down",
+    "pred_lag81_flat",
+    "pred_lag81_up",
+    "pred_lag82_down",
+    "pred_lag82_flat",
+    "pred_lag82_up",
+    "pred_lag83_down",
+    "pred_lag83_flat",
+    "pred_lag83_up",
+    "pred_lag84_down",
+    "pred_lag84_flat",
+    "pred_lag84_up",
+    "pred_lag85_down",
+    "pred_lag85_flat",
+    "pred_lag85_up",
+    "pred_lag86_down",
+    "pred_lag86_flat",
+    "pred_lag86_up",
+    "pred_lag87_down",
+    "pred_lag87_flat",
+    "pred_lag87_up",
+    "pred_lag88_down",
+    "pred_lag88_flat",
+    "pred_lag88_up",
+    "pred_lag89_down",
+    "pred_lag89_flat",
+    "pred_lag89_up",
+    "pred_lag90_down",
+    "pred_lag90_flat",
+    "pred_lag90_up",
+    "pred_lag91_down",
+    "pred_lag91_flat",
+    "pred_lag91_up",
+    "pred_lag92_down",
+    "pred_lag92_flat",
+    "pred_lag92_up",
+    "pred_lag93_down",
+    "pred_lag93_flat",
+    "pred_lag93_up",
+    "pred_lag94_down",
+    "pred_lag94_flat",
+    "pred_lag94_up",
+    "pred_lag95_down",
+    "pred_lag95_flat",
+    "pred_lag95_up",
+    "pred_lag96_down",
+    "pred_lag96_flat",
+    "pred_lag96_up",
+    "pred_lag97_down",
+    "pred_lag97_flat",
+    "pred_lag97_up",
+    "pred_lag98_down",
+    "pred_lag98_flat",
+    "pred_lag98_up",
+    "pred_lag99_down",
+    "pred_lag99_flat",
+    "pred_lag99_up",
+    "pred_lag100_down",
+    "pred_lag100_flat",
+    "pred_lag100_up",
+    "pred_lag101_down",
+    "pred_lag101_flat",
+    "pred_lag101_up",
+    "pred_lag102_down",
+    "pred_lag102_flat",
+    "pred_lag102_up",
+    "pred_lag103_down",
+    "pred_lag103_flat",
+    "pred_lag103_up",
+    "pred_lag104_down",
+    "pred_lag104_flat",
+    "pred_lag104_up",
+    "pred_lag105_down",
+    "pred_lag105_flat",
+    "pred_lag105_up",
+    "pred_lag106_down",
+    "pred_lag106_flat",
+    "pred_lag106_up",
+    "pred_lag107_down",
+    "pred_lag107_flat",
+    "pred_lag107_up",
+    "pred_lag108_down",
+    "pred_lag108_flat",
+    "pred_lag108_up",
+    "pred_lag109_down",
+    "pred_lag109_flat",
+    "pred_lag109_up",
+    "pred_lag110_down",
+    "pred_lag110_flat",
+    "pred_lag110_up",
+    "pred_lag111_down",
+    "pred_lag111_flat",
+    "pred_lag111_up",
+    "pred_lag112_down",
+    "pred_lag112_flat",
+    "pred_lag112_up",
+    "pred_lag113_down",
+    "pred_lag113_flat",
+    "pred_lag113_up",
+    "pred_lag114_down",
+    "pred_lag114_flat",
+    "pred_lag114_up",
+    "pred_lag115_down",
+    "pred_lag115_flat",
+    "pred_lag115_up",
+    "pred_lag116_down",
+    "pred_lag116_flat",
+    "pred_lag116_up",
+    "pred_lag117_down",
+    "pred_lag117_flat",
+    "pred_lag117_up",
+    "pred_lag118_down",
+    "pred_lag118_flat",
+    "pred_lag118_up",
+    "pred_lag119_down",
+    "pred_lag119_flat",
+    "pred_lag119_up",
+    "pred_lag120_down",
+    "pred_lag120_flat",
+    "pred_lag120_up",
+    "pred_lag121_down",
+    "pred_lag121_flat",
+    "pred_lag121_up",
+    "pred_lag122_down",
+    "pred_lag122_flat",
+    "pred_lag122_up",
+    "pred_lag123_down",
+    "pred_lag123_flat",
+    "pred_lag123_up",
+    "pred_lag124_down",
+    "pred_lag124_flat",
+    "pred_lag124_up",
+    "pred_lag125_down",
+    "pred_lag125_flat",
+    "pred_lag125_up",
+    "pred_lag126_down",
+    "pred_lag126_flat",
+    "pred_lag126_up",
+    "pred_lag127_down",
+    "pred_lag127_flat",
+    "pred_lag127_up",
+    "pred_lag128_down",
+    "pred_lag128_flat",
+    "pred_lag128_up",
+    "pred_lag129_down",
+    "pred_lag129_flat",
+    "pred_lag129_up",
+    "pred_lag130_down",
+    "pred_lag130_flat",
+    "pred_lag130_up",
+    "pred_lag131_down",
+    "pred_lag131_flat",
+    "pred_lag131_up",
+    "pred_lag132_down",
+    "pred_lag132_flat",
+    "pred_lag132_up",
+    "pred_lag133_down",
+    "pred_lag133_flat",
+    "pred_lag133_up",
+    "pred_lag134_down",
+    "pred_lag134_flat",
+    "pred_lag134_up",
+    "pred_lag135_down",
+    "pred_lag135_flat",
+    "pred_lag135_up",
+    "pred_lag136_down",
+    "pred_lag136_flat",
+    "pred_lag136_up",
+    "pred_lag137_down",
+    "pred_lag137_flat",
+    "pred_lag137_up",
+    "pred_lag138_down",
+    "pred_lag138_flat",
+    "pred_lag138_up",
+    "pred_lag139_down",
+    "pred_lag139_flat",
+    "pred_lag139_up",
+    "pred_lag140_down",
+    "pred_lag140_flat",
+    "pred_lag140_up",
+    "pred_lag141_down",
+    "pred_lag141_flat",
+    "pred_lag141_up",
+    "pred_lag142_down",
+    "pred_lag142_flat",
+    "pred_lag142_up",
+    "pred_lag143_down",
+    "pred_lag143_flat",
+    "pred_lag143_up",
+    "pred_lag144_down",
+    "pred_lag144_flat",
+    "pred_lag144_up",
+    "pred_lag145_down",
+    "pred_lag145_flat",
+    "pred_lag145_up",
+    "pred_lag146_down",
+    "pred_lag146_flat",
+    "pred_lag146_up",
+    "pred_lag147_down",
+    "pred_lag147_flat",
+    "pred_lag147_up",
+    "pred_lag148_down",
+    "pred_lag148_flat",
+    "pred_lag148_up",
+    "pred_lag149_down",
+    "pred_lag149_flat",
+    "pred_lag149_up",
+    "pred_lag150_down",
+    "pred_lag150_flat",
+    "pred_lag150_up",
+    "pos_short",
+    "pos_flat",
+    "pos_long",
+    "bars_in_pos_norm",
+    "unrealized_return",
+    "status_target_hit",
+    "status_stop_hit"
+  ],
+  "stage1_extra_feature_names": [],
+  "feature_shape": [
+    9,
+    120
+  ],
+  "evaluation_mode": "single_split",
+  "split_mode": "date:2025-11-25T00:00:00+00:00",
+  "n_kept": 67032,
+  "n_skipped": 249746,
+  "train_samples": 17624,
+  "test_samples": 49408,
+  "stage1": {
+    "accuracy": 0.9088406735751295,
+    "balanced_accuracy": 0.5591701489266122,
+    "confusion_matrix": [
+      [
+        44393,
+        1741
+      ],
+      [
+        2763,
+        511
+      ]
+    ],
+    "confusion_labels": [
+      "flat",
+      "trend"
+    ],
+    "classification_report": {
+      "flat": {
+        "precision": 0.9414072440410552,
+        "recall": 0.96226210603893,
+        "f1-score": 0.9517204416336156,
+        "support": 46134.0
+      },
+      "trend": {
+        "precision": 0.22690941385435168,
+        "recall": 0.15607819181429444,
+        "f1-score": 0.1849439015562794,
+        "support": 3274.0
+      },
+      "accuracy": 0.9088406735751295,
+      "macro avg": {
+        "precision": 0.5841583289477035,
+        "recall": 0.5591701489266122,
+        "f1-score": 0.5683321715949475,
+        "support": 49408.0
+      },
+      "weighted avg": {
+        "precision": 0.8940613507437903,
+        "recall": 0.9088406735751295,
+        "f1-score": 0.9009103219725648,
+        "support": 49408.0
+      }
+    }
+  },
+  "stage2": {
+    "accuracy": 0.538160469667319,
+    "balanced_accuracy": 0.5509655475093264,
+    "confusion_matrix": [
+      [
+        137,
+        157
+      ],
+      [
+        79,
+        138
+      ]
+    ],
+    "confusion_labels": [
+      "down",
+      "up"
+    ],
+    "classification_report": {
+      "down": {
+        "precision": 0.6342592592592593,
+        "recall": 0.46598639455782315,
+        "f1-score": 0.5372549019607843,
+        "support": 294.0
+      },
+      "up": {
+        "precision": 0.46779661016949153,
+        "recall": 0.6359447004608295,
+        "f1-score": 0.5390625,
+        "support": 217.0
+      },
+      "accuracy": 0.538160469667319,
+      "macro avg": {
+        "precision": 0.5510279347143754,
+        "recall": 0.5509655475093264,
+        "f1-score": 0.5381587009803921,
+        "support": 511.0
+      },
+      "weighted avg": {
+        "precision": 0.5635696411526456,
+        "recall": 0.538160469667319,
+        "f1-score": 0.5380225120870266,
+        "support": 511.0
+      }
+    }
+  },
+  "full_confusion_matrix": [
+    [
+      137,
+      1733,
+      157,
+      0
+    ],
+    [
+      774,
+      43782,
+      506,
+      0
+    ],
+    [
+      79,
+      1030,
+      138,
+      0
+    ],
+    [
+      132,
+      611,
+      329,
+      0
+    ]
+  ],
+  "full_confusion_labels": [
+    "down",
+    "flat",
+    "up",
+    "risky"
+  ],
+  "directional_pnl": {
+    "trades": 679,
+    "total_pnl": -453.83616000000075,
+    "avg_trade": -0.6683890427098685,
+    "n_days": 86,
+    "avg_trades_per_day": 7.895348837209302,
+    "avg_day": -5.277164651162799,
+    "positive_days_pct": 40.69767441860465,
+    "max_drawdown": -894.3307200000017,
+    "long": {
+      "trades": 313,
+      "wins": 90,
+      "losses": 223,
+      "win_rate": 28.753993610223645,
+      "total_pnl": -399.71792000000096,
+      "avg_trade": -1.2770540575079903
+    },
+    "short": {
+      "trades": 366,
+      "wins": 129,
+      "losses": 237,
+      "win_rate": 35.24590163934426,
+      "total_pnl": -54.11823999999979,
+      "avg_trade": -0.1478640437158464
+    },
+    "streaks": {
+      "max_win_streak": 6,
+      "max_loss_streak": 18,
+      "current_win_streak": 0,
+      "current_loss_streak": 4
+    },
+    "reverse_signal": {
+      "trades": 115,
+      "wins": 78,
+      "losses": 37,
+      "breakeven": 0,
+      "avg_pnl": 8.603565217391271,
+      "win_rate_pct": 67.82608695652173,
+      "loss_rate_pct": 32.17391304347826
+    },
+    "target_hit": {
+      "trades": 48,
+      "avg_pnl": 65.35028833333332
+    },
+    "timeout": {
+      "trades": 120,
+      "wins": 93,
+      "losses": 27,
+      "breakeven": 0,
+      "avg_pnl": 11.33283333333336,
+      "win_rate_pct": 77.5,
+      "loss_rate_pct": 22.5
+    },
+    "all": {
+      "trades": 679,
+      "total_pnl": -453.83616000000075,
+      "avg_trade": -0.6683890427098685,
+      "median_trade": -15.0,
+      "win_rate_pct": 32.253313696612665,
+      "gross_profit": 5756.553840000002,
+      "gross_loss": -6210.390000000003,
+      "profit_factor": 0.9269230821252771,
+      "best_trade": 100.58348000000024,
+      "worst_trade": -15.0,
+      "avg_win": 26.28563397260275,
+      "avg_loss": -13.500847826086963,
+      "max_win_streak": 6,
+      "max_loss_streak": 18,
+      "current_streak": 4,
+      "current_win_streak": 0,
+      "current_loss_streak": 4,
+      "avg_duration_min": 46.10751104565538,
+      "median_duration_min": 9.0,
+      "min_duration_min": 0.0,
+      "max_duration_min": 3110.0,
+      "n_days": 86,
+      "avg_trades_per_day": 7.895348837209302,
+      "avg_day": -5.277164651162799,
+      "median_day": -3.6849999999999454,
+      "best_day": 242.989160000001,
+      "worst_day": -329.29663999999957,
+      "positive_days_pct": 40.69767441860465,
+      "trade_max_drawdown": -894.3307200000017,
+      "daily_max_drawdown": -837.3379600000017,
+      "exit_reason_counts": {
+        "stop_loss": 396,
+        "timeout": 120,
+        "reverse_signal": 115,
+        "target_hit": 48
+      },
+      "reverse_signal_stats": {
+        "trades": 115,
+        "wins": 78,
+        "losses": 37,
+        "breakeven": 0,
+        "avg_pnl": 8.603565217391271,
+        "win_rate_pct": 67.82608695652173,
+        "loss_rate_pct": 32.17391304347826
+      },
+      "target_hit_stats": {
+        "trades": 48,
+        "avg_pnl": 65.35028833333332
+      },
+      "timeout_stats": {
+        "trades": 120,
+        "wins": 93,
+        "losses": 27,
+        "breakeven": 0,
+        "avg_pnl": 11.33283333333336,
+        "win_rate_pct": 77.5,
+        "loss_rate_pct": 22.5
+      },
+      "target_updates_mean": 0.5478645066273933,
+      "target_updates_median": 0.0,
+      "target_updates_max": 8,
+      "time_distribution": {
+        "timezone_labels": {
+          "hkt": "Asia/Hong_Kong",
+          "ny": "America/New_York"
+        },
+        "by_weekday_hkt": [
+          {
+            "weekday_hkt": "Monday",
+            "trades": 143,
+            "total_pnl": 309.495640000001,
+            "avg_trade": 2.164305174825182,
+            "win_rate_pct": 30.76923076923077
+          },
+          {
+            "weekday_hkt": "Tuesday",
+            "trades": 116,
+            "total_pnl": -30.43724000000111,
+            "avg_trade": -0.26239000000000956,
+            "win_rate_pct": 37.06896551724138
+          },
+          {
+            "weekday_hkt": "Wednesday",
+            "trades": 90,
+            "total_pnl": -288.35099999999875,
+            "avg_trade": -3.203899999999986,
+            "win_rate_pct": 37.77777777777778
+          },
+          {
+            "weekday_hkt": "Thursday",
+            "trades": 124,
+            "total_pnl": -110.52359999999953,
+            "avg_trade": -0.891319354838706,
+            "win_rate_pct": 29.838709677419356
+          },
+          {
+            "weekday_hkt": "Friday",
+            "trades": 140,
+            "total_pnl": -239.74488000000292,
+            "avg_trade": -1.7124634285714495,
+            "win_rate_pct": 30.0
+          },
+          {
+            "weekday_hkt": "Saturday",
+            "trades": 66,
+            "total_pnl": -94.27507999999943,
+            "avg_trade": -1.4284103030302944,
+            "win_rate_pct": 28.78787878787879
+          }
+        ],
+        "by_hour_hkt": [
+          {
+            "hour_hkt": 0,
+            "trades": 74,
+            "total_pnl": -142.29760000000078,
+            "avg_trade": -1.922940540540551,
+            "win_rate_pct": 29.72972972972973
+          },
+          {
+            "hour_hkt": 1,
+            "trades": 53,
+            "total_pnl": -83.28276000000096,
+            "avg_trade": -1.5713728301886973,
+            "win_rate_pct": 35.84905660377358
+          },
+          {
+            "hour_hkt": 2,
+            "trades": 46,
+            "total_pnl": -74.64879999999812,
+            "avg_trade": -1.6227999999999592,
+            "win_rate_pct": 32.608695652173914
+          },
+          {
+            "hour_hkt": 3,
+            "trades": 28,
+            "total_pnl": -33.383599999999205,
+            "avg_trade": -1.1922714285714002,
+            "win_rate_pct": 35.714285714285715
+          },
+          {
+            "hour_hkt": 4,
+            "trades": 20,
+            "total_pnl": 20.89831999999933,
+            "avg_trade": 1.0449159999999664,
+            "win_rate_pct": 40.0
+          },
+          {
+            "hour_hkt": 5,
+            "trades": 12,
+            "total_pnl": -64.36000000000149,
+            "avg_trade": -5.363333333333458,
+            "win_rate_pct": 50.0
+          },
+          {
+            "hour_hkt": 6,
+            "trades": 7,
+            "total_pnl": 61.567480000000614,
+            "avg_trade": 8.795354285714373,
+            "win_rate_pct": 42.857142857142854
+          },
+          {
+            "hour_hkt": 7,
+            "trades": 56,
+            "total_pnl": -338.21331999999984,
+            "avg_trade": -6.039523571428568,
+            "win_rate_pct": 19.642857142857142
+          },
+          {
+            "hour_hkt": 8,
+            "trades": 43,
+            "total_pnl": 24.155280000000857,
+            "avg_trade": 0.5617506976744385,
+            "win_rate_pct": 32.55813953488372
+          },
+          {
+            "hour_hkt": 9,
+            "trades": 41,
+            "total_pnl": -216.01080000000093,
+            "avg_trade": -5.268556097560999,
+            "win_rate_pct": 31.70731707317073
+          },
+          {
+            "hour_hkt": 10,
+            "trades": 46,
+            "total_pnl": 22.375679999998283,
+            "avg_trade": 0.4864278260869192,
+            "win_rate_pct": 32.608695652173914
+          },
+          {
+            "hour_hkt": 11,
+            "trades": 44,
+            "total_pnl": 141.14064000000326,
+            "avg_trade": 3.2077418181818924,
+            "win_rate_pct": 38.63636363636363
+          },
+          {
+            "hour_hkt": 12,
+            "trades": 12,
+            "total_pnl": -62.4991200000004,
+            "avg_trade": -5.208260000000034,
+            "win_rate_pct": 16.666666666666664
+          },
+          {
+            "hour_hkt": 13,
+            "trades": 43,
+            "total_pnl": 214.76859999999851,
+            "avg_trade": 4.994618604651128,
+            "win_rate_pct": 46.51162790697674
+          },
+          {
+            "hour_hkt": 14,
+            "trades": 46,
+            "total_pnl": -51.66195999999945,
+            "avg_trade": -1.1230860869565098,
+            "win_rate_pct": 23.91304347826087
+          },
+          {
+            "hour_hkt": 23,
+            "trades": 108,
+            "total_pnl": 127.61579999999958,
+            "avg_trade": 1.181627777777774,
+            "win_rate_pct": 30.555555555555557
+          }
+        ],
+        "by_hour_ny": [
+          {
+            "hour_ny": 0,
+            "trades": 37,
+            "total_pnl": 76.44859999999971,
+            "avg_trade": 2.0661783783783707,
+            "win_rate_pct": 40.54054054054054
+          },
+          {
+            "hour_ny": 1,
+            "trades": 33,
+            "total_pnl": 127.31239999999889,
+            "avg_trade": 3.8579515151514814,
+            "win_rate_pct": 36.36363636363637
+          },
+          {
+            "hour_ny": 2,
+            "trades": 19,
+            "total_pnl": -40.65435999999954,
+            "avg_trade": -2.1397031578947128,
+            "win_rate_pct": 21.052631578947366
+          },
+          {
+            "hour_ny": 10,
+            "trades": 94,
+            "total_pnl": 51.603079999998954,
+            "avg_trade": 0.5489689361702016,
+            "win_rate_pct": 29.78723404255319
+          },
+          {
+            "hour_ny": 11,
+            "trades": 71,
+            "total_pnl": 29.992839999998978,
+            "avg_trade": 0.4224343661971687,
+            "win_rate_pct": 32.3943661971831
+          },
+          {
+            "hour_ny": 12,
+            "trades": 64,
+            "total_pnl": -184.21048000000064,
+            "avg_trade": -2.87828875000001,
+            "win_rate_pct": 31.25
+          },
+          {
+            "hour_ny": 13,
+            "trades": 45,
+            "total_pnl": -106.22879999999805,
+            "avg_trade": -2.3606399999999566,
+            "win_rate_pct": 31.11111111111111
+          },
+          {
+            "hour_ny": 14,
+            "trades": 22,
+            "total_pnl": -65.76359999999931,
+            "avg_trade": -2.9892545454545143,
+            "win_rate_pct": 27.27272727272727
+          },
+          {
+            "hour_ny": 15,
+            "trades": 28,
+            "total_pnl": 113.25831999999991,
+            "avg_trade": 4.044939999999997,
+            "win_rate_pct": 50.0
+          },
+          {
+            "hour_ny": 16,
+            "trades": 17,
+            "total_pnl": -88.11000000000149,
+            "avg_trade": -5.182941176470676,
+            "win_rate_pct": 47.05882352941176
+          },
+          {
+            "hour_ny": 18,
+            "trades": 56,
+            "total_pnl": -207.86583999999948,
+            "avg_trade": -3.7118899999999906,
+            "win_rate_pct": 25.0
+          },
+          {
+            "hour_ny": 19,
+            "trades": 31,
+            "total_pnl": -34.41479999999956,
+            "avg_trade": -1.1101548387096631,
+            "win_rate_pct": 29.03225806451613
+          },
+          {
+            "hour_ny": 20,
+            "trades": 50,
+            "total_pnl": -137.66071999999986,
+            "avg_trade": -2.753214399999997,
+            "win_rate_pct": 30.0
+          },
+          {
+            "hour_ny": 21,
+            "trades": 46,
+            "total_pnl": -221.1762000000008,
+            "avg_trade": -4.808178260869583,
+            "win_rate_pct": 26.08695652173913
+          },
+          {
+            "hour_ny": 22,
+            "trades": 45,
+            "total_pnl": 308.78251999999975,
+            "avg_trade": 6.861833777777772,
+            "win_rate_pct": 44.44444444444444
+          },
+          {
+            "hour_ny": 23,
+            "trades": 21,
+            "total_pnl": -75.14911999999822,
+            "avg_trade": -3.578529523809439,
+            "win_rate_pct": 23.809523809523807
+          }
+        ],
+        "by_session": [
+          {
+            "session": "Asia",
+            "trades": 338,
+            "total_pnl": -204.3775199999991,
+            "avg_trade": -0.6046672189349086,
+            "win_rate_pct": 31.360946745562128
+          },
+          {
+            "session": "NY",
+            "trades": 341,
+            "total_pnl": -249.45864000000165,
+            "avg_trade": -0.7315502639296236,
+            "win_rate_pct": 33.137829912023456
+          }
+        ],
+        "weekday_hour_hkt_heatmap": {
+          "Monday": {
+            "06:00": {
+              "trades": 4,
+              "total_pnl": 86.34748000000036,
+              "avg_trade": 21.58687000000009,
+              "win_rate_pct": 50.0
+            },
+            "07:00": {
+              "trades": 22,
+              "total_pnl": -88.60380000000077,
+              "avg_trade": -4.027445454545489,
+              "win_rate_pct": 18.181818181818183
+            },
+            "08:00": {
+              "trades": 16,
+              "total_pnl": 114.75875999999971,
+              "avg_trade": 7.172422499999982,
+              "win_rate_pct": 43.75
+            },
+            "09:00": {
+              "trades": 18,
+              "total_pnl": -118.54999999999927,
+              "avg_trade": -6.58611111111107,
+              "win_rate_pct": 27.77777777777778
+            },
+            "10:00": {
+              "trades": 11,
+              "total_pnl": 67.96987999999965,
+              "avg_trade": 6.179079999999968,
+              "win_rate_pct": 36.36363636363637
+            },
+            "11:00": {
+              "trades": 15,
+              "total_pnl": 61.985640000000785,
+              "avg_trade": 4.132376000000052,
+              "win_rate_pct": 40.0
+            },
+            "12:00": {
+              "trades": 8,
+              "total_pnl": -8.549119999999675,
+              "avg_trade": -1.0686399999999594,
+              "win_rate_pct": 25.0
+            },
+            "13:00": {
+              "trades": 10,
+              "total_pnl": 168.39860000000044,
+              "avg_trade": 16.839860000000044,
+              "win_rate_pct": 50.0
+            },
+            "14:00": {
+              "trades": 21,
+              "total_pnl": -70.14068000000043,
+              "avg_trade": -3.3400323809524015,
+              "win_rate_pct": 14.285714285714285
+            },
+            "23:00": {
+              "trades": 18,
+              "total_pnl": 95.87888000000021,
+              "avg_trade": 5.326604444444456,
+              "win_rate_pct": 33.33333333333333
+            }
+          },
+          "Tuesday": {
+            "00:00": {
+              "trades": 19,
+              "total_pnl": 76.628279999999,
+              "avg_trade": 4.033067368420999,
+              "win_rate_pct": 42.10526315789473
+            },
+            "01:00": {
+              "trades": 7,
+              "total_pnl": 2.5150400000002264,
+              "avg_trade": 0.3592914285714609,
+              "win_rate_pct": 28.57142857142857
+            },
+            "02:00": {
+              "trades": 7,
+              "total_pnl": -17.299999999999272,
+              "avg_trade": -2.4714285714284676,
+              "win_rate_pct": 42.857142857142854
+            },
+            "03:00": {
+              "trades": 8,
+              "total_pnl": -38.17000000000007,
+              "avg_trade": -4.771250000000009,
+              "win_rate_pct": 25.0
+            },
+            "04:00": {
+              "trades": 3,
+              "total_pnl": -45.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "05:00": {
+              "trades": 3,
+              "total_pnl": -14.100000000000364,
+              "avg_trade": -4.700000000000121,
+              "win_rate_pct": 66.66666666666666
+            },
+            "06:00": {
+              "trades": 2,
+              "total_pnl": -30.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "07:00": {
+              "trades": 10,
+              "total_pnl": -20.729519999998956,
+              "avg_trade": -2.0729519999998955,
+              "win_rate_pct": 40.0
+            },
+            "08:00": {
+              "trades": 9,
+              "total_pnl": -112.63000000000011,
+              "avg_trade": -12.514444444444457,
+              "win_rate_pct": 11.11111111111111
+            },
+            "09:00": {
+              "trades": 5,
+              "total_pnl": 80.13919999999871,
+              "avg_trade": 16.027839999999742,
+              "win_rate_pct": 80.0
+            },
+            "10:00": {
+              "trades": 5,
+              "total_pnl": 57.1299999999992,
+              "avg_trade": 11.42599999999984,
+              "win_rate_pct": 60.0
+            },
+            "11:00": {
+              "trades": 11,
+              "total_pnl": 6.2500000000009095,
+              "avg_trade": 0.5681818181819008,
+              "win_rate_pct": 27.27272727272727
+            },
+            "13:00": {
+              "trades": 5,
+              "total_pnl": 43.02000000000044,
+              "avg_trade": 8.604000000000088,
+              "win_rate_pct": 80.0
+            },
+            "14:00": {
+              "trades": 8,
+              "total_pnl": -11.719999999999345,
+              "avg_trade": -1.4649999999999181,
+              "win_rate_pct": 25.0
+            },
+            "23:00": {
+              "trades": 14,
+              "total_pnl": -6.470240000001468,
+              "avg_trade": -0.4621600000001048,
+              "win_rate_pct": 35.714285714285715
+            }
+          },
+          "Wednesday": {
+            "00:00": {
+              "trades": 12,
+              "total_pnl": -89.30000000000018,
+              "avg_trade": -7.4416666666666815,
+              "win_rate_pct": 16.666666666666664
+            },
+            "01:00": {
+              "trades": 13,
+              "total_pnl": -33.48999999999978,
+              "avg_trade": -2.5761538461538294,
+              "win_rate_pct": 46.15384615384615
+            },
+            "02:00": {
+              "trades": 5,
+              "total_pnl": 57.35900000000038,
+              "avg_trade": 11.471800000000076,
+              "win_rate_pct": 60.0
+            },
+            "03:00": {
+              "trades": 5,
+              "total_pnl": -34.26000000000022,
+              "avg_trade": -6.852000000000044,
+              "win_rate_pct": 20.0
+            },
+            "04:00": {
+              "trades": 8,
+              "total_pnl": -42.58000000000084,
+              "avg_trade": -5.322500000000105,
+              "win_rate_pct": 37.5
+            },
+            "06:00": {
+              "trades": 1,
+              "total_pnl": 5.220000000000255,
+              "avg_trade": 5.220000000000255,
+              "win_rate_pct": 100.0
+            },
+            "07:00": {
+              "trades": 5,
+              "total_pnl": -45.97999999999956,
+              "avg_trade": -9.195999999999913,
+              "win_rate_pct": 20.0
+            },
+            "08:00": {
+              "trades": 2,
+              "total_pnl": 23.050000000000182,
+              "avg_trade": 11.525000000000091,
+              "win_rate_pct": 50.0
+            },
+            "09:00": {
+              "trades": 3,
+              "total_pnl": -15.3100000000004,
+              "avg_trade": -5.103333333333467,
+              "win_rate_pct": 33.33333333333333
+            },
+            "10:00": {
+              "trades": 1,
+              "total_pnl": -15.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "11:00": {
+              "trades": 7,
+              "total_pnl": -19.679999999998472,
+              "avg_trade": -2.8114285714283533,
+              "win_rate_pct": 42.857142857142854
+            },
+            "13:00": {
+              "trades": 7,
+              "total_pnl": 14.949999999998909,
+              "avg_trade": 2.13571428571413,
+              "win_rate_pct": 57.14285714285714
+            },
+            "14:00": {
+              "trades": 1,
+              "total_pnl": 0.680000000000291,
+              "avg_trade": 0.680000000000291,
+              "win_rate_pct": 100.0
+            },
+            "23:00": {
+              "trades": 20,
+              "total_pnl": -94.00999999999931,
+              "avg_trade": -4.700499999999965,
+              "win_rate_pct": 35.0
+            }
+          },
+          "Thursday": {
+            "00:00": {
+              "trades": 8,
+              "total_pnl": -65.08999999999924,
+              "avg_trade": -8.136249999999905,
+              "win_rate_pct": 25.0
+            },
+            "01:00": {
+              "trades": 10,
+              "total_pnl": -12.410000000000764,
+              "avg_trade": -1.2410000000000765,
+              "win_rate_pct": 50.0
+            },
+            "02:00": {
+              "trades": 4,
+              "total_pnl": -30.86999999999989,
+              "avg_trade": -7.717499999999973,
+              "win_rate_pct": 25.0
+            },
+            "03:00": {
+              "trades": 3,
+              "total_pnl": -45.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "04:00": {
+              "trades": 3,
+              "total_pnl": 30.090000000000146,
+              "avg_trade": 10.030000000000049,
+              "win_rate_pct": 33.33333333333333
+            },
+            "07:00": {
+              "trades": 11,
+              "total_pnl": -80.05000000000018,
+              "avg_trade": -7.277272727272744,
+              "win_rate_pct": 18.181818181818183
+            },
+            "08:00": {
+              "trades": 8,
+              "total_pnl": 10.18612000000121,
+              "avg_trade": 1.2732650000001513,
+              "win_rate_pct": 37.5
+            },
+            "09:00": {
+              "trades": 7,
+              "total_pnl": -86.59000000000015,
+              "avg_trade": -12.37000000000002,
+              "win_rate_pct": 14.285714285714285
+            },
+            "10:00": {
+              "trades": 10,
+              "total_pnl": -60.33000000000084,
+              "avg_trade": -6.033000000000084,
+              "win_rate_pct": 30.0
+            },
+            "11:00": {
+              "trades": 4,
+              "total_pnl": 86.45320000000083,
+              "avg_trade": 21.61330000000021,
+              "win_rate_pct": 75.0
+            },
+            "13:00": {
+              "trades": 10,
+              "total_pnl": -9.330000000000837,
+              "avg_trade": -0.9330000000000837,
+              "win_rate_pct": 30.0
+            },
+            "14:00": {
+              "trades": 14,
+              "total_pnl": -32.57727999999952,
+              "avg_trade": -2.326948571428537,
+              "win_rate_pct": 28.57142857142857
+            },
+            "23:00": {
+              "trades": 32,
+              "total_pnl": 184.9943599999997,
+              "avg_trade": 5.78107374999999,
+              "win_rate_pct": 28.125
+            }
+          },
+          "Friday": {
+            "00:00": {
+              "trades": 24,
+              "total_pnl": -26.905879999999343,
+              "avg_trade": -1.1210783333333059,
+              "win_rate_pct": 29.166666666666668
+            },
+            "01:00": {
+              "trades": 7,
+              "total_pnl": 35.1341999999986,
+              "avg_trade": 5.019171428571228,
+              "win_rate_pct": 42.857142857142854
+            },
+            "02:00": {
+              "trades": 5,
+              "total_pnl": 11.020000000000437,
+              "avg_trade": 2.2040000000000872,
+              "win_rate_pct": 40.0
+            },
+            "03:00": {
+              "trades": 6,
+              "total_pnl": 4.050000000000182,
+              "avg_trade": 0.6750000000000304,
+              "win_rate_pct": 66.66666666666666
+            },
+            "04:00": {
+              "trades": 3,
+              "total_pnl": 5.369999999999891,
+              "avg_trade": 1.7899999999999636,
+              "win_rate_pct": 66.66666666666666
+            },
+            "05:00": {
+              "trades": 4,
+              "total_pnl": -10.490000000000691,
+              "avg_trade": -2.622500000000173,
+              "win_rate_pct": 50.0
+            },
+            "07:00": {
+              "trades": 8,
+              "total_pnl": -102.85000000000036,
+              "avg_trade": -12.856250000000045,
+              "win_rate_pct": 0.0
+            },
+            "08:00": {
+              "trades": 8,
+              "total_pnl": -11.209600000000137,
+              "avg_trade": -1.401200000000017,
+              "win_rate_pct": 25.0
+            },
+            "09:00": {
+              "trades": 8,
+              "total_pnl": -75.69999999999982,
+              "avg_trade": -9.462499999999977,
+              "win_rate_pct": 25.0
+            },
+            "10:00": {
+              "trades": 19,
+              "total_pnl": -27.394199999999728,
+              "avg_trade": -1.4417999999999858,
+              "win_rate_pct": 26.31578947368421
+            },
+            "11:00": {
+              "trades": 7,
+              "total_pnl": 6.1317999999992026,
+              "avg_trade": 0.8759714285713146,
+              "win_rate_pct": 28.57142857142857
+            },
+            "12:00": {
+              "trades": 4,
+              "total_pnl": -53.95000000000073,
+              "avg_trade": -13.487500000000182,
+              "win_rate_pct": 0.0
+            },
+            "13:00": {
+              "trades": 11,
+              "total_pnl": -2.2700000000004366,
+              "avg_trade": -0.20636363636367605,
+              "win_rate_pct": 36.36363636363637
+            },
+            "14:00": {
+              "trades": 2,
+              "total_pnl": 62.09599999999955,
+              "avg_trade": 31.047999999999774,
+              "win_rate_pct": 50.0
+            },
+            "23:00": {
+              "trades": 24,
+              "total_pnl": -52.77719999999954,
+              "avg_trade": -2.1990499999999806,
+              "win_rate_pct": 25.0
+            }
+          },
+          "Saturday": {
+            "00:00": {
+              "trades": 11,
+              "total_pnl": -37.63000000000102,
+              "avg_trade": -3.4209090909091837,
+              "win_rate_pct": 27.27272727272727
+            },
+            "01:00": {
+              "trades": 16,
+              "total_pnl": -75.03199999999924,
+              "avg_trade": -4.689499999999953,
+              "win_rate_pct": 18.75
+            },
+            "02:00": {
+              "trades": 25,
+              "total_pnl": -94.85779999999977,
+              "avg_trade": -3.794311999999991,
+              "win_rate_pct": 24.0
+            },
+            "03:00": {
+              "trades": 6,
+              "total_pnl": 79.9964000000009,
+              "avg_trade": 13.332733333333485,
+              "win_rate_pct": 50.0
+            },
+            "04:00": {
+              "trades": 3,
+              "total_pnl": 73.01832000000013,
+              "avg_trade": 24.339440000000042,
+              "win_rate_pct": 66.66666666666666
+            },
+            "05:00": {
+              "trades": 5,
+              "total_pnl": -39.77000000000044,
+              "avg_trade": -7.954000000000088,
+              "win_rate_pct": 40.0
+            }
+          }
+        }
+      }
+    },
+    "long_up": {
+      "trades": 313,
+      "total_pnl": -399.71792000000096,
+      "avg_trade": -1.2770540575079903,
+      "median_trade": -15.0,
+      "win_rate_pct": 28.753993610223645,
+      "gross_profit": 2598.752080000001,
+      "gross_loss": -2998.470000000002,
+      "profit_factor": 0.8666927066137061,
+      "best_trade": 100.58348000000024,
+      "worst_trade": -15.0,
+      "avg_win": 28.875023111111123,
+      "avg_loss": -13.446053811659203,
+      "max_win_streak": 6,
+      "max_loss_streak": 18,
+      "current_streak": 1,
+      "current_win_streak": 0,
+      "current_loss_streak": 1,
+      "avg_duration_min": 23.769968051118212,
+      "median_duration_min": 5.0,
+      "min_duration_min": 0.0,
+      "max_duration_min": 529.0,
+      "n_days": 53,
+      "avg_trades_per_day": 5.90566037735849,
+      "avg_day": -7.541847547169829,
+      "median_day": -0.21999999999934516,
+      "best_day": 66.53999999999905,
+      "worst_day": -392.3757999999989,
+      "positive_days_pct": 47.16981132075472,
+      "trade_max_drawdown": -746.3058400000009,
+      "daily_max_drawdown": -674.6998000000012,
+      "exit_reason_counts": {
+        "stop_loss": 193,
+        "reverse_signal": 59,
+        "timeout": 39,
+        "target_hit": 22
+      },
+      "reverse_signal_stats": {
+        "trades": 59,
+        "wins": 36,
+        "losses": 23,
+        "breakeven": 0,
+        "avg_pnl": 5.796949152542334,
+        "win_rate_pct": 61.016949152542374,
+        "loss_rate_pct": 38.983050847457626
+      },
+      "target_hit_stats": {
+        "trades": 22,
+        "avg_pnl": 68.66554909090907
+      },
+      "timeout_stats": {
+        "trades": 39,
+        "wins": 32,
+        "losses": 7,
+        "breakeven": 0,
+        "avg_pnl": 16.477435897435942,
+        "win_rate_pct": 82.05128205128204,
+        "loss_rate_pct": 17.94871794871795
+      },
+      "target_updates_mean": 0.3706070287539936,
+      "target_updates_median": 0.0,
+      "target_updates_max": 1,
+      "time_distribution": {
+        "timezone_labels": {
+          "hkt": "Asia/Hong_Kong",
+          "ny": "America/New_York"
+        },
+        "by_weekday_hkt": [
+          {
+            "weekday_hkt": "Monday",
+            "trades": 73,
+            "total_pnl": -79.99684000000161,
+            "avg_trade": -1.0958471232876934,
+            "win_rate_pct": 21.91780821917808
+          },
+          {
+            "weekday_hkt": "Tuesday",
+            "trades": 42,
+            "total_pnl": 202.2080399999977,
+            "avg_trade": 4.814477142857088,
+            "win_rate_pct": 47.61904761904761
+          },
+          {
+            "weekday_hkt": "Wednesday",
+            "trades": 34,
+            "total_pnl": -67.59999999999854,
+            "avg_trade": -1.9882352941176042,
+            "win_rate_pct": 38.23529411764706
+          },
+          {
+            "weekday_hkt": "Thursday",
+            "trades": 55,
+            "total_pnl": -118.12059999999929,
+            "avg_trade": -2.1476472727272595,
+            "win_rate_pct": 27.27272727272727
+          },
+          {
+            "weekday_hkt": "Friday",
+            "trades": 63,
+            "total_pnl": -124.22512000000097,
+            "avg_trade": -1.971827301587317,
+            "win_rate_pct": 28.57142857142857
+          },
+          {
+            "weekday_hkt": "Saturday",
+            "trades": 46,
+            "total_pnl": -211.98339999999826,
+            "avg_trade": -4.608334782608658,
+            "win_rate_pct": 17.391304347826086
+          }
+        ],
+        "by_hour_hkt": [
+          {
+            "hour_hkt": 0,
+            "trades": 40,
+            "total_pnl": -2.364839999999276,
+            "avg_trade": -0.0591209999999819,
+            "win_rate_pct": 32.5
+          },
+          {
+            "hour_hkt": 1,
+            "trades": 27,
+            "total_pnl": -100.73200000000088,
+            "avg_trade": -3.7308148148148472,
+            "win_rate_pct": 25.925925925925924
+          },
+          {
+            "hour_hkt": 2,
+            "trades": 26,
+            "total_pnl": -126.3177999999989,
+            "avg_trade": -4.8583769230768805,
+            "win_rate_pct": 19.230769230769234
+          },
+          {
+            "hour_hkt": 3,
+            "trades": 13,
+            "total_pnl": 53.6264000000001,
+            "avg_trade": 4.1251076923077,
+            "win_rate_pct": 46.15384615384615
+          },
+          {
+            "hour_hkt": 4,
+            "trades": 5,
+            "total_pnl": 77.50999999999931,
+            "avg_trade": 15.501999999999862,
+            "win_rate_pct": 80.0
+          },
+          {
+            "hour_hkt": 5,
+            "trades": 5,
+            "total_pnl": -12.970000000000255,
+            "avg_trade": -2.594000000000051,
+            "win_rate_pct": 60.0
+          },
+          {
+            "hour_hkt": 6,
+            "trades": 2,
+            "total_pnl": -9.779999999999745,
+            "avg_trade": -4.889999999999873,
+            "win_rate_pct": 50.0
+          },
+          {
+            "hour_hkt": 7,
+            "trades": 28,
+            "total_pnl": -169.45380000000023,
+            "avg_trade": -6.051921428571437,
+            "win_rate_pct": 21.428571428571427
+          },
+          {
+            "hour_hkt": 8,
+            "trades": 22,
+            "total_pnl": 86.69916000000012,
+            "avg_trade": 3.9408709090909144,
+            "win_rate_pct": 31.818181818181817
+          },
+          {
+            "hour_hkt": 9,
+            "trades": 17,
+            "total_pnl": -158.3800000000001,
+            "avg_trade": -9.316470588235301,
+            "win_rate_pct": 23.52941176470588
+          },
+          {
+            "hour_hkt": 10,
+            "trades": 35,
+            "total_pnl": -67.47620000000097,
+            "avg_trade": -1.9278914285714563,
+            "win_rate_pct": 25.71428571428571
+          },
+          {
+            "hour_hkt": 11,
+            "trades": 14,
+            "total_pnl": 140.14500000000044,
+            "avg_trade": 10.010357142857174,
+            "win_rate_pct": 35.714285714285715
+          },
+          {
+            "hour_hkt": 12,
+            "trades": 8,
+            "total_pnl": -25.929120000000694,
+            "avg_trade": -3.2411400000000867,
+            "win_rate_pct": 12.5
+          },
+          {
+            "hour_hkt": 13,
+            "trades": 4,
+            "total_pnl": 3.869999999999891,
+            "avg_trade": 0.9674999999999727,
+            "win_rate_pct": 50.0
+          },
+          {
+            "hour_hkt": 14,
+            "trades": 34,
+            "total_pnl": -27.807959999999184,
+            "avg_trade": -0.8178811764705642,
+            "win_rate_pct": 26.47058823529412
+          },
+          {
+            "hour_hkt": 23,
+            "trades": 33,
+            "total_pnl": -60.35676000000058,
+            "avg_trade": -1.8289927272727446,
+            "win_rate_pct": 24.242424242424242
+          }
+        ],
+        "by_hour_ny": [
+          {
+            "hour_ny": 0,
+            "trades": 4,
+            "total_pnl": 3.869999999999891,
+            "avg_trade": 0.9674999999999727,
+            "win_rate_pct": 50.0
+          },
+          {
+            "hour_ny": 1,
+            "trades": 19,
+            "total_pnl": -42.133600000000115,
+            "avg_trade": -2.217557894736848,
+            "win_rate_pct": 26.31578947368421
+          },
+          {
+            "hour_ny": 2,
+            "trades": 15,
+            "total_pnl": 14.32564000000093,
+            "avg_trade": 0.9550426666667288,
+            "win_rate_pct": 26.666666666666668
+          },
+          {
+            "hour_ny": 10,
+            "trades": 30,
+            "total_pnl": -43.746760000000904,
+            "avg_trade": -1.4582253333333635,
+            "win_rate_pct": 26.666666666666668
+          },
+          {
+            "hour_ny": 11,
+            "trades": 36,
+            "total_pnl": -12.477119999999559,
+            "avg_trade": -0.3465866666666544,
+            "win_rate_pct": 30.555555555555557
+          },
+          {
+            "hour_ny": 12,
+            "trades": 33,
+            "total_pnl": -92.22972000000027,
+            "avg_trade": -2.794840000000008,
+            "win_rate_pct": 27.27272727272727
+          },
+          {
+            "hour_ny": 13,
+            "trades": 24,
+            "total_pnl": -136.77779999999984,
+            "avg_trade": -5.6990749999999935,
+            "win_rate_pct": 16.666666666666664
+          },
+          {
+            "hour_ny": 14,
+            "trades": 10,
+            "total_pnl": 13.466400000001158,
+            "avg_trade": 1.3466400000001157,
+            "win_rate_pct": 30.0
+          },
+          {
+            "hour_ny": 15,
+            "trades": 9,
+            "total_pnl": 115.41999999999916,
+            "avg_trade": 12.824444444444351,
+            "win_rate_pct": 77.77777777777779
+          },
+          {
+            "hour_ny": 16,
+            "trades": 7,
+            "total_pnl": -15.260000000000218,
+            "avg_trade": -2.1800000000000312,
+            "win_rate_pct": 57.14285714285714
+          },
+          {
+            "hour_ny": 18,
+            "trades": 28,
+            "total_pnl": -163.0538000000006,
+            "avg_trade": -5.823350000000021,
+            "win_rate_pct": 25.0
+          },
+          {
+            "hour_ny": 19,
+            "trades": 16,
+            "total_pnl": 48.32520000000022,
+            "avg_trade": 3.020325000000014,
+            "win_rate_pct": 31.25
+          },
+          {
+            "hour_ny": 20,
+            "trades": 19,
+            "total_pnl": -67.1960399999989,
+            "avg_trade": -3.5366336842104684,
+            "win_rate_pct": 26.31578947368421
+          },
+          {
+            "hour_ny": 21,
+            "trades": 36,
+            "total_pnl": -201.51620000000094,
+            "avg_trade": -5.597672222222248,
+            "win_rate_pct": 19.444444444444446
+          },
+          {
+            "hour_ny": 22,
+            "trades": 16,
+            "total_pnl": 196.10499999999956,
+            "avg_trade": 12.256562499999973,
+            "win_rate_pct": 43.75
+          },
+          {
+            "hour_ny": 23,
+            "trades": 11,
+            "total_pnl": -16.83912000000055,
+            "avg_trade": -1.5308290909091407,
+            "win_rate_pct": 18.181818181818183
+          }
+        ],
+        "by_session": [
+          {
+            "session": "Asia",
+            "trades": 164,
+            "total_pnl": -228.11292000000049,
+            "avg_trade": -1.3909324390243931,
+            "win_rate_pct": 26.82926829268293
+          },
+          {
+            "session": "NY",
+            "trades": 149,
+            "total_pnl": -171.60500000000047,
+            "avg_trade": -1.1517114093959764,
+            "win_rate_pct": 30.87248322147651
+          }
+        ],
+        "weekday_hour_hkt_heatmap": {
+          "Monday": {
+            "06:00": {
+              "trades": 1,
+              "total_pnl": -15.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "07:00": {
+              "trades": 12,
+              "total_pnl": 4.566199999998389,
+              "avg_trade": 0.38051666666653244,
+              "win_rate_pct": 25.0
+            },
+            "08:00": {
+              "trades": 12,
+              "total_pnl": 43.93876,
+              "avg_trade": 3.6615633333333335,
+              "win_rate_pct": 25.0
+            },
+            "09:00": {
+              "trades": 7,
+              "total_pnl": -47.9399999999996,
+              "avg_trade": -6.848571428571371,
+              "win_rate_pct": 28.57142857142857
+            },
+            "10:00": {
+              "trades": 6,
+              "total_pnl": 21.097999999999956,
+              "avg_trade": 3.516333333333326,
+              "win_rate_pct": 33.33333333333333
+            },
+            "11:00": {
+              "trades": 3,
+              "total_pnl": 13.19000000000051,
+              "avg_trade": 4.396666666666836,
+              "win_rate_pct": 33.33333333333333
+            },
+            "12:00": {
+              "trades": 7,
+              "total_pnl": -16.979119999999966,
+              "avg_trade": -2.4255885714285665,
+              "win_rate_pct": 14.285714285714285
+            },
+            "14:00": {
+              "trades": 20,
+              "total_pnl": -67.9306800000004,
+              "avg_trade": -3.3965340000000195,
+              "win_rate_pct": 15.0
+            },
+            "23:00": {
+              "trades": 5,
+              "total_pnl": -14.94000000000051,
+              "avg_trade": -2.9880000000001017,
+              "win_rate_pct": 20.0
+            }
+          },
+          "Tuesday": {
+            "00:00": {
+              "trades": 11,
+              "total_pnl": 122.8182799999986,
+              "avg_trade": 11.165298181818054,
+              "win_rate_pct": 54.54545454545454
+            },
+            "01:00": {
+              "trades": 3,
+              "total_pnl": -35.01999999999953,
+              "avg_trade": -11.673333333333176,
+              "win_rate_pct": 0.0
+            },
+            "02:00": {
+              "trades": 1,
+              "total_pnl": 10.680000000000291,
+              "avg_trade": 10.680000000000291,
+              "win_rate_pct": 100.0
+            },
+            "03:00": {
+              "trades": 4,
+              "total_pnl": -20.51000000000022,
+              "avg_trade": -5.127500000000055,
+              "win_rate_pct": 25.0
+            },
+            "05:00": {
+              "trades": 1,
+              "total_pnl": 0.6199999999998909,
+              "avg_trade": 0.6199999999998909,
+              "win_rate_pct": 100.0
+            },
+            "07:00": {
+              "trades": 3,
+              "total_pnl": -13.539999999999054,
+              "avg_trade": -4.513333333333018,
+              "win_rate_pct": 66.66666666666666
+            },
+            "08:00": {
+              "trades": 2,
+              "total_pnl": -30.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "09:00": {
+              "trades": 3,
+              "total_pnl": -6.670000000000073,
+              "avg_trade": -2.2233333333333576,
+              "win_rate_pct": 66.66666666666666
+            },
+            "10:00": {
+              "trades": 2,
+              "total_pnl": 59.16999999999916,
+              "avg_trade": 29.58499999999958,
+              "win_rate_pct": 100.0
+            },
+            "11:00": {
+              "trades": 3,
+              "total_pnl": 28.479999999999563,
+              "avg_trade": 9.493333333333188,
+              "win_rate_pct": 33.33333333333333
+            },
+            "14:00": {
+              "trades": 2,
+              "total_pnl": 32.039999999999964,
+              "avg_trade": 16.019999999999982,
+              "win_rate_pct": 50.0
+            },
+            "23:00": {
+              "trades": 7,
+              "total_pnl": 54.139759999999114,
+              "avg_trade": 7.734251428571302,
+              "win_rate_pct": 42.857142857142854
+            }
+          },
+          "Wednesday": {
+            "00:00": {
+              "trades": 5,
+              "total_pnl": -27.6899999999996,
+              "avg_trade": -5.53799999999992,
+              "win_rate_pct": 20.0
+            },
+            "01:00": {
+              "trades": 4,
+              "total_pnl": -1.4899999999997817,
+              "avg_trade": -0.37249999999994543,
+              "win_rate_pct": 50.0
+            },
+            "02:00": {
+              "trades": 2,
+              "total_pnl": 12.8700000000008,
+              "avg_trade": 6.4350000000004,
+              "win_rate_pct": 50.0
+            },
+            "03:00": {
+              "trades": 3,
+              "total_pnl": -4.260000000000218,
+              "avg_trade": -1.4200000000000728,
+              "win_rate_pct": 33.33333333333333
+            },
+            "04:00": {
+              "trades": 3,
+              "total_pnl": 32.41999999999916,
+              "avg_trade": 10.806666666666388,
+              "win_rate_pct": 100.0
+            },
+            "06:00": {
+              "trades": 1,
+              "total_pnl": 5.220000000000255,
+              "avg_trade": 5.220000000000255,
+              "win_rate_pct": 100.0
+            },
+            "07:00": {
+              "trades": 2,
+              "total_pnl": -0.9799999999995634,
+              "avg_trade": -0.4899999999997817,
+              "win_rate_pct": 50.0
+            },
+            "08:00": {
+              "trades": 1,
+              "total_pnl": 38.05000000000018,
+              "avg_trade": 38.05000000000018,
+              "win_rate_pct": 100.0
+            },
+            "10:00": {
+              "trades": 1,
+              "total_pnl": -15.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "11:00": {
+              "trades": 1,
+              "total_pnl": -2.7100000000000364,
+              "avg_trade": -2.7100000000000364,
+              "win_rate_pct": 0.0
+            },
+            "13:00": {
+              "trades": 1,
+              "total_pnl": 6.819999999999709,
+              "avg_trade": 6.819999999999709,
+              "win_rate_pct": 100.0
+            },
+            "14:00": {
+              "trades": 1,
+              "total_pnl": 0.680000000000291,
+              "avg_trade": 0.680000000000291,
+              "win_rate_pct": 100.0
+            },
+            "23:00": {
+              "trades": 9,
+              "total_pnl": -111.52999999999975,
+              "avg_trade": -12.392222222222195,
+              "win_rate_pct": 0.0
+            }
+          },
+          "Thursday": {
+            "00:00": {
+              "trades": 5,
+              "total_pnl": -58.50999999999931,
+              "avg_trade": -11.701999999999861,
+              "win_rate_pct": 20.0
+            },
+            "01:00": {
+              "trades": 4,
+              "total_pnl": -8.710000000000946,
+              "avg_trade": -2.1775000000002365,
+              "win_rate_pct": 25.0
+            },
+            "04:00": {
+              "trades": 2,
+              "total_pnl": 45.090000000000146,
+              "avg_trade": 22.545000000000073,
+              "win_rate_pct": 50.0
+            },
+            "07:00": {
+              "trades": 6,
+              "total_pnl": -84.5,
+              "avg_trade": -14.083333333333334,
+              "win_rate_pct": 0.0
+            },
+            "08:00": {
+              "trades": 2,
+              "total_pnl": 9.490000000000691,
+              "avg_trade": 4.745000000000346,
+              "win_rate_pct": 50.0
+            },
+            "09:00": {
+              "trades": 4,
+              "total_pnl": -58.77000000000044,
+              "avg_trade": -14.69250000000011,
+              "win_rate_pct": 0.0
+            },
+            "10:00": {
+              "trades": 8,
+              "total_pnl": -94.98000000000047,
+              "avg_trade": -11.87250000000006,
+              "win_rate_pct": 12.5
+            },
+            "11:00": {
+              "trades": 3,
+              "total_pnl": 70.94320000000062,
+              "avg_trade": 23.647733333333537,
+              "win_rate_pct": 66.66666666666666
+            },
+            "13:00": {
+              "trades": 1,
+              "total_pnl": 13.109999999999673,
+              "avg_trade": 13.109999999999673,
+              "win_rate_pct": 100.0
+            },
+            "14:00": {
+              "trades": 10,
+              "total_pnl": 22.402720000000954,
+              "avg_trade": 2.2402720000000955,
+              "win_rate_pct": 40.0
+            },
+            "23:00": {
+              "trades": 10,
+              "total_pnl": 26.3134799999998,
+              "avg_trade": 2.63134799999998,
+              "win_rate_pct": 30.0
+            }
+          },
+          "Friday": {
+            "00:00": {
+              "trades": 13,
+              "total_pnl": 10.456880000001547,
+              "avg_trade": 0.8043753846155036,
+              "win_rate_pct": 30.76923076923077
+            },
+            "01:00": {
+              "trades": 3,
+              "total_pnl": 9.5699999999988,
+              "avg_trade": 3.1899999999996,
+              "win_rate_pct": 66.66666666666666
+            },
+            "02:00": {
+              "trades": 2,
+              "total_pnl": -6.930000000000291,
+              "avg_trade": -3.4650000000001455,
+              "win_rate_pct": 50.0
+            },
+            "03:00": {
+              "trades": 2,
+              "total_pnl": 20.729999999999563,
+              "avg_trade": 10.364999999999782,
+              "win_rate_pct": 100.0
+            },
+            "05:00": {
+              "trades": 2,
+              "total_pnl": -1.4000000000005457,
+              "avg_trade": -0.7000000000002728,
+              "win_rate_pct": 50.0
+            },
+            "07:00": {
+              "trades": 5,
+              "total_pnl": -75.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "08:00": {
+              "trades": 5,
+              "total_pnl": 25.220399999999245,
+              "avg_trade": 5.044079999999849,
+              "win_rate_pct": 40.0
+            },
+            "09:00": {
+              "trades": 3,
+              "total_pnl": -45.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "10:00": {
+              "trades": 18,
+              "total_pnl": -37.76419999999962,
+              "avg_trade": -2.0980111111110897,
+              "win_rate_pct": 22.22222222222222
+            },
+            "11:00": {
+              "trades": 4,
+              "total_pnl": 30.241799999999785,
+              "avg_trade": 7.560449999999946,
+              "win_rate_pct": 25.0
+            },
+            "12:00": {
+              "trades": 1,
+              "total_pnl": -8.950000000000728,
+              "avg_trade": -8.950000000000728,
+              "win_rate_pct": 0.0
+            },
+            "13:00": {
+              "trades": 2,
+              "total_pnl": -16.05999999999949,
+              "avg_trade": -8.029999999999745,
+              "win_rate_pct": 0.0
+            },
+            "14:00": {
+              "trades": 1,
+              "total_pnl": -15.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "23:00": {
+              "trades": 2,
+              "total_pnl": -14.339999999999236,
+              "avg_trade": -7.169999999999618,
+              "win_rate_pct": 50.0
+            }
+          },
+          "Saturday": {
+            "00:00": {
+              "trades": 6,
+              "total_pnl": -49.44000000000051,
+              "avg_trade": -8.240000000000085,
+              "win_rate_pct": 16.666666666666664
+            },
+            "01:00": {
+              "trades": 13,
+              "total_pnl": -65.08199999999943,
+              "avg_trade": -5.006307692307648,
+              "win_rate_pct": 15.384615384615385
+            },
+            "02:00": {
+              "trades": 21,
+              "total_pnl": -142.9377999999997,
+              "avg_trade": -6.806561904761891,
+              "win_rate_pct": 9.523809523809524
+            },
+            "03:00": {
+              "trades": 4,
+              "total_pnl": 57.666400000000976,
+              "avg_trade": 14.416600000000244,
+              "win_rate_pct": 50.0
+            },
+            "05:00": {
+              "trades": 2,
+              "total_pnl": -12.1899999999996,
+              "avg_trade": -6.0949999999998,
+              "win_rate_pct": 50.0
+            }
+          }
+        }
+      }
+    },
+    "short_down": {
+      "trades": 366,
+      "total_pnl": -54.11823999999979,
+      "avg_trade": -0.1478640437158464,
+      "median_trade": -15.0,
+      "win_rate_pct": 35.24590163934426,
+      "gross_profit": 3157.801760000001,
+      "gross_loss": -3211.920000000001,
+      "profit_factor": 0.9831508132207528,
+      "best_trade": 84.27747999999974,
+      "worst_trade": -15.0,
+      "avg_win": 24.479083410852724,
+      "avg_loss": -13.552405063291143,
+      "max_win_streak": 7,
+      "max_loss_streak": 12,
+      "current_streak": 4,
+      "current_win_streak": 0,
+      "current_loss_streak": 4,
+      "avg_duration_min": 65.2103825136612,
+      "median_duration_min": 15.0,
+      "min_duration_min": 0.0,
+      "max_duration_min": 3110.0,
+      "n_days": 79,
+      "avg_trades_per_day": 4.632911392405063,
+      "avg_day": -0.6850410126582251,
+      "median_day": -3.0,
+      "best_day": 230.26688000000286,
+      "worst_day": -127.78999999999996,
+      "positive_days_pct": 41.77215189873418,
+      "trade_max_drawdown": -553.5840800000024,
+      "daily_max_drawdown": -465.2240800000027,
+      "exit_reason_counts": {
+        "stop_loss": 203,
+        "timeout": 81,
+        "reverse_signal": 56,
+        "target_hit": 26
+      },
+      "reverse_signal_stats": {
+        "trades": 56,
+        "wins": 42,
+        "losses": 14,
+        "breakeven": 0,
+        "avg_pnl": 11.560535714285688,
+        "win_rate_pct": 75.0,
+        "loss_rate_pct": 25.0
+      },
+      "target_hit_stats": {
+        "trades": 26,
+        "avg_pnl": 62.5450676923077
+      },
+      "timeout_stats": {
+        "trades": 81,
+        "wins": 61,
+        "losses": 20,
+        "breakeven": 0,
+        "avg_pnl": 8.85580246913582,
+        "win_rate_pct": 75.30864197530865,
+        "loss_rate_pct": 24.691358024691358
+      },
+      "target_updates_mean": 0.6994535519125683,
+      "target_updates_median": 0.0,
+      "target_updates_max": 8,
+      "time_distribution": {
+        "timezone_labels": {
+          "hkt": "Asia/Hong_Kong",
+          "ny": "America/New_York"
+        },
+        "by_weekday_hkt": [
+          {
+            "weekday_hkt": "Monday",
+            "trades": 70,
+            "total_pnl": 389.4924800000026,
+            "avg_trade": 5.564178285714323,
+            "win_rate_pct": 40.0
+          },
+          {
+            "weekday_hkt": "Tuesday",
+            "trades": 74,
+            "total_pnl": -232.64527999999882,
+            "avg_trade": -3.1438551351351194,
+            "win_rate_pct": 31.08108108108108
+          },
+          {
+            "weekday_hkt": "Wednesday",
+            "trades": 56,
+            "total_pnl": -220.7510000000002,
+            "avg_trade": -3.9419821428571464,
+            "win_rate_pct": 37.5
+          },
+          {
+            "weekday_hkt": "Thursday",
+            "trades": 69,
+            "total_pnl": 7.596999999999753,
+            "avg_trade": 0.11010144927535874,
+            "win_rate_pct": 31.88405797101449
+          },
+          {
+            "weekday_hkt": "Friday",
+            "trades": 77,
+            "total_pnl": -115.51976000000195,
+            "avg_trade": -1.5002566233766488,
+            "win_rate_pct": 31.16883116883117
+          },
+          {
+            "weekday_hkt": "Saturday",
+            "trades": 20,
+            "total_pnl": 117.70831999999882,
+            "avg_trade": 5.885415999999941,
+            "win_rate_pct": 55.00000000000001
+          }
+        ],
+        "by_hour_hkt": [
+          {
+            "hour_hkt": 0,
+            "trades": 34,
+            "total_pnl": -139.9327600000015,
+            "avg_trade": -4.11566941176475,
+            "win_rate_pct": 26.47058823529412
+          },
+          {
+            "hour_hkt": 1,
+            "trades": 26,
+            "total_pnl": 17.449239999999918,
+            "avg_trade": 0.6711246153846122,
+            "win_rate_pct": 46.15384615384615
+          },
+          {
+            "hour_hkt": 2,
+            "trades": 20,
+            "total_pnl": 51.66900000000078,
+            "avg_trade": 2.583450000000039,
+            "win_rate_pct": 50.0
+          },
+          {
+            "hour_hkt": 3,
+            "trades": 15,
+            "total_pnl": -87.00999999999931,
+            "avg_trade": -5.80066666666662,
+            "win_rate_pct": 26.666666666666668
+          },
+          {
+            "hour_hkt": 4,
+            "trades": 15,
+            "total_pnl": -56.61167999999998,
+            "avg_trade": -3.7741119999999984,
+            "win_rate_pct": 26.666666666666668
+          },
+          {
+            "hour_hkt": 5,
+            "trades": 7,
+            "total_pnl": -51.39000000000124,
+            "avg_trade": -7.341428571428748,
+            "win_rate_pct": 42.857142857142854
+          },
+          {
+            "hour_hkt": 6,
+            "trades": 5,
+            "total_pnl": 71.34748000000036,
+            "avg_trade": 14.269496000000071,
+            "win_rate_pct": 40.0
+          },
+          {
+            "hour_hkt": 7,
+            "trades": 28,
+            "total_pnl": -168.7595199999996,
+            "avg_trade": -6.027125714285701,
+            "win_rate_pct": 17.857142857142858
+          },
+          {
+            "hour_hkt": 8,
+            "trades": 21,
+            "total_pnl": -62.54387999999926,
+            "avg_trade": -2.9782799999999647,
+            "win_rate_pct": 33.33333333333333
+          },
+          {
+            "hour_hkt": 9,
+            "trades": 24,
+            "total_pnl": -57.63080000000082,
+            "avg_trade": -2.4012833333333674,
+            "win_rate_pct": 37.5
+          },
+          {
+            "hour_hkt": 10,
+            "trades": 11,
+            "total_pnl": 89.85187999999926,
+            "avg_trade": 8.16835272727266,
+            "win_rate_pct": 54.54545454545454
+          },
+          {
+            "hour_hkt": 11,
+            "trades": 30,
+            "total_pnl": 0.9956400000028225,
+            "avg_trade": 0.03318800000009408,
+            "win_rate_pct": 40.0
+          },
+          {
+            "hour_hkt": 12,
+            "trades": 4,
+            "total_pnl": -36.56999999999971,
+            "avg_trade": -9.142499999999927,
+            "win_rate_pct": 25.0
+          },
+          {
+            "hour_hkt": 13,
+            "trades": 39,
+            "total_pnl": 210.89859999999862,
+            "avg_trade": 5.407656410256375,
+            "win_rate_pct": 46.15384615384615
+          },
+          {
+            "hour_hkt": 14,
+            "trades": 12,
+            "total_pnl": -23.85400000000027,
+            "avg_trade": -1.9878333333333558,
+            "win_rate_pct": 16.666666666666664
+          },
+          {
+            "hour_hkt": 23,
+            "trades": 75,
+            "total_pnl": 187.97256000000016,
+            "avg_trade": 2.506300800000002,
+            "win_rate_pct": 33.33333333333333
+          }
+        ],
+        "by_hour_ny": [
+          {
+            "hour_ny": 0,
+            "trades": 33,
+            "total_pnl": 72.57859999999982,
+            "avg_trade": 2.19935151515151,
+            "win_rate_pct": 39.39393939393939
+          },
+          {
+            "hour_ny": 1,
+            "trades": 14,
+            "total_pnl": 169.445999999999,
+            "avg_trade": 12.103285714285644,
+            "win_rate_pct": 50.0
+          },
+          {
+            "hour_ny": 2,
+            "trades": 4,
+            "total_pnl": -54.98000000000047,
+            "avg_trade": -13.745000000000118,
+            "win_rate_pct": 0.0
+          },
+          {
+            "hour_ny": 10,
+            "trades": 64,
+            "total_pnl": 95.34983999999986,
+            "avg_trade": 1.4898412499999978,
+            "win_rate_pct": 31.25
+          },
+          {
+            "hour_ny": 11,
+            "trades": 35,
+            "total_pnl": 42.46995999999854,
+            "avg_trade": 1.2134274285713869,
+            "win_rate_pct": 34.285714285714285
+          },
+          {
+            "hour_ny": 12,
+            "trades": 31,
+            "total_pnl": -91.98076000000037,
+            "avg_trade": -2.9671212903225928,
+            "win_rate_pct": 35.483870967741936
+          },
+          {
+            "hour_ny": 13,
+            "trades": 21,
+            "total_pnl": 30.549000000001797,
+            "avg_trade": 1.4547142857143713,
+            "win_rate_pct": 47.61904761904761
+          },
+          {
+            "hour_ny": 14,
+            "trades": 12,
+            "total_pnl": -79.23000000000047,
+            "avg_trade": -6.602500000000039,
+            "win_rate_pct": 25.0
+          },
+          {
+            "hour_ny": 15,
+            "trades": 19,
+            "total_pnl": -2.161679999999251,
+            "avg_trade": -0.11377263157890793,
+            "win_rate_pct": 36.84210526315789
+          },
+          {
+            "hour_ny": 16,
+            "trades": 10,
+            "total_pnl": -72.85000000000127,
+            "avg_trade": -7.285000000000127,
+            "win_rate_pct": 40.0
+          },
+          {
+            "hour_ny": 18,
+            "trades": 28,
+            "total_pnl": -44.81203999999889,
+            "avg_trade": -1.6004299999999603,
+            "win_rate_pct": 25.0
+          },
+          {
+            "hour_ny": 19,
+            "trades": 15,
+            "total_pnl": -82.73999999999978,
+            "avg_trade": -5.515999999999986,
+            "win_rate_pct": 26.666666666666668
+          },
+          {
+            "hour_ny": 20,
+            "trades": 31,
+            "total_pnl": -70.46468000000095,
+            "avg_trade": -2.273054193548418,
+            "win_rate_pct": 32.25806451612903
+          },
+          {
+            "hour_ny": 21,
+            "trades": 10,
+            "total_pnl": -19.659999999999854,
+            "avg_trade": -1.9659999999999855,
+            "win_rate_pct": 50.0
+          },
+          {
+            "hour_ny": 22,
+            "trades": 29,
+            "total_pnl": 112.67752000000019,
+            "avg_trade": 3.8854317241379372,
+            "win_rate_pct": 44.827586206896555
+          },
+          {
+            "hour_ny": 23,
+            "trades": 10,
+            "total_pnl": -58.30999999999767,
+            "avg_trade": -5.830999999999767,
+            "win_rate_pct": 30.0
+          }
+        ],
+        "by_session": [
+          {
+            "session": "Asia",
+            "trades": 174,
+            "total_pnl": 23.73540000000139,
+            "avg_trade": 0.1364103448275942,
+            "win_rate_pct": 35.63218390804598
+          },
+          {
+            "session": "NY",
+            "trades": 192,
+            "total_pnl": -77.85364000000118,
+            "avg_trade": -0.40548770833333947,
+            "win_rate_pct": 34.89583333333333
+          }
+        ],
+        "weekday_hour_hkt_heatmap": {
+          "Monday": {
+            "06:00": {
+              "trades": 3,
+              "total_pnl": 101.34748000000036,
+              "avg_trade": 33.782493333333456,
+              "win_rate_pct": 66.66666666666666
+            },
+            "07:00": {
+              "trades": 10,
+              "total_pnl": -93.16999999999916,
+              "avg_trade": -9.316999999999917,
+              "win_rate_pct": 10.0
+            },
+            "08:00": {
+              "trades": 4,
+              "total_pnl": 70.81999999999971,
+              "avg_trade": 17.704999999999927,
+              "win_rate_pct": 100.0
+            },
+            "09:00": {
+              "trades": 11,
+              "total_pnl": -70.60999999999967,
+              "avg_trade": -6.41909090909088,
+              "win_rate_pct": 27.27272727272727
+            },
+            "10:00": {
+              "trades": 5,
+              "total_pnl": 46.87187999999969,
+              "avg_trade": 9.374375999999938,
+              "win_rate_pct": 40.0
+            },
+            "11:00": {
+              "trades": 12,
+              "total_pnl": 48.795640000000276,
+              "avg_trade": 4.066303333333356,
+              "win_rate_pct": 41.66666666666667
+            },
+            "12:00": {
+              "trades": 1,
+              "total_pnl": 8.430000000000291,
+              "avg_trade": 8.430000000000291,
+              "win_rate_pct": 100.0
+            },
+            "13:00": {
+              "trades": 10,
+              "total_pnl": 168.39860000000044,
+              "avg_trade": 16.839860000000044,
+              "win_rate_pct": 50.0
+            },
+            "14:00": {
+              "trades": 1,
+              "total_pnl": -2.2100000000000364,
+              "avg_trade": -2.2100000000000364,
+              "win_rate_pct": 0.0
+            },
+            "23:00": {
+              "trades": 13,
+              "total_pnl": 110.81888000000072,
+              "avg_trade": 8.524529230769286,
+              "win_rate_pct": 38.46153846153847
+            }
+          },
+          "Tuesday": {
+            "00:00": {
+              "trades": 8,
+              "total_pnl": -46.1899999999996,
+              "avg_trade": -5.77374999999995,
+              "win_rate_pct": 25.0
+            },
+            "01:00": {
+              "trades": 4,
+              "total_pnl": 37.53503999999975,
+              "avg_trade": 9.383759999999938,
+              "win_rate_pct": 50.0
+            },
+            "02:00": {
+              "trades": 6,
+              "total_pnl": -27.979999999999563,
+              "avg_trade": -4.66333333333326,
+              "win_rate_pct": 33.33333333333333
+            },
+            "03:00": {
+              "trades": 4,
+              "total_pnl": -17.659999999999854,
+              "avg_trade": -4.414999999999964,
+              "win_rate_pct": 25.0
+            },
+            "04:00": {
+              "trades": 3,
+              "total_pnl": -45.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "05:00": {
+              "trades": 2,
+              "total_pnl": -14.720000000000255,
+              "avg_trade": -7.360000000000127,
+              "win_rate_pct": 50.0
+            },
+            "06:00": {
+              "trades": 2,
+              "total_pnl": -30.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "07:00": {
+              "trades": 7,
+              "total_pnl": -7.189519999999902,
+              "avg_trade": -1.0270742857142718,
+              "win_rate_pct": 28.57142857142857
+            },
+            "08:00": {
+              "trades": 7,
+              "total_pnl": -82.63000000000011,
+              "avg_trade": -11.80428571428573,
+              "win_rate_pct": 14.285714285714285
+            },
+            "09:00": {
+              "trades": 2,
+              "total_pnl": 86.80919999999878,
+              "avg_trade": 43.40459999999939,
+              "win_rate_pct": 100.0
+            },
+            "10:00": {
+              "trades": 3,
+              "total_pnl": -2.0399999999999636,
+              "avg_trade": -0.6799999999999878,
+              "win_rate_pct": 33.33333333333333
+            },
+            "11:00": {
+              "trades": 8,
+              "total_pnl": -22.229999999998654,
+              "avg_trade": -2.7787499999998317,
+              "win_rate_pct": 25.0
+            },
+            "13:00": {
+              "trades": 5,
+              "total_pnl": 43.02000000000044,
+              "avg_trade": 8.604000000000088,
+              "win_rate_pct": 80.0
+            },
+            "14:00": {
+              "trades": 6,
+              "total_pnl": -43.75999999999931,
+              "avg_trade": -7.293333333333218,
+              "win_rate_pct": 16.666666666666664
+            },
+            "23:00": {
+              "trades": 7,
+              "total_pnl": -60.61000000000058,
+              "avg_trade": -8.658571428571511,
+              "win_rate_pct": 28.57142857142857
+            }
+          },
+          "Wednesday": {
+            "00:00": {
+              "trades": 7,
+              "total_pnl": -61.61000000000058,
+              "avg_trade": -8.801428571428655,
+              "win_rate_pct": 14.285714285714285
+            },
+            "01:00": {
+              "trades": 9,
+              "total_pnl": -32.0,
+              "avg_trade": -3.5555555555555554,
+              "win_rate_pct": 44.44444444444444
+            },
+            "02:00": {
+              "trades": 3,
+              "total_pnl": 44.48899999999958,
+              "avg_trade": 14.829666666666526,
+              "win_rate_pct": 66.66666666666666
+            },
+            "03:00": {
+              "trades": 2,
+              "total_pnl": -30.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "04:00": {
+              "trades": 5,
+              "total_pnl": -75.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "07:00": {
+              "trades": 3,
+              "total_pnl": -45.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "08:00": {
+              "trades": 1,
+              "total_pnl": -15.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "09:00": {
+              "trades": 3,
+              "total_pnl": -15.3100000000004,
+              "avg_trade": -5.103333333333467,
+              "win_rate_pct": 33.33333333333333
+            },
+            "11:00": {
+              "trades": 6,
+              "total_pnl": -16.969999999998436,
+              "avg_trade": -2.8283333333330725,
+              "win_rate_pct": 50.0
+            },
+            "13:00": {
+              "trades": 6,
+              "total_pnl": 8.1299999999992,
+              "avg_trade": 1.3549999999998665,
+              "win_rate_pct": 50.0
+            },
+            "23:00": {
+              "trades": 11,
+              "total_pnl": 17.520000000000437,
+              "avg_trade": 1.5927272727273125,
+              "win_rate_pct": 63.63636363636363
+            }
+          },
+          "Thursday": {
+            "00:00": {
+              "trades": 3,
+              "total_pnl": -6.579999999999927,
+              "avg_trade": -2.193333333333309,
+              "win_rate_pct": 33.33333333333333
+            },
+            "01:00": {
+              "trades": 6,
+              "total_pnl": -3.699999999999818,
+              "avg_trade": -0.6166666666666364,
+              "win_rate_pct": 66.66666666666666
+            },
+            "02:00": {
+              "trades": 4,
+              "total_pnl": -30.86999999999989,
+              "avg_trade": -7.717499999999973,
+              "win_rate_pct": 25.0
+            },
+            "03:00": {
+              "trades": 3,
+              "total_pnl": -45.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "04:00": {
+              "trades": 1,
+              "total_pnl": -15.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "07:00": {
+              "trades": 5,
+              "total_pnl": 4.449999999999818,
+              "avg_trade": 0.8899999999999636,
+              "win_rate_pct": 40.0
+            },
+            "08:00": {
+              "trades": 6,
+              "total_pnl": 0.6961200000005192,
+              "avg_trade": 0.11602000000008654,
+              "win_rate_pct": 33.33333333333333
+            },
+            "09:00": {
+              "trades": 3,
+              "total_pnl": -27.81999999999971,
+              "avg_trade": -9.273333333333236,
+              "win_rate_pct": 33.33333333333333
+            },
+            "10:00": {
+              "trades": 2,
+              "total_pnl": 34.649999999999636,
+              "avg_trade": 17.324999999999818,
+              "win_rate_pct": 100.0
+            },
+            "11:00": {
+              "trades": 1,
+              "total_pnl": 15.510000000000218,
+              "avg_trade": 15.510000000000218,
+              "win_rate_pct": 100.0
+            },
+            "13:00": {
+              "trades": 9,
+              "total_pnl": -22.44000000000051,
+              "avg_trade": -2.49333333333339,
+              "win_rate_pct": 22.22222222222222
+            },
+            "14:00": {
+              "trades": 4,
+              "total_pnl": -54.98000000000047,
+              "avg_trade": -13.745000000000118,
+              "win_rate_pct": 0.0
+            },
+            "23:00": {
+              "trades": 22,
+              "total_pnl": 158.6808799999999,
+              "avg_trade": 7.212767272727268,
+              "win_rate_pct": 27.27272727272727
+            }
+          },
+          "Friday": {
+            "00:00": {
+              "trades": 11,
+              "total_pnl": -37.36276000000089,
+              "avg_trade": -3.3966145454546264,
+              "win_rate_pct": 27.27272727272727
+            },
+            "01:00": {
+              "trades": 4,
+              "total_pnl": 25.5641999999998,
+              "avg_trade": 6.39104999999995,
+              "win_rate_pct": 25.0
+            },
+            "02:00": {
+              "trades": 3,
+              "total_pnl": 17.950000000000728,
+              "avg_trade": 5.983333333333576,
+              "win_rate_pct": 33.33333333333333
+            },
+            "03:00": {
+              "trades": 4,
+              "total_pnl": -16.67999999999938,
+              "avg_trade": -4.169999999999845,
+              "win_rate_pct": 50.0
+            },
+            "04:00": {
+              "trades": 3,
+              "total_pnl": 5.369999999999891,
+              "avg_trade": 1.7899999999999636,
+              "win_rate_pct": 66.66666666666666
+            },
+            "05:00": {
+              "trades": 2,
+              "total_pnl": -9.090000000000146,
+              "avg_trade": -4.545000000000073,
+              "win_rate_pct": 50.0
+            },
+            "07:00": {
+              "trades": 3,
+              "total_pnl": -27.850000000000364,
+              "avg_trade": -9.283333333333454,
+              "win_rate_pct": 0.0
+            },
+            "08:00": {
+              "trades": 3,
+              "total_pnl": -36.42999999999938,
+              "avg_trade": -12.143333333333127,
+              "win_rate_pct": 0.0
+            },
+            "09:00": {
+              "trades": 5,
+              "total_pnl": -30.699999999999818,
+              "avg_trade": -6.139999999999963,
+              "win_rate_pct": 40.0
+            },
+            "10:00": {
+              "trades": 1,
+              "total_pnl": 10.36999999999989,
+              "avg_trade": 10.36999999999989,
+              "win_rate_pct": 100.0
+            },
+            "11:00": {
+              "trades": 3,
+              "total_pnl": -24.110000000000582,
+              "avg_trade": -8.03666666666686,
+              "win_rate_pct": 33.33333333333333
+            },
+            "12:00": {
+              "trades": 3,
+              "total_pnl": -45.0,
+              "avg_trade": -15.0,
+              "win_rate_pct": 0.0
+            },
+            "13:00": {
+              "trades": 9,
+              "total_pnl": 13.789999999999054,
+              "avg_trade": 1.5322222222221171,
+              "win_rate_pct": 44.44444444444444
+            },
+            "14:00": {
+              "trades": 1,
+              "total_pnl": 77.09599999999955,
+              "avg_trade": 77.09599999999955,
+              "win_rate_pct": 100.0
+            },
+            "23:00": {
+              "trades": 22,
+              "total_pnl": -38.4372000000003,
+              "avg_trade": -1.7471454545454683,
+              "win_rate_pct": 22.727272727272727
+            }
+          },
+          "Saturday": {
+            "00:00": {
+              "trades": 5,
+              "total_pnl": 11.80999999999949,
+              "avg_trade": 2.361999999999898,
+              "win_rate_pct": 40.0
+            },
+            "01:00": {
+              "trades": 3,
+              "total_pnl": -9.949999999999818,
+              "avg_trade": -3.316666666666606,
+              "win_rate_pct": 33.33333333333333
+            },
+            "02:00": {
+              "trades": 4,
+              "total_pnl": 48.07999999999993,
+              "avg_trade": 12.019999999999982,
+              "win_rate_pct": 100.0
+            },
+            "03:00": {
+              "trades": 2,
+              "total_pnl": 22.329999999999927,
+              "avg_trade": 11.164999999999964,
+              "win_rate_pct": 50.0
+            },
+            "04:00": {
+              "trades": 3,
+              "total_pnl": 73.01832000000013,
+              "avg_trade": 24.339440000000042,
+              "win_rate_pct": 66.66666666666666
+            },
+            "05:00": {
+              "trades": 3,
+              "total_pnl": -27.580000000000837,
+              "avg_trade": -9.193333333333612,
+              "win_rate_pct": 33.33333333333333
+            }
+          }
+        }
+      }
+    }
+  },
+  "trading_day_cutoff": {
+    "timezone": "America/New_York",
+    "hour": 17
+  },
+  "walkforward_config": null,
+  "walkforward_cycles": [],
+  "model_reuse": null,
+  "cache_info": {
+    "bars": {
+      "enabled": false,
+      "kind": "bars"
+    },
+    "dataset": {
+      "enabled": false,
+      "kind": "supervised_dataset"
+    }
+  }
+}

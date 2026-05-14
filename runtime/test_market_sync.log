@@ -1,0 +1,5 @@
+2026-05-10 03:18:33,121 | INFO | BOT STARTUP: mode=signal_only family=best_base_state market_sync_only=1 size=1.0000
+2026-05-10 03:18:33,121 | INFO | STARTUP RECOVERY: found open position deal_id=DIAAAARF4K6NQAC direction=LONG size=2.00 entry=4717.83 stop=4705.83 target=4755.57 prob=1.0000 entry_time=2026-05-08T20:37:00+00:00 | CORRECTED: entry_price 4717.79→4717.83, stop_loss 4703.13→4705.83, take_profit 4755.88→4755.57
+2026-05-10 03:18:33,702 | INFO | MARKET SYNC SKIPPED: bucket=2026-05-09T19:18:00+00:00  all instruments outside trading hours
+2026-05-10 03:18:33,702 | INFO | Market-sync-only run completed with no open instruments or no new market data.
+2026-05-10 03:18:33,702 | INFO | Market-sync-only mode completed successfully; skipping model load/trading logic.

@@ -104,6 +104,29 @@ def _load_image_trend_module():
 	) from last_exc
 
 
+def _load_image_trend_regime_module():
+	"""Load the regime-aware image_trend_ml module (has session-context feature builders)."""
+	last_exc: Optional[Exception] = None
+	for module_name in ("training.image_trend_ml_regime", "image_trend_ml_regime"):
+		try:
+			return importlib.import_module(module_name)
+		except ModuleNotFoundError as exc:
+			last_exc = exc
+	raise ModuleNotFoundError(
+		"Could not import image_trend_ml_regime. Expected either 'training.image_trend_ml_regime' "
+		"or 'image_trend_ml_regime' to be importable."
+	) from last_exc
+
+
+def _bundle_needs_regime_module(bundle: dict) -> bool:
+	"""Return True if the model bundle uses session-context features (regime module required)."""
+	cfg = bundle.get("config") if isinstance(bundle.get("config"), dict) else {}
+	return (
+		bool(bundle.get("use_stage1_day_session_context", cfg.get("use_stage1_day_session_context", False)))
+		or bool(bundle.get("use_stage2_day_session_context", cfg.get("use_stage2_day_session_context", False)))
+	)
+
+
 @dataclass
 class BotConfig:
 	table: str = "gold_prices"
@@ -128,6 +151,13 @@ class BotConfig:
 	log_path: str = "runtime/trading_bot.log"
 	lock_path: str = "/tmp/alphagold_trading_bot.lock"
 	max_trades_per_day: int = 0
+	max_live_trades_per_day: int = 0
+	max_daily_loss: float = 0.0
+	max_live_daily_loss: float = 0.0
+	max_daily_loss_pct: float = 0.0
+	max_live_daily_loss_pct: float = 0.0
+	max_spread_pts: Optional[float] = None
+	max_slippage_pts: Optional[float] = None
 	cooldown_bars_after_exit: int = 0
 	market_data_enabled: bool = True
 	prediction_poll_second: int = PREDICTION_POLL_SECOND
@@ -167,6 +197,8 @@ class PaperPosition:
 	entry_take_profit: Optional[float] = None
 	timeout_cap_time: Optional[str] = None
 	bars_checked: int = 0
+	entry_spread: Optional[float] = None
+	entry_slippage: Optional[float] = None
 
 
 @dataclass
@@ -446,15 +478,22 @@ def entry_block_reason(
 		if today_entries >= cfg.max_trades_per_day:
 			return f"max_trades_per_day_reached:{today_entries}"
 
-	if cfg.cooldown_bars_after_exit > 0 and state.last_exit_time:
-		last_exit = pd.Timestamp(state.last_exit_time)
-		if last_exit.tzinfo is None:
-			last_exit = last_exit.tz_localize(UTC)
-		else:
-			last_exit = last_exit.tz_convert(UTC)
-		next_allowed_signal = last_exit + (BAR_INTERVAL * cfg.cooldown_bars_after_exit)
-		if signal_bar_time < next_allowed_signal:
-			return f"cooldown_active_until:{next_allowed_signal.isoformat()}"
+	if cfg.mode == "live" and cfg.max_live_trades_per_day > 0 and not trades.empty and "entry_time" in trades.columns:
+		today_entries = int((trades["entry_time"].apply(trading_day_label) == trading_day_label(signal_bar_time)).sum())
+		if today_entries >= cfg.max_live_trades_per_day:
+			return f"max_live_trades_per_day_reached:{today_entries}"
+
+	if cfg.max_daily_loss > 0.0 and not trades.empty and "exit_time" in trades.columns:
+		daily = summarize_daily_trade_log(trades, signal_bar_time)
+		today_pnl = daily.get("today", {}).get("realized_pnl_usd", 0.0)
+		if today_pnl <= -abs(cfg.max_daily_loss):
+			return f"max_daily_loss_reached:{today_pnl:.2f}"
+
+	if cfg.mode == "live" and cfg.max_live_daily_loss > 0.0 and not trades.empty and "exit_time" in trades.columns:
+		daily = summarize_daily_trade_log(trades, signal_bar_time)
+		today_pnl = daily.get("today", {}).get("realized_pnl_usd", 0.0)
+		if today_pnl <= -abs(cfg.max_live_daily_loss):
+			return f"max_live_daily_loss_reached:{today_pnl:.2f}"
 
 	return None
 
@@ -676,6 +715,8 @@ def format_gate_compact_summary(
 	cutoff_block: bool,
 	has_open_position: bool,
 	candidate_samples: Optional[int] = None,
+	spread_block: bool = False,
+	live_risk_block: Optional[str] = None,
 ) -> str:
 	blocked_by: list[str] = []
 	if not trading_open_now:
@@ -688,6 +729,10 @@ def format_gate_compact_summary(
 		blocked_by.append("cutoff")
 	if has_open_position:
 		blocked_by.append("position_open")
+	if spread_block:
+		blocked_by.append("spread_gate")
+	if live_risk_block:
+		blocked_by.append(f"risk:{live_risk_block}")
 	parts = [
 		"GATE SUMMARY:",
 		f"side={signal.get('side', 'flat')}",
@@ -960,7 +1005,7 @@ class IGMarketDataCollector:
 	def _fmt_money(value: Optional[float], currency: Optional[str]) -> Optional[str]:
 		if value is None:
 			return None
-		suffix = str(currency or "").strip().upper()
+		suffix = str(currency or "").strip().upper() or None
 		return f"{float(value):.2f}{suffix}" if suffix else f"{float(value):.2f}"
 
 	def _account_status_part(self, service: IGService) -> str:
@@ -1329,12 +1374,17 @@ class AlphaGoldTradingBot:
 					raise ValueError(f"Model '{cfg.model_type}' not found in {cfg.model_dir}")
 				self.model = self.system.models[cfg.model_type]
 			elif cfg.signal_model_family == "best_base_state":
-				self.image_trend = _load_image_trend_module()
 				bundle_path = PROJECT_ROOT / cfg.signal_model_path
 				self.resolved_signal_model_path = bundle_path
 				self.model_bundle = joblib.load(bundle_path)
 				if not isinstance(self.model_bundle, dict) or "stage1" not in self.model_bundle or "stage2" not in self.model_bundle:
 					raise ValueError(f"Best-base model artifact is invalid: {bundle_path}")
+				# Use the regime module when the bundle has stage1/stage2 session-context features
+				# (those builders only exist in image_trend_ml_regime, not image_trend_ml).
+				if _bundle_needs_regime_module(self.model_bundle):
+					self.image_trend = _load_image_trend_regime_module()
+				else:
+					self.image_trend = _load_image_trend_module()
 				self.model = self.model_bundle
 			else:
 				raise ValueError(f"Unsupported --signal-model-family: {cfg.signal_model_family}")
@@ -1386,7 +1436,7 @@ class AlphaGoldTradingBot:
 			if blocked_utc is None and self.image_trend is not None:
 				blocked_utc = getattr(self.image_trend, "BLOCKED_UTC_WINDOWS", None)
 			self.logger.info(
-				"MODEL CONFIG: family=best_base_state path=%s mode=%s size=%.4f timeframe=%s window=%s horizon=%s stage1_min_prob=%s stage2_min_prob=%s use_state_features=%s use_15m_wick_features=%s",
+				"MODEL CONFIG: family=best_base_state path=%s mode=%s size=%.4f timeframe=%s window=%s horizon=%s stage1_min_prob=%s stage2_min_prob=%s use_state_features=%s use_15m_wick_features=%s use_stage1_day_session=%s use_stage2_day_session=%s",
 				self.cfg.signal_model_path,
 				self.cfg.mode,
 				self.cfg.size,
@@ -1397,6 +1447,8 @@ class AlphaGoldTradingBot:
 				self.model_bundle.get("stage2_min_prob", cfg.get("stage2_min_prob")),
 				self.model_bundle.get("use_state_features", cfg.get("use_state_features", False)),
 				self.model_bundle.get("use_15m_wick_features", cfg.get("use_15m_wick_features", False)),
+				self.model_bundle.get("use_stage1_day_session_context", cfg.get("use_stage1_day_session_context", False)),
+				self.model_bundle.get("use_stage2_day_session_context", cfg.get("use_stage2_day_session_context", False)),
 			)
 			self.logger.info(
 				"TIME FILTER: enabled=%s disable_time_filter=%s blocked_utc=%s",
@@ -1801,6 +1853,8 @@ class AlphaGoldTradingBot:
 			"target_updates": int(position.target_updates),
 			"last_target_signal_time": position.last_target_signal_time,
 			"last_target_price": position.last_target_price,
+			"entry_spread": position.entry_spread,
+			"entry_slippage": position.entry_slippage,
 			"pnl_usd": float(pnl_usd),
 			"pnl_pct": float(pnl_pct),
 		}
@@ -1861,6 +1915,43 @@ class AlphaGoldTradingBot:
 
 	def run_once(self) -> None:
 		self._run_market_data_cycle(force=self.cfg.market_sync_only)
+
+		# --- Daily Reconciliation Trigger ---
+		now_utc = pd.Timestamp(datetime.now(UTC))
+		now_ny = now_utc.tz_convert(NY_TZ)
+		# Check if we just crossed the 17:00 NY threshold
+		last_recon_day = getattr(self, "_last_reconciliation_day", None)
+		current_trading_day = (now_ny - pd.Timedelta(hours=TRADING_DAY_CUTOFF_HOUR_NY)).floor("D")
+
+		if last_recon_day is not None and current_trading_day > last_recon_day:
+			self.logger.info("New trading day started (NY 17:00). Triggering daily reconciliation for previous day...")
+			import subprocess
+			prev_day_str = last_recon_day.strftime('%Y-%m-%d')
+			
+			# Determine additional reports
+			# 1. Weekly: If yesterday was Friday (weekday 4)
+			recon_cmd = [sys.executable, str(PROJECT_ROOT / "daily_reconciliation.py"), prev_day_str]
+			if last_recon_day.weekday() == 4:
+				recon_cmd.append("--weekly")
+			
+			# 2. Cycle: If today is a Retrain Day (cycle boundary)
+			# (Checking if current_trading_day is a multiple of retrain_days from backtest start)
+			from config.v13_config import WF_CONFIG
+			wf_start = pd.to_datetime(WF_CONFIG["wf_start"]).tz_localize(NY_TZ)
+			days_since_start = (current_trading_day - wf_start.floor("D")).days
+			retrain_days = WF_CONFIG.get("retrain_days", 14)
+			if days_since_start % retrain_days == 0:
+				self.logger.info(f"Cycle boundary detected (day {days_since_start}). Adding cycle report...")
+				recon_cmd.append("--cycle")
+
+			try:
+				subprocess.Popen(recon_cmd)
+			except Exception as e:
+				self.logger.error("Failed to trigger daily reconciliation: %s", e)
+		
+		self._last_reconciliation_day = current_trading_day
+		# ------------------------------------
+
 		if self.cfg.market_sync_only:
 			self.logger.info("Market-sync-only mode completed successfully; skipping model load/trading logic.")
 			self._save_state()
@@ -1879,55 +1970,50 @@ class AlphaGoldTradingBot:
 					self._last_prediction_wait_bucket_utc = now_utc
 				self._save_state()
 				return
-		else:
-			raw = self._load_recent_raw_data()
-		latest_raw_ts = pd.Timestamp(raw.index[-1])
-		if self.cfg.signal_model_family == "legacy_15m_nextbar":
-			_, complete_bars = build_complete_15m_bars(raw)
-			self.logger.info(
-				"Loaded raw=%d complete_15m=%d latest_raw=%s latest_complete=%s",
-				len(raw),
-				len(complete_bars),
-				latest_raw_ts.isoformat(),
-				complete_bars.index[-1].isoformat() if not complete_bars.empty else "none",
-			)
-			if len(complete_bars) < MIN_FEATURE_BARS + 1:
-				raise ValueError(f"Need at least {MIN_FEATURE_BARS + 1} completed 15m bars, got {len(complete_bars)}")
-			signal = self._build_latest_signal_legacy(complete_bars)
-			signal_entry_time = signal["signal_bar_time"] + BAR_INTERVAL
-		else:
-			self.logger.info(
-				"Loaded raw=%d latest_raw=%s signal_model_family=%s",
-				len(raw),
-				latest_raw_ts.isoformat(),
-				self.cfg.signal_model_family,
-			)
 			signal = self._build_latest_signal_best_base(raw)
-			signal_entry_time = pd.Timestamp(signal["entry_bar_time"])
-			payload_info = dict(getattr(self, "last_best_base_payload_info", {}) or {})
-			raw_info = dict(getattr(self, "last_raw_cache_info", {}) or {})
-			self.logger.info(
-				"BEST_BASE INPUT: source=%s reload_each_cycle=%s recent_days=%s raw_rows=%s bars_1m=%s candidates=%s window=%s horizon=%s pred_history=%s start=%s end=%s",
-				raw_info.get("storage_mode", "mysql_recent_window_reload"),
-				raw_info.get("reload_each_cycle", True),
-				raw_info.get("recent_days", self.cfg.recent_days),
-				raw_info.get("rows", len(raw)),
-				payload_info.get("bars_rows"),
-				payload_info.get("candidate_samples"),
-				payload_info.get("window"),
-				payload_info.get("horizon"),
-				payload_info.get("pred_history_len"),
-				raw_info.get("start_utc"),
-				raw_info.get("end_utc"),
-			)
+			model_gate_block = not bool(signal.get("tradable", True))
+			weak_filter_enabled = len(self.weak_period_cells) > 0
+			# Signal time bucket for gate logic (usually same as signal_bar_time)
+			now_cycle_utc = pd.Timestamp(datetime.now(UTC))
+			signal_trading_open = instrument_trading_hours_open(Price.Gold, signal["signal_bar_time"])
+		else:
+			# Legacy 15m path
+			bars_15m, complete_bars = build_complete_15m_bars(raw)
+			if complete_bars.empty:
+				self.logger.info("Not enough data to build completed 15m bars yet; skipping cycle.")
+				self._save_state()
+				return
+			signal = self._build_latest_signal_legacy(complete_bars)
+			model_gate_block = not bool(signal.get("tradable", True))
+			weak_filter_enabled = len(self.weak_period_cells) > 0
+			now_cycle_utc = pd.Timestamp(datetime.now(UTC))
+			signal_trading_open = instrument_trading_hours_open(Price.Gold, signal["signal_bar_time"])
 
-		now_cycle_utc = pd.Timestamp(datetime.now(UTC))
-		signal_trading_open = instrument_trading_hours_open(Price.Gold, now_cycle_utc)
-		weak_filter_enabled = bool(getattr(self, "weak_period_cells", None))
-		model_gate_block = not bool(signal.get("tradable", True))
+		# ── Spread/Reliability Check for Live Entry ──────
+		spread_block = False
+		current_spread_pts: Optional[float] = None
+		if self.cfg.mode == "live":
+			latest_row = raw.iloc[-1]
+			bid = float(latest_row.get("closePrice_bid", 0.0))
+			ask = float(latest_row.get("closePrice_ask", 0.0))
+			mid = float(latest_row.get("closePrice", 0.0))
+			if mid > 0 and ask > 0 and bid > 0:
+				current_spread_pts = max(ask - mid, mid - bid)
+				if self.cfg.max_spread_pts is not None and current_spread_pts > self.cfg.max_spread_pts:
+					spread_block = True
+
+		if self.cfg.signal_model_family == "legacy_15m_nextbar":
+			cutoff_block = float(signal.get("probability", 0.0)) < self.cfg.probability_cutoff
+			signal_qualified = signal_qualified and not cutoff_block
+		else:
+			cutoff_block = False
+
 		weak_period_block = self._is_weak_period_entry(pd.Timestamp(signal.get("entry_bar_time", signal.get("signal_bar_time"))))
 		if weak_period_block:
 			signal["tradable"] = False
+		if spread_block:
+			signal["tradable"] = False
+
 		signal_qualified = bool(signal.get("tradable", True))
 		cutoff_block = False
 		if self.cfg.signal_model_family == "legacy_15m_nextbar":
@@ -1977,12 +2063,14 @@ class AlphaGoldTradingBot:
 				self.logger.info("Closed trade: %s", json.dumps(trade, sort_keys=True))
 				self._save_state()
 
+		# ── Dynamic TP/SL Check for Live Position ──────
 		if self.state.open_position is not None and self.cfg.mode == "live":
 			if self._maybe_timeout_live_position():
 				self._save_state()
 				return
 			self._sync_live_open_position()
 			if self.state.open_position is not None:
+				# Use the same signal that was just built for entry checks to also check for exit/amend
 				self._maybe_adjust_open_position_from_previous_minute(raw)
 				self._maybe_dynamic_target_stop_from_signal(raw, signal)
 				if self._maybe_close_live_position_from_signal(signal, raw):
@@ -2023,6 +2111,11 @@ class AlphaGoldTradingBot:
 			payload_info = dict(getattr(self, "last_best_base_payload_info", {}) or {})
 			if payload_info.get("candidate_samples") is not None:
 				candidate_samples = int(payload_info["candidate_samples"])
+
+		# Recalculate block_reason for format_gate_compact_summary
+		trades = load_trade_log(self.paper_broker.trade_log_path)
+		live_risk_block = entry_block_reason(self.cfg, self.state, signal.get("signal_bar_time", now_cycle_utc), trades)
+
 		self.logger.info(
 			format_gate_compact_summary(
 				signal=signal,
@@ -2032,6 +2125,8 @@ class AlphaGoldTradingBot:
 				cutoff_block=cutoff_block,
 				has_open_position=self.state.open_position is not None,
 				candidate_samples=candidate_samples,
+				spread_block=spread_block,
+				live_risk_block=live_risk_block,
 			)
 		)
 
@@ -2056,10 +2151,9 @@ class AlphaGoldTradingBot:
 			self._save_state()
 			return
 
+		signal_entry_time = pd.Timestamp(signal.get("entry_bar_time", signal_bar_time + BAR_INTERVAL))
 		entry = find_next_entry_minute(raw, signal_entry_time)
 		if entry is None:
-			entry_time = pd.Timestamp(signal_entry_time)
-			entry_time = entry_time.tz_convert("UTC") if entry_time.tzinfo else entry_time.tz_localize("UTC")
 			entry_row = raw.iloc[-1]
 			self.logger.info(
 				"Next entry bar not yet in cache; using last-close fallback entry: entry_time=%s mode=%s",
@@ -2121,6 +2215,10 @@ class AlphaGoldTradingBot:
 			confirm = broker_resp.get("confirm") if isinstance(broker_resp, dict) else None
 			fill_price = float(confirm["level"]) if isinstance(confirm, dict) and confirm.get("level") else float(entry_price)
 
+			# Track execution quality
+			entry_spread = float(current_spread_pts) if current_spread_pts is not None else None
+			entry_slippage = fill_price - float(entry_price) if direction == "LONG" else float(entry_price) - fill_price
+
 			# Stop and target both anchored to actual fill (matching backtest: next_bar_open)
 			if direction == "SHORT":
 				stop_loss = fill_price + self.cfg.short_stop_loss_pct
@@ -2159,10 +2257,14 @@ class AlphaGoldTradingBot:
 				size=float(self.cfg.size),
 				entry_price_initial=float(fill_price),
 				entry_take_profit=float(take_profit),
+				entry_spread=entry_spread,
+				entry_slippage=entry_slippage,
 			)
 			self.logger.info(
-				"LIVE ENTRY deal_id=%s side=%s signal=%.4f fill=%.4f stop=%.4f target=%.4f",
+				"LIVE ENTRY deal_id=%s side=%s signal=%.4f fill=%.4f stop=%.4f target=%.4f spread=%.2f slippage=%.2f",
 				deal_id, direction, float(entry_price), fill_price, stop_loss, take_profit,
+				entry_spread if entry_spread is not None else 0.0,
+				entry_slippage,
 			)
 			self._save_state()
 			return
@@ -2236,6 +2338,7 @@ class AlphaGoldTradingBot:
 			"fut": np.zeros(0),
 			"fut_ts": pd.DatetimeIndex([]),
 			"stage1_extra": None,
+			"stage2_extra": None,
 		}
 		self.last_best_base_payload_info = {
 			"bars_rows": int(len(bars)),
@@ -2311,9 +2414,20 @@ class AlphaGoldTradingBot:
 		entry_ts_idx = pd.DatetimeIndex(entry_ts_list)
 		fut = np.asarray(fut_list, dtype=np.float64)
 		fut_ts_idx = pd.DatetimeIndex(fut_ts_list)
-		stage1_extra = (
+		stage1_extra_ohl = (
 			self.image_trend._build_stage1_day_ohl_features(bars, ts_idx, curr)
 			if bool(self.model_bundle.get("use_stage1_day_ohl_utc2", False)) else None
+		)
+		stage1_extra_session = (
+			self.image_trend._build_stage1_day_session_context_features(bars, ts_idx, curr)
+			if bool(self.model_bundle.get("use_stage1_day_session_context", cfg.get("use_stage1_day_session_context", False))) else None
+		)
+		stage1_extra = self.image_trend._merge_stage1_extras(stage1_extra_ohl, stage1_extra_session) if (
+			stage1_extra_ohl is not None or stage1_extra_session is not None
+		) else None
+		stage2_extra = (
+			self.image_trend._build_stage1_day_session_context_features(bars, ts_idx, curr)
+			if bool(self.model_bundle.get("use_stage2_day_session_context", cfg.get("use_stage2_day_session_context", False))) else None
 		)
 		self.last_best_base_payload_info = {
 			"bars_rows": int(len(bars)),
@@ -2338,7 +2452,9 @@ class AlphaGoldTradingBot:
 			"fut": fut,
 			"fut_ts": fut_ts_idx,
 			"stage1_extra": stage1_extra,
+			"stage2_extra": stage2_extra,
 		}
+
 
 	def _build_best_base_signal_series(self, raw: pd.DataFrame, *, require_future_horizon: bool = False) -> dict[str, object]:
 		payload = self._build_live_best_base_samples(raw, require_future_horizon=require_future_horizon)
@@ -2356,6 +2472,7 @@ class AlphaGoldTradingBot:
 			payload["curr"],
 			payload["entry"],
 			payload["stage1_extra"],
+			payload.get("stage2_extra"),
 		)
 		return {
 			**payload,
@@ -2365,7 +2482,7 @@ class AlphaGoldTradingBot:
 			"up_prob": pm["up_prob"],
 		}
 
-	def _build_best_base_live_predictions(self, X_flat: np.ndarray, curr: np.ndarray, entry: np.ndarray, stage1_extra: Optional[np.ndarray]) -> dict[str, np.ndarray]:
+	def _build_best_base_live_predictions(self, X_flat: np.ndarray, curr: np.ndarray, entry: np.ndarray, stage1_extra: Optional[np.ndarray], stage2_extra: Optional[np.ndarray] = None) -> dict[str, np.ndarray]:
 		if self.image_trend is None or self.model_bundle is None:
 			raise ValueError("Best-base signal model is not loaded")
 		n = int(len(X_flat))
@@ -2389,6 +2506,9 @@ class AlphaGoldTradingBot:
 		trend_prob = np.zeros(n, dtype=np.float64)
 		up_prob = np.full(n, np.nan, dtype=np.float64)
 		if not use_state:
+			extra_kwargs: dict[str, object] = {"stage1_extra": stage1_extra}
+			if _bundle_needs_regime_module(self.model_bundle):
+				extra_kwargs["stage2_extra"] = stage2_extra
 			pm = self.image_trend.predict_two_stage_details(
 				X_flat,
 				m1,
@@ -2401,7 +2521,7 @@ class AlphaGoldTradingBot:
 				stage1_min_prob_15m=cfg.get("stage1_min_prob_15m"),
 				stage2_min_prob_1m=cfg.get("stage2_min_prob_1m"),
 				stage2_min_prob_15m=cfg.get("stage2_min_prob_15m"),
-				stage1_extra=stage1_extra,
+				**extra_kwargs,
 			)
 			return {
 				"pred": pm["pred"],
@@ -2453,9 +2573,9 @@ class AlphaGoldTradingBot:
 				stage2_min_prob_1m=cfg.get("stage2_min_prob_1m"),
 				stage2_min_prob_15m=cfg.get("stage2_min_prob_15m"),
 				stage1_extra=None if stage1_extra is None else stage1_extra[i : i + 1],
+				stage2_extra=None if stage2_extra is None else stage2_extra[i : i + 1],
 			)
 			pred_i = int(pm["pred"][0])
-			pred[i] = pred_i
 			signal_prob[i] = float(pm["signal_prob"][0])
 			trend_prob[i] = float(pm["trend_prob"][0])
 			up_prob_val = pm["up_prob"][0]
@@ -2700,6 +2820,13 @@ class AlphaGoldTradingBot:
 		status["last_exit_reason"] = self.state.last_exit_reason
 		status["last_execution_attempt"] = self.state.last_execution_attempt
 		status["max_trades_per_day"] = self.cfg.max_trades_per_day
+		status["max_live_trades_per_day"] = self.cfg.max_live_trades_per_day
+		status["max_daily_loss"] = self.cfg.max_daily_loss
+		status["max_live_daily_loss"] = self.cfg.max_live_daily_loss
+		status["max_daily_loss_pct"] = self.cfg.max_daily_loss_pct
+		status["max_live_daily_loss_pct"] = self.cfg.max_live_daily_loss_pct
+		status["max_spread_pts"] = self.cfg.max_spread_pts
+		status["max_slippage_pts"] = self.cfg.max_slippage_pts
 		status["cooldown_bars_after_exit"] = self.cfg.cooldown_bars_after_exit
 		status["market_data_enabled"] = self.cfg.market_data_enabled
 		status["market_data_tables"] = list(MARKET_DATA_TABLES)
@@ -2778,6 +2905,16 @@ def build_parser() -> argparse.ArgumentParser:
 	p.add_argument("--lock-path", default="/tmp/alphagold_trading_bot.lock")
 	p.add_argument("--max-trades-per-day", type=int, default=0,
 		help="Optional cap on paper entries per trading day (NY 17:00 cutoff). 0 disables.")
+	p.add_argument("--max-live-trades-per-day", type=int, default=0,
+		help="Optional cap on live entries per trading day (NY 17:00 cutoff). 0 disables.")
+	p.add_argument("--max-daily-loss", type=float, default=0.0,
+		help="Optional cap on daily realized loss (USD). 0 disables.")
+	p.add_argument("--max-live-daily-loss", type=float, default=0.0,
+		help="Optional cap on live daily realized loss (USD). 0 disables.")
+	p.add_argument("--max-spread-pts", type=float, default=None,
+		help="Optional spread gate: block live entry if current mid-to-ask/bid spread points > this value.")
+	p.add_argument("--max-slippage-pts", type=float, default=None,
+		help="Optional slippage gate (internal): logging only for now.")
 	p.add_argument("--cooldown-bars-after-exit", type=int, default=0,
 		help="Optional number of 15m bars to wait after a paper exit before allowing a new entry. 0 disables.")
 	p.add_argument("--disable-market-data-capture", action="store_true",
@@ -2822,6 +2959,8 @@ def parse_args() -> BotConfig:
 		raise ValueError("--size must be > 0")
 	if args.max_trades_per_day < 0:
 		raise ValueError("--max-trades-per-day must be >= 0")
+	if args.max_live_trades_per_day < 0:
+		raise ValueError("--max-live-trades-per-day must be >= 0")
 	if args.cooldown_bars_after_exit < 0:
 		raise ValueError("--cooldown-bars-after-exit must be >= 0")
 	if args.prediction_poll_second < 0 or args.prediction_poll_second > 59:

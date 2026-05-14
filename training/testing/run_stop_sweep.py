@@ -44,6 +44,12 @@ def _parse_args() -> argparse.Namespace:
                    help="Comma-separated short-adverse-limit values")
     p.add_argument("--prep-cache-dir", default=None)
     p.add_argument("--refresh-prep-cache", action="store_true")
+    p.add_argument("--stage2-min-prob", type=float, default=0.58,
+                   help="Fallback stage2 min probability.")
+    p.add_argument("--stage2-min-prob-up", type=float, default=0.65,
+                   help="Directional stage2 UP/LONG gate.")
+    p.add_argument("--stage2-min-prob-down", type=float, default=0.62,
+                   help="Directional stage2 DOWN/SHORT gate.")
     p.add_argument("--dry-run", action="store_true",
                    help="Print planned combos without executing.")
     return p.parse_args()
@@ -102,9 +108,9 @@ def main() -> None:
         "--classifier",             "gradient_boosting",
         "--max-flat-ratio",         "2.5",
         "--stage1-min-prob",        "0.55",
-        "--stage2-min-prob",        "0.58",
-        "--stage2-min-prob-up",     "0.65",
-        "--stage2-min-prob-down",   "0.62",
+        "--stage2-min-prob",        str(args.stage2_min_prob),
+        "--stage2-min-prob-up",     str(args.stage2_min_prob_up),
+        "--stage2-min-prob-down",   str(args.stage2_min_prob_down),
         "--max-hold-minutes",       str(args.cap),
         "--model-in",               str(MODEL_IN),
     ]
@@ -124,7 +130,8 @@ def main() -> None:
     print(f"model   : {MODEL_IN}")
     print(f"cache   : {prep_cache_dir}")
     print(f"fixed   : adverse_limit=15  horizon={args.horizon}  cap={args.cap}  "
-          f"s1=0.55  s2=0.58  s2up=0.65  s2dn=0.62")
+          f"s1=0.55  s2={args.stage2_min_prob:.2f}  "
+          f"s2up={args.stage2_min_prob_up:.2f}  s2dn={args.stage2_min_prob_down:.2f}")
     print(f"sweeping: long_stops={long_stops}  short_stops={short_stops}")
     print()
 

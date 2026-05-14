@@ -615,11 +615,23 @@ def _build_spread_price_arrays(
     fut_ts_a: pd.DatetimeIndex,
     bars_ask: pd.DataFrame,
     bars_bid: pd.DataFrame,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Return (entry_ask, entry_bid, curr_ask, curr_bid, fut_ask, fut_bid).
+) -> tuple[
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+]:
+    """Return spread-aware arrays used by backtest execution checks.
 
     - entry_ask/bid : ask/bid open of the entry bar (next bar after signal)
-    - curr_ask/bid  : ask/bid close of the signal bar (used for stop/target monitoring)
+    - curr_ask/bid  : ask/bid close of the signal bar
+    - curr_ask_high/low, curr_bid_high/low : intrabar extremes at signal bar
     - fut_ask/bid   : ask/bid close of the horizon bar (used for planned/timeout exit)
     """
     def _align_open(df: pd.DataFrame, ts: pd.DatetimeIndex) -> np.ndarray:
@@ -630,13 +642,36 @@ def _build_spread_price_arrays(
         idx = df.index.get_indexer(ts, method="nearest")
         return df["close"].to_numpy(dtype=np.float64)[idx]
 
+    def _align_high(df: pd.DataFrame, ts: pd.DatetimeIndex) -> np.ndarray:
+        idx = df.index.get_indexer(ts, method="nearest")
+        return df["high"].to_numpy(dtype=np.float64)[idx]
+
+    def _align_low(df: pd.DataFrame, ts: pd.DatetimeIndex) -> np.ndarray:
+        idx = df.index.get_indexer(ts, method="nearest")
+        return df["low"].to_numpy(dtype=np.float64)[idx]
+
     entry_ask = _align_open(bars_ask, entry_ts_a)
     entry_bid = _align_open(bars_bid, entry_ts_a)
     curr_ask  = _align_close(bars_ask, ts_a)
     curr_bid  = _align_close(bars_bid, ts_a)
+    curr_ask_high = _align_high(bars_ask, ts_a)
+    curr_ask_low = _align_low(bars_ask, ts_a)
+    curr_bid_high = _align_high(bars_bid, ts_a)
+    curr_bid_low = _align_low(bars_bid, ts_a)
     fut_ask   = _align_close(bars_ask, fut_ts_a)
     fut_bid   = _align_close(bars_bid, fut_ts_a)
-    return entry_ask, entry_bid, curr_ask, curr_bid, fut_ask, fut_bid
+    return (
+        entry_ask,
+        entry_bid,
+        curr_ask,
+        curr_bid,
+        curr_ask_high,
+        curr_ask_low,
+        curr_bid_high,
+        curr_bid_low,
+        fut_ask,
+        fut_bid,
+    )
 
 
 def _resolve_prep_cache_dir(raw: Optional[str]) -> Optional[Path]:
@@ -2369,8 +2404,15 @@ def _backtest_trades_df(
     entry_px_bid: Optional[np.ndarray] = None,
     curr_ask: Optional[np.ndarray] = None,
     curr_bid: Optional[np.ndarray] = None,
+    curr_ask_high: Optional[np.ndarray] = None,
+    curr_ask_low: Optional[np.ndarray] = None,
+    curr_bid_high: Optional[np.ndarray] = None,
+    curr_bid_low: Optional[np.ndarray] = None,
     fut_ask: Optional[np.ndarray] = None,
     fut_bid: Optional[np.ndarray] = None,
+    market_ts: Optional[pd.DatetimeIndex] = None,
+    market_close_ask: Optional[np.ndarray] = None,
+    market_close_bid: Optional[np.ndarray] = None,
 ) -> pd.DataFrame:
     columns = [
         "signal_idx",
@@ -2444,6 +2486,45 @@ def _backtest_trades_df(
         if side_num < 0 and fut_ask is not None:
             return float(fut_ask[i])
         return float(fut[i])
+
+    def _spread_curr_high(i: int, side_num: float) -> float:
+        """Monitoring high (long uses bid high, short uses ask high)."""
+        if side_num > 0 and curr_bid_high is not None:
+            return float(curr_bid_high[i])
+        if side_num < 0 and curr_ask_high is not None:
+            return float(curr_ask_high[i])
+        return _spread_curr(i, side_num)
+
+    def _spread_curr_low(i: int, side_num: float) -> float:
+        """Monitoring low (long uses bid low, short uses ask low)."""
+        if side_num > 0 and curr_bid_low is not None:
+            return float(curr_bid_low[i])
+        if side_num < 0 and curr_ask_low is not None:
+            return float(curr_ask_low[i])
+        return _spread_curr(i, side_num)
+
+    ts_index = pd.DatetimeIndex(ts)
+    market_index = pd.DatetimeIndex(market_ts) if market_ts is not None else None
+
+    def _market_close_at_or_before(exit_ts: pd.Timestamp, side_num: float) -> tuple[pd.Timestamp, float]:
+        """Get spread-aware close at exit_ts (or latest bar <= exit_ts when exact ts is absent)."""
+        if market_index is not None and len(market_index) > 0:
+            loc = market_index.get_indexer([exit_ts], method="pad")[0]
+            if loc < 0:
+                loc = len(market_index) - 1
+            resolved_ts = pd.Timestamp(market_index[loc])
+            if side_num > 0 and market_close_bid is not None:
+                return resolved_ts, float(market_close_bid[loc])
+            if side_num < 0 and market_close_ask is not None:
+                return resolved_ts, float(market_close_ask[loc])
+
+        if len(ts_index) == 0:
+            return exit_ts, 0.0
+        loc = ts_index.get_indexer([exit_ts], method="pad")[0]
+        if loc < 0:
+            loc = len(ts_index) - 1
+        resolved_ts = pd.Timestamp(ts_index[loc])
+        return resolved_ts, _spread_curr(int(loc), side_num)
 
     def _append_trade(trade: dict[str, object], exit_ts: pd.Timestamp, exit_price: float, exit_reason: str) -> None:
         side = float(trade["side_num"])
@@ -2552,12 +2633,20 @@ def _backtest_trades_df(
             entry_price = float(open_trade["entry_price"])
             stop_px = entry_price - side_num * stop_abs
             target_px = entry_price + side_num * target_abs
-            curr_exit_px = _spread_curr(i, side_num)
-            if stop_abs > 0.0 and (curr_exit_px - entry_price) * side_num <= -stop_abs:
+            curr_high_px = _spread_curr_high(i, side_num)
+            curr_low_px = _spread_curr_low(i, side_num)
+            if side_num > 0:
+                stop_hit = stop_abs > 0.0 and curr_low_px <= stop_px
+                target_hit = target_abs > 0.0 and curr_high_px >= target_px
+            else:
+                stop_hit = stop_abs > 0.0 and curr_high_px >= stop_px
+                target_hit = target_abs > 0.0 and curr_low_px <= target_px
+            # Conservative tie-break for OHLC ambiguity: if both touched, count stop first.
+            if stop_hit:
                 _append_trade(open_trade, signal_ts, float(stop_px), "stop_loss")
                 next_entry_allowed_ts = signal_ts
                 open_trade = None
-            elif target_abs > 0.0 and (curr_exit_px - entry_price) * side_num >= target_abs:
+            elif target_hit:
                 _append_trade(open_trade, signal_ts, float(target_px), "target_hit")
                 next_entry_allowed_ts = signal_ts
                 open_trade = None
@@ -2660,7 +2749,9 @@ def _backtest_trades_df(
 
     if open_trade is not None:
         planned_exit_ts = pd.Timestamp(open_trade["planned_exit_time"])
-        _append_trade(open_trade, planned_exit_ts, float(open_trade["planned_exit_price"]), "signal_target")
+        side_num = float(open_trade["side_num"])
+        resolved_exit_ts, final_market_px = _market_close_at_or_before(planned_exit_ts, side_num)
+        _append_trade(open_trade, resolved_exit_ts, final_market_px, "timeout")
 
     return pd.DataFrame(rows, columns=columns)
 
@@ -2687,8 +2778,15 @@ def directional_pnl_report(
     entry_px_bid: Optional[np.ndarray] = None,
     curr_ask: Optional[np.ndarray] = None,
     curr_bid: Optional[np.ndarray] = None,
+    curr_ask_high: Optional[np.ndarray] = None,
+    curr_ask_low: Optional[np.ndarray] = None,
+    curr_bid_high: Optional[np.ndarray] = None,
+    curr_bid_low: Optional[np.ndarray] = None,
     fut_ask: Optional[np.ndarray] = None,
     fut_bid: Optional[np.ndarray] = None,
+    market_ts: Optional[pd.DatetimeIndex] = None,
+    market_close_ask: Optional[np.ndarray] = None,
+    market_close_bid: Optional[np.ndarray] = None,
 ) -> tuple[dict, pd.DataFrame]:
     pdf = _backtest_trades_df(
         ts,
@@ -2712,8 +2810,15 @@ def directional_pnl_report(
         entry_px_bid=entry_px_bid,
         curr_ask=curr_ask,
         curr_bid=curr_bid,
+        curr_ask_high=curr_ask_high,
+        curr_ask_low=curr_ask_low,
+        curr_bid_high=curr_bid_high,
+        curr_bid_low=curr_bid_low,
         fut_ask=fut_ask,
         fut_bid=fut_bid,
+        market_ts=market_ts,
+        market_close_ask=market_close_ask,
+        market_close_bid=market_close_bid,
     )
     def _streak_stats(pnl_vals: np.ndarray) -> dict[str, int]:
         max_win = 0
@@ -3922,6 +4027,9 @@ def main() -> int:
                 reverse_exit_prob=cfg.reverse_exit_prob,
                 max_hold_minutes=cfg.max_hold_minutes,
                 weak_period_cells=weak_period_cells,
+                market_ts=bars_ask.index,
+                market_close_ask=bars_ask["close"].to_numpy(dtype=np.float64),
+                market_close_bid=bars_bid["close"].to_numpy(dtype=np.float64),
             )
             wf_done_cycles += 1
             wf_cum_trades += int(cycle_pnl["trades"])
@@ -4080,7 +4188,18 @@ def main() -> int:
     # ── PnL check ─────────────────────────────────────────────────────────────
     # Build ask/bid price arrays so the backtest uses realistic fill prices
     # (longs enter at ask / exit at bid; shorts enter at bid / exit at ask).
-    _spread_entry_ask, _spread_entry_bid, _spread_curr_ask, _spread_curr_bid, _spread_fut_ask, _spread_fut_bid = (
+    (
+        _spread_entry_ask,
+        _spread_entry_bid,
+        _spread_curr_ask,
+        _spread_curr_bid,
+        _spread_curr_ask_high,
+        _spread_curr_ask_low,
+        _spread_curr_bid_high,
+        _spread_curr_bid_low,
+        _spread_fut_ask,
+        _spread_fut_bid,
+    ) = (
         _build_spread_price_arrays(ts_te, entry_ts_te, fut_ts_te, bars_ask, bars_bid)
     )
     pnl, trades_df = directional_pnl_report(
@@ -4105,8 +4224,15 @@ def main() -> int:
         entry_px_bid=_spread_entry_bid,
         curr_ask=_spread_curr_ask,
         curr_bid=_spread_curr_bid,
+        curr_ask_high=_spread_curr_ask_high,
+        curr_ask_low=_spread_curr_ask_low,
+        curr_bid_high=_spread_curr_bid_high,
+        curr_bid_low=_spread_curr_bid_low,
         fut_ask=_spread_fut_ask,
         fut_bid=_spread_fut_bid,
+        market_ts=bars_ask.index,
+        market_close_ask=bars_ask["close"].to_numpy(dtype=np.float64),
+        market_close_bid=bars_bid["close"].to_numpy(dtype=np.float64),
     )
     print("── Directional PnL check ───────────────────────────────────────")
     print(f"   trades={pnl['trades']}  total=${pnl['total_pnl']:.2f}  avg_trade=${pnl['avg_trade']:.2f}")
