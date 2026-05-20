@@ -28,7 +28,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from ig_scripts.ig_data_api import Price, IGService, fetch_prices, fetch_market_snapshot, fetch_open_positions, API_CONFIG
 from brokers.ig_live import IGLiveBrokerAdapter
 from execution.engine import ExecutionEngine
-from config.v13_config import FILTER_CONFIG, TARGET_CONFIG, MODEL_CONFIG, EXECUTION_CONFIG
+from config.v13_config import FILTER_CONFIG, TARGET_CONFIG, MODEL_CONFIG, EXECUTION_CONFIG, WF_CONFIG
 from xgboost_filter_model.train_filter_1min import prepare_features as prepare_base_features
 from xgboost_filter_model.train_filter_v10 import add_liquidity_indicators
 
@@ -40,6 +40,13 @@ LONDON_TZ = ZoneInfo("Europe/London")
 TRADING_DAY_CUTOFF_HOUR_NY = 17
 
 # --- Helper Functions for Features ---
+
+def _ts_to_ny(ts) -> pd.Timestamp:
+    """Normalize a date/datetime string or Timestamp to America/New_York."""
+    t = pd.to_datetime(ts)
+    if t.tzinfo is None:
+        return t.tz_localize(NY_TZ)
+    return t.tz_convert(NY_TZ)
 
 def _session_info(ts, timezone, start_h, start_m, end_h, end_m):
     local_ts = ts.tz_convert(timezone)
@@ -60,13 +67,21 @@ def add_ma_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def add_directional_features(df: pd.DataFrame) -> pd.DataFrame:
+    # MUST mirror xgboost_filter_model/train_directional_model_v2.py exactly,
+    # otherwise train/serve skew on directional_change_* and wick_ratio_*
+    # → biased S2 probabilities. See investigation 2026-05-18.
     df = df.copy()
     for w in [15, 30, 90]:
-        df[f'directional_change_{w}'] = (df['close'] - df['close'].shift(w)) / (df['close'].shift(w) + 1e-9)
-        high_w = df['high'].rolling(window=w).max()
-        low_w = df['low'].rolling(window=w).min()
-        max_oc = df[['open', 'close']].max(axis=1)
-        df[f'wick_ratio_{w}'] = (df['high'] - max_oc) / (high_w - low_w + 1e-9)
+        rolling_high  = df['high'].rolling(window=w).max()
+        rolling_low   = df['low'].rolling(window=w).min()
+        rolling_open  = df['open'].shift(w - 1)
+        rolling_close = df['close']
+        rolling_range = (rolling_high - rolling_low).replace(0, np.nan)
+        df[f'directional_change_{w}'] = (rolling_close - rolling_open) / rolling_range
+
+        upper_wicks = (df['high'] - df[['open', 'close']].max(axis=1)).rolling(window=w).sum()
+        lower_wicks = (df[['open', 'close']].min(axis=1) - df['low']).rolling(window=w).sum()
+        df[f'wick_ratio_{w}'] = upper_wicks / (lower_wicks + 1e-6)
     return df
 
 def add_momentum_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -118,6 +133,18 @@ def prepare_v13_features(df: pd.DataFrame) -> pd.DataFrame:
     df["Dlower_wick_utc2_rel"] = (min_oc - df["day_low_rolling"]) / (df["day_open"] + 1e-9)
 
 
+    # ── Energetic-bar filter (MUST mirror prepare_data_v13 ordering) ────────
+    # The model was trained on a dataframe that was filtered to energetic bars
+    # (move > min_bar_move AND volume > min_volume) BEFORE the directional/MA/
+    # momentum features were computed. Those features therefore roll over
+    # consecutive energetic bars, not raw 1-min bars. We must replicate that
+    # here at serving time, otherwise MA/RSI/MACD/ROC/directional_change/etc.
+    # are computed on a different population than at training time
+    # (train/serve skew → biased S1/S2 probabilities, e.g. "always DOWN").
+    df["bar_move"] = (df["close"] - df["open"]).abs()
+    df = df[(df["bar_move"] > FILTER_CONFIG["min_bar_move"]) &
+            (df["volume"]    > FILTER_CONFIG["min_volume"])].copy()
+
     # Final TA feature groups
     df = add_directional_features(df)
     df = add_ma_features(df)
@@ -130,6 +157,9 @@ class BotState:
     consecutive_losses: int = 0
     last_pnl: float = 0.0
     open_deal_id: Optional[str] = None
+    open_entry_time: Optional[str] = None  # ISO-8601 UTC; used to enforce EXECUTION_CONFIG['horizon'] timeout
+    closed_first_seen_at: Optional[str] = None  # ISO-8601 UTC; first poll where IG reported the open_deal_id no longer open
+    pending_level_resync_bar: Optional[str] = None  # ISO-8601 UTC; bar AFTER signal bar whose open we use to set SL/TP (mirrors backtest next_row entry)
     last_retrain_date: Optional[str] = None # ISO format (YYYY-MM-DD)
     last_reconciliation_day: Optional[str] = None # YYYY-MM-DD
 
@@ -186,7 +216,8 @@ class AlphaGoldV13Bot:
             self.service,
             instrument=Price.Gold,
             stop_loss_pct=EXECUTION_CONFIG["sl"],
-            take_profit_pct=EXECUTION_CONFIG["take_profit_pct"],
+            # Use absolute-point TP (40) to match backtest, NOT take_profit_pct (0.8%).
+            take_profit_pct=EXECUTION_CONFIG["tp"],
         )
         self.engine = ExecutionEngine(self.broker)
 
@@ -221,13 +252,22 @@ class AlphaGoldV13Bot:
             'rsi_14', 'rsi_30', 'macd', 'macd_signal', 'macd_diff', 'roc_15', 'roc_30', 'roc_60'
         ]
 
+        # Use the same warm-up condition as backtest for consistency.
+        self.feature_warmup_days = int(WF_CONFIG.get("feature_warmup_days", 120))
+        self.min_prediction_bars = max(self.img_win + 100, 400)
+
         self.last_ts = None
+        # Track the last bar timestamp we've already scored, so the same minute
+        # bar is never predicted twice (minute-level alignment with backtest).
+        self.last_predicted_bar_ts = None
         self.cached_df = pd.DataFrame()
         self._warmup_cache()
 
     def _warmup_cache(self):
         """Initial fetch to populate history at startup."""
-        self.logger.info("Performing cache warmup (syncing latest from IG and loading 2500 bars from DB)...")
+        self.logger.info(
+            f"Performing cache warmup (syncing latest from IG and loading ~{self.feature_warmup_days} days from DB)..."
+        )
         try:
             from data.data_loader import DataLoader
             from ig_scripts.ig_data_api import fetch_and_store_prices_from_latest
@@ -235,13 +275,13 @@ class AlphaGoldV13Bot:
             # 1. Sync missing data from IG to the local database
             fetch_and_store_prices_from_latest(self.service, Price.Gold)
             
-            # 2. Load the last 2500 bars from the local database
+            # 2. Load history from local database and keep last N days for feature warm-up
             df = DataLoader().load_data(Price.Gold.db_name)
             if not df.empty:
-                # We sort by timestamp, grab tail(2500), and format index
-                df = df.tail(2500).copy()
                 df.index = pd.to_datetime(df['timestamp'], unit='ms', utc=True)
                 df = df.rename(columns={'openPrice': 'open', 'highPrice': 'high', 'lowPrice': 'low', 'closePrice': 'close', 'lastTradedVolume': 'volume'}).sort_index()
+                warmup_cutoff = df.index.max() - pd.Timedelta(days=self.feature_warmup_days)
+                df = df[df.index >= warmup_cutoff].copy()
                 self.cached_df = df[~df.index.duplicated(keep='last')]
                 self.logger.info(f"Cache warmed up with {len(self.cached_df)} rows from database.")
             else:
@@ -297,15 +337,180 @@ class AlphaGoldV13Bot:
                         self.state.consecutive_losses = 0
                     
                     self.state.open_deal_id = None
+                    self.state.open_entry_time = None
+                    self.state.closed_first_seen_at = None
                     self._save_state()
                     self.logger.info(f"State updated: consecutive_losses={self.state.consecutive_losses}")
                 else:
-                    # Sometimes IG takes a moment to move the trade to history. 
-                    # We'll try again on the next poll.
-                    self.logger.warning(f"Position {self.state.open_deal_id} closed but not found in history yet. Will retry...")
+                    # IG sometimes takes a moment to move the trade to history.
+                    # Track when we first saw the position-not-open and force-clear
+                    # after a grace period so a missing history entry doesn't
+                    # permanently block all future entries.
+                    now_iso = datetime.now(timezone.utc).isoformat()
+                    grace_minutes = 5
+                    if not self.state.closed_first_seen_at:
+                        self.state.closed_first_seen_at = now_iso
+                        self._save_state()
+                        self.logger.warning(f"Position {self.state.open_deal_id} closed but not found in history yet. Will retry (grace={grace_minutes}m)...")
+                    else:
+                        first_seen = pd.Timestamp(self.state.closed_first_seen_at)
+                        elapsed_min = (pd.Timestamp(now_iso) - first_seen).total_seconds() / 60.0
+                        if elapsed_min >= grace_minutes:
+                            self.logger.warning(
+                                f"Position {self.state.open_deal_id} not in history after {elapsed_min:.1f}m "
+                                f"(grace {grace_minutes}m exceeded) \u2014 force-clearing state to unblock new entries."
+                            )
+                            self.state.open_deal_id = None
+                            self.state.open_entry_time = None
+                            self.state.closed_first_seen_at = None
+                            self._save_state()
+                        else:
+                            self.logger.warning(
+                                f"Position {self.state.open_deal_id} closed but not in history yet ({elapsed_min:.1f}/{grace_minutes}m). Will retry..."
+                            )
+            else:
+                # Position is open again — clear any stale closed-detect marker.
+                if self.state.closed_first_seen_at:
+                    self.state.closed_first_seen_at = None
+                    self._save_state()
 
         except Exception as e:
             self.logger.error(f"Error syncing trade results: {e}")
+
+    def _check_horizon_timeout(self):
+        """Force-close the open position if it has been held longer than
+        EXECUTION_CONFIG['horizon'] minutes (mirrors backtest 'timeout' exit).
+        """
+        if not self.state.open_deal_id or not self.state.open_entry_time:
+            return
+        try:
+            entry_ts = pd.Timestamp(self.state.open_entry_time)
+            if entry_ts.tzinfo is None:
+                entry_ts = entry_ts.tz_localize('UTC')
+            now_utc = pd.Timestamp(datetime.now(timezone.utc))
+            elapsed_min = (now_utc - entry_ts).total_seconds() / 60.0
+            horizon_min = float(EXECUTION_CONFIG.get("horizon", 45))
+            if elapsed_min < horizon_min:
+                return
+
+            # Look up direction & size from IG so we can submit the close order.
+            pos_wrap = self.broker.get_position_by_deal_id(self.state.open_deal_id)
+            if not pos_wrap:
+                # IG no longer reports it as open — let _sync_trade_results clean it up.
+                self.logger.info(
+                    f"Horizon elapsed ({elapsed_min:.1f}m >= {horizon_min}m) but position "
+                    f"{self.state.open_deal_id} not found on IG; skipping close."
+                )
+                return
+            pos = pos_wrap.get('position', {})
+            direction = str(pos.get('direction', '')).upper()  # 'BUY' or 'SELL'
+            size = float(pos.get('size') or EXECUTION_CONFIG.get("size", 1.0))
+            close_direction = "SELL" if direction == "BUY" else "BUY"
+
+            self.logger.info(
+                f"HORIZON TIMEOUT deal_id={self.state.open_deal_id} elapsed={elapsed_min:.1f}m "
+                f"horizon={horizon_min}m — closing position ({direction} {size} -> {close_direction})"
+            )
+            close_res = self.broker.close_position(
+                deal_id=self.state.open_deal_id,
+                direction=close_direction,
+                size=size,
+            )
+            self.logger.info(f"Horizon close result: {close_res}")
+            # _sync_trade_results on the next poll will reconcile PnL and clear state.
+        except Exception as e:
+            self.logger.error(f"Error in horizon timeout check: {e}")
+
+    def _resync_levels_to_backtest(self, df: pd.DataFrame) -> None:
+        """Once the bar AFTER the signal bar is available, amend SL/TP so they
+        match backtest convention exactly:
+            ep = next_row['open'] + spread (LONG) or - spread (SHORT)
+            stop  = ep - sl (LONG) or ep + sl (SHORT)
+            target= ep + tp (LONG) or ep - tp (SHORT)
+        Backtest enters at next_row's open price; live IG fill is a few seconds
+        later at market — this aligns the SL/TP anchors so live trade outcomes
+        track the backtest.
+        """
+        pending = self.state.pending_level_resync_bar
+        if not pending or not self.state.open_deal_id:
+            return
+        try:
+            target_ts = pd.Timestamp(pending)
+            if target_ts.tzinfo is None:
+                target_ts = target_ts.tz_localize('UTC')
+        except Exception:
+            self.state.pending_level_resync_bar = None
+            self._save_state()
+            return
+
+        # Give up if the target bar is more than 10 min in the past (cache may have
+        # rolled it off, or position already closed).
+        now_utc = pd.Timestamp(datetime.now(timezone.utc))
+        if (now_utc - target_ts).total_seconds() > 600:
+            self.logger.warning(
+                f"Level resync target bar {target_ts} too old (>10m); abandoning."
+            )
+            self.state.pending_level_resync_bar = None
+            self._save_state()
+            return
+
+        if target_ts not in df.index:
+            return  # bar not finalized yet — try again on next poll
+
+        # Look up direction from IG (we don't trust local state for direction)
+        try:
+            pos_wrap = self.broker.get_position_by_deal_id(self.state.open_deal_id)
+        except Exception as e:
+            self.logger.warning(f"Level resync: get_position failed: {e}")
+            return
+        if not pos_wrap:
+            self.logger.info(
+                f"Level resync: position {self.state.open_deal_id} no longer open; clearing pending."
+            )
+            self.state.pending_level_resync_bar = None
+            self._save_state()
+            return
+        direction = str(pos_wrap.get('position', {}).get('direction', '')).upper()
+        side = 1 if direction == 'BUY' else -1
+
+        bar_open_mid = float(df.loc[target_ts, 'open'])
+        # Prefer real bid/ask columns from IG (carried through from fetch_prices),
+        # fall back to mid + spread_default only if missing.
+        ask_col = df.loc[target_ts].get('openPrice_ask') if hasattr(df.loc[target_ts], 'get') else None
+        bid_col = df.loc[target_ts].get('openPrice_bid') if hasattr(df.loc[target_ts], 'get') else None
+        try:
+            bar_open_ask = float(ask_col) if ask_col is not None and not pd.isna(ask_col) else None
+            bar_open_bid = float(bid_col) if bid_col is not None and not pd.isna(bid_col) else None
+        except (TypeError, ValueError):
+            bar_open_ask = bar_open_bid = None
+
+        if bar_open_ask is None or bar_open_bid is None:
+            spread = float(EXECUTION_CONFIG.get('spread_default', 0.0))
+            bar_open_ask = bar_open_mid + spread
+            bar_open_bid = bar_open_mid - spread
+
+        tp = float(EXECUTION_CONFIG['tp'])
+        sl = float(EXECUTION_CONFIG['sl'])
+
+        ep = bar_open_ask if side == 1 else bar_open_bid
+        stop_level = ep - sl if side == 1 else ep + sl
+        limit_level = ep + tp if side == 1 else ep - tp
+
+        try:
+            self.broker.amend_position_levels(
+                deal_id=self.state.open_deal_id,
+                stop_level=round(stop_level, 2),
+                limit_level=round(limit_level, 2),
+            )
+            self.logger.info(
+                f"Level resync OK deal_id={self.state.open_deal_id} side={'BUY' if side==1 else 'SELL'} "
+                f"bar={target_ts} open_mid={bar_open_mid:.2f} ask={bar_open_ask:.2f} bid={bar_open_bid:.2f} "
+                f"ep={ep:.2f} -> stop={stop_level:.2f} limit={limit_level:.2f}"
+            )
+            self.state.pending_level_resync_bar = None
+            self._save_state()
+        except Exception as e:
+            self.logger.error(f"Level resync amend failed: {e}")
 
     def _init_logger(self):
         l = logging.getLogger("AlphaGoldV13")
@@ -334,7 +539,7 @@ class AlphaGoldV13Bot:
         if not store_to_db:
             current_trading_day = (now_ny - pd.Timedelta(hours=TRADING_DAY_CUTOFF_HOUR_NY)).floor("D")
             last_recon_str = self.state.last_reconciliation_day
-            last_recon_day = pd.to_datetime(last_recon_str).tz_localize(NY_TZ).floor("D") if last_recon_str else None
+            last_recon_day = _ts_to_ny(last_recon_str).floor("D") if last_recon_str else None
 
             if last_recon_day is not None and current_trading_day > last_recon_day:
                 self.logger.info("New trading day started (NY 17:00). Triggering daily reconciliation for previous day...")
@@ -350,7 +555,7 @@ class AlphaGoldV13Bot:
 
                 # 2. Cycle: If today is a Retrain Day (cycle boundary)
                 from config.v13_config import WF_CONFIG
-                wf_start = pd.to_datetime(WF_CONFIG["wf_start"]).tz_localize(NY_TZ)
+                wf_start = _ts_to_ny(WF_CONFIG["wf_start"])
                 days_since_start = (current_trading_day - wf_start.floor("D")).days
                 retrain_days = WF_CONFIG.get("retrain_days", 14)
                 if days_since_start % retrain_days == 0:
@@ -372,6 +577,8 @@ class AlphaGoldV13Bot:
         # 0. Sync trade results before predicting
         if not store_to_db:
             self._sync_trade_results()
+            # Enforce horizon (45-min) timeout to mirror backtest exit logic.
+            self._check_horizon_timeout()
 
         # 0. Always show account status first if storing to DB
         # because account info is high-priority and independent of price data.
@@ -408,24 +615,58 @@ class AlphaGoldV13Bot:
             self.cached_df = pd.concat([self.cached_df, new_df])
             self.cached_df = self.cached_df[~self.cached_df.index.duplicated(keep='last')].sort_index()
 
-            # Keep the last 2500 bars in memory to prevent memory leaks while bridging weekend gaps
-            self.cached_df = self.cached_df.tail(2500)
+            # Keep last N days in memory to match backtest warm-up behavior.
+            max_ts = self.cached_df.index.max()
+            cutoff = max_ts - pd.Timedelta(days=self.feature_warmup_days)
+            self.cached_df = self.cached_df[self.cached_df.index >= cutoff]
 
             if store_to_db:
                 # Store only the newest prices from this specific poll in MySQL
                 from ig_scripts.ig_data_api import insert_prices
                 insert_prices(prices, Price.Gold)
+                # store-only cycle: do NOT run prediction or trading on this tick
+                return
 
         except Exception as e:
             self.logger.error(f"Fetch failed: {e}")
             return
 
         df = self.cached_df.copy()
-        raw_latest_ts = df.index[-1]   # raw latest bar (before feature dropna)
 
-        if len(df) < self.img_win + 10:
-            self.logger.warning(f"Cache size too small to run predictions: length is {len(df)}, need {self.img_win + 10}")
+        # Drop the in-progress (not-yet-closed) current-minute bar.
+        # Backtest only ever sees finalized OHLCV bars, so live must do the same:
+        # at wall-clock 12:24:05 we want bar [12:23] (just closed at 12:24:00),
+        # NOT bar [12:24] which is only 5 seconds into its minute.
+        current_minute_floor = pd.Timestamp(now).floor('1min')
+        df = df[df.index < current_minute_floor]
+        if df.empty:
+            self.logger.warning("No finalized bar available yet — waiting for next minute.")
             return
+        raw_latest_ts = df.index[-1]   # raw latest FINALIZED bar (before feature dropna)
+
+        # If we just opened a position last poll, try to align SL/TP to backtest
+        # (uses the OPEN of the bar AFTER the signal bar). Safe to call every poll —
+        # no-ops when nothing pending.
+        if not store_to_db:
+            self._resync_levels_to_backtest(df)
+
+        if len(df) < self.min_prediction_bars:
+            self.logger.warning(
+                f"Cache size too small to run predictions: length={len(df)}, "
+                f"need at least {self.min_prediction_bars} bars."
+            )
+            return
+
+        # Minute-level dedupe: skip if we've already scored this bar in a
+        # previous poll within the same minute (e.g. xx:05 already ran).
+        if self.last_predicted_bar_ts is not None and raw_latest_ts == self.last_predicted_bar_ts:
+            self.logger.info(
+                f"[{raw_latest_ts}] Bar already scored — skipping duplicate prediction."
+            )
+            return
+        # Mark this bar as scored regardless of whether the filter/model produces
+        # a signal, so it won't be re-evaluated by any later poll in the same min.
+        self.last_predicted_bar_ts = raw_latest_ts
 
         # 2. Bar-quality filter — model was trained ONLY on energetic bars.
         # Skip prediction on quiet bars to avoid out-of-distribution false signals.
@@ -434,12 +675,21 @@ class AlphaGoldV13Bot:
         bar_vol   = latest_bar['volume']
         if bar_move <= FILTER_CONFIG["min_bar_move"] or bar_vol <= FILTER_CONFIG["min_volume"]:
             self.logger.info(
-                f"[{raw_latest_ts}] Bar filtered (move={bar_move:.2f}, vol={bar_vol}) — "
+                f"[{raw_latest_ts}] Bar filtered (O={latest_bar['open']:.2f} C={latest_bar['close']:.2f} move={bar_move:.2f}, vol={bar_vol}) — "
                 f"thresholds move>{FILTER_CONFIG['min_bar_move']}, vol>{FILTER_CONFIG['min_volume']}"
             )
             return
 
-        # 3. Features — for_live_inference=True ensures the latest bar is NOT dropped
+        # 3a. Keep raw 1-min frame for image-model window (must mirror backtest:
+        # add_image_model_predictions in train_filter_v13_wf_image.py iterates over
+        # the PRE-FILTER 1-min df with df.iloc[i-150+1:i+1]). Using the post-filter
+        # (energetic-only) df here was a bug: the image model was trained on 150
+        # CONSECUTIVE 1-min bars, not 150 non-consecutive energetic bars, which
+        # produced an out-of-distribution image_s1_prob and divergent S1 scores
+        # vs backtest.
+        raw_df = df
+
+        # 3b. Features — for_live_inference=True ensures the latest bar is NOT dropped
         df = prepare_v13_features(df)
 
         # latest_ts is now read AFTER prepare_v13_features so it is the real latest
@@ -455,14 +705,24 @@ class AlphaGoldV13Bot:
                 f"scoring most recent available bar."
             )
 
-        # Image Prob
-        idx = len(df) - 1
-        img_vec = extract_image_payload(df, idx, self.img_win)
-        ts = df.index[idx]
+        # Image Prob — computed from the RAW 1-min df at latest_ts (parity with backtest).
+        if latest_ts not in raw_df.index:
+            self.logger.error(
+                f"latest_ts {latest_ts} missing from raw 1-min df — cannot compute image_s1_prob."
+            )
+            return
+        raw_idx = raw_df.index.get_loc(latest_ts)
+        if raw_idx < self.img_win - 1:
+            self.logger.warning(
+                f"Raw 1-min cache too small for image window ({raw_idx + 1} < {self.img_win}) — skipping bar."
+            )
+            return
+        img_vec = extract_image_payload(raw_df, raw_idx, self.img_win)
+        ts = latest_ts
         asia_f, asia_p = _session_info(ts, HK_TZ, 8, 0, 16, 0)
         lon_f, lon_p = _session_info(ts, LONDON_TZ, 8, 0, 16, 30)
         ny_f, ny_p = _session_info(ts, NY_TZ, 9, 30, 16, 0)
-        extra = [df["Dchange_utc2_rel"].iloc[idx], df["Dupper_wick_utc2_rel"].iloc[idx], df["Dlower_wick_utc2_rel"].iloc[idx],
+        extra = [df.loc[latest_ts, "Dchange_utc2_rel"], df.loc[latest_ts, "Dupper_wick_utc2_rel"], df.loc[latest_ts, "Dlower_wick_utc2_rel"],
                  asia_f, asia_p, lon_f, lon_p, ny_f, ny_p]
         df.loc[latest_ts, "image_s1_prob"] = self.img_s1_model.predict_proba(np.concatenate([img_vec, extra]).reshape(1, -1))[0][1]
 
@@ -485,7 +745,7 @@ class AlphaGoldV13Bot:
             elif s2_p <= (1.0 - dynamic_s2):
                 side = -1
 
-        self.logger.info(f"[{latest_ts}] S1={s1_p:.4f} S2={s2_p} Thresh={dynamic_s2:.3f} (base={s2_base}, losses={self.state.consecutive_losses}) Signal={side}")
+        self.logger.info(f"[{latest_ts}] O={latest_bar['open']:.2f} H={latest_bar['high']:.2f} L={latest_bar['low']:.2f} C={latest_bar['close']:.2f} V={latest_bar['volume']} | S1={s1_p:.4f} S2={s2_p} Thresh={dynamic_s2:.3f} (base={s2_base}, losses={self.state.consecutive_losses}) Signal={side}")
 
         # Trigger Execution if signal exists and we don't have an open position
         if side != 0 and store_to_db == False:
@@ -512,6 +772,18 @@ class AlphaGoldV13Bot:
                     deal_id = exec_res.get("deal_id")
                     self.logger.info(f"Order successfully submitted. Deal ID: {deal_id}")
                     self.state.open_deal_id = deal_id
+                    # Save entry time so the horizon timeout (EXECUTION_CONFIG['horizon'])
+                    # can force-close the position if neither TP nor SL hit in time.
+                    self.state.open_entry_time = pd.Timestamp(latest_ts).tz_convert('UTC').isoformat()
+                    # Schedule SL/TP resync to the bar AFTER the signal bar (mirrors
+                    # backtest's next_row entry-price convention). _resync_levels_to_backtest
+                    # will fire on the next poll once that bar is finalized.
+                    next_bar_ts = pd.Timestamp(latest_ts) + pd.Timedelta(minutes=1)
+                    if next_bar_ts.tzinfo is None:
+                        next_bar_ts = next_bar_ts.tz_localize('UTC')
+                    else:
+                        next_bar_ts = next_bar_ts.tz_convert('UTC')
+                    self.state.pending_level_resync_bar = next_bar_ts.isoformat()
                     self._save_state()
                 else:
                     self.logger.error(f"Order submission failed: {exec_res.get('reason')}")
@@ -542,17 +814,31 @@ class AlphaGoldV13Bot:
                         self.logger.info("Starting scheduled bi-weekly weekend retraining...")
                         try:
                             import subprocess
+                            # Persist full stdout/stderr of both training stages so we can
+                            # inspect metrics (accuracy, classification reports) afterward.
+                            retrain_log_dir = PROJECT_ROOT / "runtime" / "retrain_logs"
+                            retrain_log_dir.mkdir(parents=True, exist_ok=True)
+                            day_tag = now.date().isoformat()
+
                             # 1. Retrain Stage 1
                             s1_script = PROJECT_ROOT / "xgboost_filter_model" / "train_filter_v13_wf_image.py"
                             self.logger.info("Running Stage 1 retraining...")
                             res1 = subprocess.run([sys.executable, str(s1_script)], capture_output=True, text=True)
-                            
+                            (retrain_log_dir / f"stage1_{day_tag}.log").write_text(
+                                f"=== STDOUT ===\n{res1.stdout}\n=== STDERR ===\n{res1.stderr}\n",
+                                encoding="utf-8",
+                            )
+
                             if res1.returncode == 0:
                                 # 2. Retrain Stage 2
                                 s2_script = PROJECT_ROOT / "xgboost_filter_model" / "train_stage2_v13_directional.py"
                                 self.logger.info("Running Stage 2 retraining...")
                                 res2 = subprocess.run([sys.executable, str(s2_script)], capture_output=True, text=True)
-                                
+                                (retrain_log_dir / f"stage2_{day_tag}.log").write_text(
+                                    f"=== STDOUT ===\n{res2.stdout}\n=== STDERR ===\n{res2.stderr}\n",
+                                    encoding="utf-8",
+                                )
+
                                 if res2.returncode == 0:
                                     self.logger.info("All retraining successful. Hot-reloading models...")
                                     
@@ -576,15 +862,16 @@ class AlphaGoldV13Bot:
                         except Exception as re:
                             self.logger.error(f"Error during automatic retraining: {re}")
 
-                # 1. On Every 5th second of each minute: Fetch, Cache, and Predict
+                # 1. On Every 5th second of each minute: Predict & Trade only
+                #    (uses the most recently closed minute bar from IG; does NOT write to MySQL)
                 if sec == 5:
                     self.poll(store_to_db=False)
                     # We sleep slightly more than 1s to avoid double-triggering within the same second
                     time.sleep(1.2)
                 
-                # 2. On Every 30th second of each minute: Fetch and Store to MySQL
+                # 2. On Every 30th second of each minute: Fetch & Store to MySQL only
+                #    (no prediction, no trading — keeps MySQL fresh + shows account status)
                 elif sec == 30:
-                    # This also updates internal cache, but specifically handles the DB storage
                     self.poll(store_to_db=True)
                     time.sleep(1.2)
                 

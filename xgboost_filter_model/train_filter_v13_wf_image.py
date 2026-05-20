@@ -26,6 +26,18 @@ def prepare_data_v13(start_date="2020-01-01", end_date="2026-05-07", use_cache=T
     cache_dir.mkdir(parents=True, exist_ok=True)
     cache_path = cache_dir / f"data_v13_{start_date}_{end_date}.joblib"
 
+    # If end_date is today or in the future, the underlying DB is still being
+    # appended to. A stale joblib cache from earlier in the day would silently
+    # drop the freshly-arrived bars (e.g. signals after the cache was written
+    # would be invisible to the backtest). Force a fresh load in that case.
+    from datetime import date as _date
+    try:
+        _end_d = pd.to_datetime(end_date).date()
+        if _end_d >= _date.today():
+            use_cache = False
+    except Exception:
+        pass
+
     if use_cache and cache_path.exists():
         print(f"Loading cached data from {cache_path}...")
         return joblib.load(cache_path)
@@ -154,8 +166,17 @@ def train_wf_v13():
 
     features = [c for c in df.columns if c not in exclude]
 
-    current_test_start = pd.to_datetime(WF_START).tz_localize('UTC')
-    end_dt = pd.to_datetime(WF_END).tz_localize('UTC')
+    current_test_start = pd.to_datetime(WF_START)
+    end_dt = pd.to_datetime(WF_END)
+    # Robust timezone handling: localize if naive, convert if tz-aware
+    if current_test_start.tzinfo is None:
+        current_test_start = current_test_start.tz_localize('UTC')
+    else:
+        current_test_start = current_test_start.tz_convert('UTC')
+    if end_dt.tzinfo is None:
+        end_dt = end_dt.tz_localize('UTC')
+    else:
+        end_dt = end_dt.tz_convert('UTC')
 
     all_oos_preds = []
     all_oos_actuals = []

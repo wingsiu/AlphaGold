@@ -666,48 +666,137 @@ def _fetch_recent_transactions(service: IGService, *, lookback_hours: int = 72) 
     return tx_rows
 
 
+def _fetch_recent_activities(service: IGService, *, lookback_hours: int = 72) -> list[dict[str, Any]]:
+    """Fetch IG account activity log. Unlike /history/transactions, each activity row
+    carries the ORIGINAL opening dealId (shared between OPEN and CLOSE activities for
+    the same position), so we can match by it directly."""
+    now_utc = datetime.now(timezone.utc)
+    from_utc = now_utc - timedelta(hours=max(int(lookback_hours), 1))
+    from_str = from_utc.strftime("%Y-%m-%dT%H:%M:%S")
+    to_str = now_utc.strftime("%Y-%m-%dT%H:%M:%S")
+    rows: list[dict[str, Any]] = []
+
+    # v3 endpoint with detailed=true exposes details.level / details.dealReference
+    try:
+        response = _request_with_reauth(
+            service,
+            "GET",
+            "/history/activity",
+            params={"from": from_str, "to": to_str, "detailed": "true", "pageSize": 500},
+            version="3",
+        )
+        body = dict(response.get("body") or {})
+        activities = body.get("activities")
+        if isinstance(activities, list):
+            rows.extend([row for row in activities if isinstance(row, dict)])
+    except Exception:
+        pass
+
+    # Legacy v1 fallback
+    if not rows:
+        try:
+            response = _request_with_reauth(
+                service,
+                "GET",
+                f"/history/activity/{from_str}/{to_str}",
+                version="1",
+            )
+            body = dict(response.get("body") or {})
+            activities = body.get("activities")
+            if isinstance(activities, list):
+                rows.extend([row for row in activities if isinstance(row, dict)])
+        except Exception:
+            pass
+
+    return rows
+
+
 def get_closed_trade_by_deal_id(service: IGService, deal_id: str, *, lookback_hours: int = 72) -> Optional[dict[str, Any]]:
     wanted = str(deal_id or "").strip()
     if not wanted:
         return None
-    rows = _fetch_recent_transactions(service, lookback_hours=lookback_hours)
-    if not rows:
-        return None
 
-    matched: list[dict[str, Any]] = []
-    for row in rows:
-        row_deal = str(row.get("dealId") or row.get("reference") or "").strip()
+    # --- Primary: /history/activity (matches by original opening dealId) ---
+    activities = _fetch_recent_activities(service, lookback_hours=lookback_hours)
+    matched_activities: list[dict[str, Any]] = []
+    for row in activities:
+        row_deal = str(row.get("dealId") or "").strip()
         if not row_deal:
-            continue
-        if row_deal == wanted or wanted in row_deal or row_deal in wanted:
-            matched.append(row)
+            details = row.get("details") if isinstance(row.get("details"), dict) else {}
+            row_deal = str(details.get("dealId") or "").strip() if details else ""
+        if row_deal == wanted:
+            matched_activities.append(row)
 
-    if not matched:
+    close_activity: Optional[dict[str, Any]] = None
+    close_ref: Optional[str] = None
+    if matched_activities:
+        def _row_dt(item: dict[str, Any]) -> datetime:
+            dt = _parse_ig_datetime(item.get("date") or item.get("dateUtc"))
+            return dt if dt is not None else datetime.fromtimestamp(0, tz=timezone.utc)
+
+        # Prefer rows representing the CLOSE (status CLOSED or description containing 'closed')
+        def _is_close(item: dict[str, Any]) -> bool:
+            status = str(item.get("status") or "").upper()
+            if status in {"CLOSED", "DELETED"}:
+                return True
+            desc = str(item.get("description") or "").lower()
+            return "closed" in desc or "stop" in desc or "limit" in desc
+        closes = [r for r in matched_activities if _is_close(r)]
+        pool = closes if closes else matched_activities
+        pool.sort(key=_row_dt, reverse=True)
+        close_activity = pool[0]
+        details = close_activity.get("details") if isinstance(close_activity.get("details"), dict) else {}
+        close_ref = str((details or {}).get("dealReference") or close_activity.get("dealReference") or "").strip() or None
+
+    # --- Secondary: /history/transactions for PnL ---
+    tx_rows = _fetch_recent_transactions(service, lookback_hours=lookback_hours)
+    matched_tx: list[dict[str, Any]] = []
+    for row in tx_rows:
+        row_ref = str(row.get("reference") or "").strip()
+        row_deal = str(row.get("dealId") or "").strip()
+        if (close_ref and (row_ref == close_ref or row_deal == close_ref)) or row_deal == wanted or row_ref == wanted:
+            matched_tx.append(row)
+
+    tx_row: Optional[dict[str, Any]] = None
+    if matched_tx:
+        def _tx_dt(item: dict[str, Any]) -> datetime:
+            dt = _parse_ig_datetime(item.get("date") or item.get("dateUtc"))
+            return dt if dt is not None else datetime.fromtimestamp(0, tz=timezone.utc)
+        matched_tx.sort(key=_tx_dt, reverse=True)
+        tx_row = matched_tx[0]
+
+    if close_activity is None and tx_row is None:
         return None
 
-    def _row_dt(item: dict[str, Any]) -> datetime:
-        dt = _parse_ig_datetime(item.get("date") or item.get("dateUtc") or item.get("timestamp"))
-        return dt if dt is not None else datetime.fromtimestamp(0, tz=timezone.utc)
+    # Build result preferring activity for time/price, transaction for PnL/reason
+    exit_dt: Optional[datetime] = None
+    exit_price: Optional[float] = None
+    reason: Optional[str] = None
+    pnl: Optional[float] = None
 
-    matched.sort(key=_row_dt, reverse=True)
-    row = matched[0]
-    exit_dt = _parse_ig_datetime(row.get("date") or row.get("dateUtc") or row.get("timestamp"))
-    exit_price = _safe_float(row.get("closeLevel"))
-    if exit_price is None:
-        exit_price = _safe_float(row.get("level"))
-    if exit_price is None:
-        exit_price = _safe_float(row.get("price"))
+    if close_activity is not None:
+        exit_dt = _parse_ig_datetime(close_activity.get("date") or close_activity.get("dateUtc"))
+        details = close_activity.get("details") if isinstance(close_activity.get("details"), dict) else {}
+        if details:
+            exit_price = _safe_float(details.get("level"))
+        reason = str(close_activity.get("description") or close_activity.get("status") or "") or None
 
-    reason = str(row.get("transactionType") or row.get("type") or row.get("channel") or "")
-    pnl = _safe_float(row.get("profitAndLoss"))
+    if tx_row is not None:
+        if exit_dt is None:
+            exit_dt = _parse_ig_datetime(tx_row.get("date") or tx_row.get("dateUtc"))
+        if exit_price is None:
+            exit_price = _safe_float(tx_row.get("closeLevel")) or _safe_float(tx_row.get("level")) or _safe_float(tx_row.get("price"))
+        pnl = _safe_float(tx_row.get("profitAndLoss"))
+        if not reason:
+            reason = str(tx_row.get("transactionType") or tx_row.get("type") or "") or None
 
     return {
         "deal_id": wanted,
         "exit_time": exit_dt.isoformat() if exit_dt is not None else None,
         "exit_price": exit_price,
-        "reason": reason or None,
+        "reason": reason,
         "pnl": pnl,
-        "raw": row,
+        "raw": {"activity": close_activity, "transaction": tx_row},
     }
 
 # Main Execution

@@ -11,7 +11,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from config.v13_config import WF_CONFIG
-from backtest import simulate_v13_core
+from backtest_core import simulate_v13_core
 from xgboost_filter_model.train_filter_v13_wf_image import prepare_data_v13
 from xgboost_filter_model.train_directional_model_v2 import add_directional_features
 from xgboost_filter_model.train_directional_model_v3 import add_ma_features

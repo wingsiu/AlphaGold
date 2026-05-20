@@ -8,6 +8,7 @@ from xgboost import XGBClassifier
 from sklearn.metrics import classification_report
 from datetime import timedelta
 from zoneinfo import ZoneInfo
+from config.v13_config import WF_CONFIG
 
 # Add project root to sys.path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -43,11 +44,11 @@ def prepare_stage2_data(start_date="2020-01-01", end_date="2026-05-10"):
     return df
 
 def train_stage2_wf():
-    # 1. Config
-    FULL_START = "2020-01-01"
-    WF_START = "2025-01-01"
-    WF_END = "2026-05-10"
-    RETRAIN_DAYS = 14
+    # 1. Config (match filter model exactly)
+    FULL_START = WF_CONFIG["full_start"]
+    WF_START = WF_CONFIG["wf_start"]
+    WF_END = WF_CONFIG["wf_end"]
+    RETRAIN_DAYS = WF_CONFIG["retrain_days"]
 
     # Load filter model (to simulate real-world usage where only Stage 1 Trends are passed to Stage 2)
     filter_model_path = PROJECT_ROOT / "xgboost_filter_model" / "filter_model_v13_wf_image.joblib"
@@ -83,8 +84,17 @@ def train_stage2_wf():
         'rsi_14', 'rsi_30', 'macd', 'macd_signal', 'macd_diff', 'roc_15', 'roc_30', 'roc_60'
     ]]
 
-    current_test_start = pd.to_datetime(WF_START).tz_localize('UTC')
-    end_dt = pd.to_datetime(WF_END).tz_localize('UTC')
+    current_test_start = pd.to_datetime(WF_START)
+    end_dt = pd.to_datetime(WF_END)
+    # Robust timezone handling: localize if naive, convert if tz-aware
+    if current_test_start.tzinfo is None:
+        current_test_start = current_test_start.tz_localize('UTC')
+    else:
+        current_test_start = current_test_start.tz_convert('UTC')
+    if end_dt.tzinfo is None:
+        end_dt = end_dt.tz_localize('UTC')
+    else:
+        end_dt = end_dt.tz_convert('UTC')
 
     all_oos_preds = []
     all_oos_actuals = []

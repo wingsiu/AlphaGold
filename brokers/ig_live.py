@@ -28,6 +28,8 @@ class IGLiveBrokerAdapter:
 	):
 		self.service = service
 		self.instrument = instrument
+		# Both SL and TP are now absolute point distances to match backtest semantics
+		# (EXECUTION_CONFIG['sl'] and EXECUTION_CONFIG['tp']).
 		self.stop_loss_pct = float(stop_loss_pct)
 		# short stop defaults to stop_loss_pct if not provided
 		self.short_stop_loss_pct = float(short_stop_loss_pct) if short_stop_loss_pct is not None else self.stop_loss_pct
@@ -48,10 +50,10 @@ class IGLiveBrokerAdapter:
 			)
 
 		entry_price = float(request.entry_price)
-		# stop_loss_pct / short_stop_loss_pct are absolute point distances (e.g. 15 = 15 pts)
-		# take_profit_pct is % of entry price (e.g. 0.80 = 0.8%)
+		# All three are absolute point distances (e.g. 25 = 25 pts, 40 = 40 pts).
+		# Matches backtest's EXECUTION_CONFIG['sl'] / EXECUTION_CONFIG['tp'] semantics.
 		stop_distance = self.stop_loss_pct if direction == "BUY" else self.short_stop_loss_pct
-		limit_distance = abs(entry_price) * (self.take_profit_pct / 100.0)
+		limit_distance = self.take_profit_pct
 
 		try:
 			result = place_otc_market_order(

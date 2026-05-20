@@ -2,6 +2,37 @@
 
 ---
 
+## 🚨 2026-05-19 — Walk-Forward Model Alignment & Debugging Summary
+
+### Key Findings & Issues (2026-05)
+
+- **Directional model walk-forward cycles were NOT aligned with filter model cycles.**
+  - Directional retrain script used a different anchor/start date and cycle logic than the filter model, causing cycle dates to drift (not always on Friday, not matching filter model exactly).
+- **Backtest.py always used the correct cycle logic, but directional model files were misaligned.**
+  - This led to confusion and mismatches between filter and directional model usage in both backtest and live bot.
+- **WF directional model files were present, but their dates/cycles did not match the filter model.**
+  - This made true 1:1 model alignment and validation impossible.
+- **Root cause:** The filter model retrain script used config-driven Friday anchoring (from WF_CONFIG), but the directional script had hardcoded or mismatched dates.
+
+### Actions Taken
+
+1. **Audited all model selection and retrain logic in backtest.py and both training scripts.**
+2. **Patched train_stage2_v13_directional.py to use WF_CONFIG for anchor/start/end/retrain_days, exactly matching the filter model.**
+3. **Fully retrained all walk-forward directional models with correct cycle dates (Friday anchor, config-driven).**
+4. **Rolled back any temporary backtest.py hacks—backtest now expects both models to be perfectly aligned by cycle/date.**
+5. **Validated that new directional model files are now named and dated identically to filter model cycles.**
+
+### Lessons Learned
+
+- **ALWAYS use config-driven cycle anchor and retrain interval for all walk-forward models.**
+- **Never hardcode retrain dates or cycle logic in individual scripts.**
+- **Validate model file alignment by both filename and file content (hash) after retrain.**
+- **Document all changes and root causes in README for future reference.**
+
+---
+
+---
+
 ## 🗓️ Last Updated: 2026-05-15
 
 ---

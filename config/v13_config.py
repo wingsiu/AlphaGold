@@ -59,6 +59,9 @@ EXECUTION_CONFIG = {
 WF_CONFIG = {
     "retrain_days": 14,
     "full_start": "2020-01-01",
-    "wf_start": "2025-01-01",
-    "wf_end": _date.today().strftime("%Y-%m-%d")   # auto-updates to today
+    # Align to first Friday after 2025-01-01 at 17:00 NY time (UTC: 22:00)
+    "wf_start": "2025-01-03T22:00:00Z",  # 2025-01-03 is a Friday
+    "feature_warmup_days": 120,
+    "wf_end": _date.today().strftime("%Y-%m-%d"),   # auto-updates to today
+    "model_output_dir": "runtime/bot_assets/wf_models_v13"
 }
