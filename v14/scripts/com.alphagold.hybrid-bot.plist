@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.alphagold.hybrid-bot</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/alpha/Desktop/python/AlphaGold/.venv/bin/python3</string>
+        <string>/Users/alpha/Desktop/python/AlphaGold/trading_bot_hybrid_v14.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/alpha/Desktop/python/AlphaGold</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/Users/alpha/Desktop/python/AlphaGold/runtime/launchd_hybrid_bot.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/alpha/Desktop/python/AlphaGold/runtime/launchd_hybrid_bot.err</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+</dict>
+</plist>

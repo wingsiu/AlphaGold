@@ -11,7 +11,6 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import joblib
-import ta
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
@@ -28,28 +27,7 @@ from xgboost_filter_model.train_directional_model_v2 import add_directional_feat
 from xgboost_filter_model.train_directional_model_v3 import add_ma_features
 from xgboost_filter_model.train_directional_model_v4 import redefine_directional_target
 
-def add_momentum_features(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Adds momentum indicators: RSI, MACD, ROC.
-    """
-    print("Adding momentum features (RSI, MACD, ROC)...")
-    df_new = df.copy()
-
-    # RSI
-    for w in [14, 30]:
-        df_new[f'rsi_{w}'] = ta.momentum.RSIIndicator(df_new['close'], window=w).rsi()
-
-    # MACD
-    macd = ta.trend.MACD(df_new['close'])
-    df_new['macd'] = macd.macd()
-    df_new['macd_signal'] = macd.macd_signal()
-    df_new['macd_diff'] = macd.macd_diff()
-
-    # ROC (Rate of Change)
-    for w in [15, 30, 60]:
-        df_new[f'roc_{w}'] = ta.momentum.ROCIndicator(df_new['close'], window=w).roc()
-
-    return df_new
+from xgboost_filter_model.momentum_features import add_momentum_features  # noqa: F401
 
 def train_directional_model_v9():
     """

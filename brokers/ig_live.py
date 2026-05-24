@@ -50,10 +50,11 @@ class IGLiveBrokerAdapter:
 			)
 
 		entry_price = float(request.entry_price)
-		# All three are absolute point distances (e.g. 25 = 25 pts, 40 = 40 pts).
-		# Matches backtest's EXECUTION_CONFIG['sl'] / EXECUTION_CONFIG['tp'] semantics.
-		stop_distance = self.stop_loss_pct if direction == "BUY" else self.short_stop_loss_pct
-		limit_distance = self.take_profit_pct
+		meta = request.metadata or {}
+		# Absolute point distances; metadata overrides defaults (pattern-specific exec).
+		default_stop = self.stop_loss_pct if direction == "BUY" else self.short_stop_loss_pct
+		stop_distance = float(meta.get("stop_distance", default_stop))
+		limit_distance = float(meta.get("limit_distance", self.take_profit_pct))
 
 		try:
 			result = place_otc_market_order(

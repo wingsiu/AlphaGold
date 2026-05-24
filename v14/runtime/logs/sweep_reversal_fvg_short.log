@@ -1,0 +1,2662 @@
+
+========================================================================
+  reversal_fvg_short sweep  |  2025-06-01 → 2026-05-23
+  min_gap (pts): [0, 1, 3, 5, 10]  |  time_max (min): [15, 20, 30, 45, 60]
+  Combined: baseline + reversal_fvg_short
+========================================================================
+
+Baseline (4 patterns)…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Skipping 15m Price Action features
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363112 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 84099 (24.43%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 7897
+  breakthrough_short  : 1276
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+
+Entry signals: 2937 (LONG=2393 SHORT=544)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 450
+  Win rate : 48.2%
+  Net PnL  : +2398.22
+  Avg/trade: +5.33
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :   11 trades  PnL=+419.4  WR=82%  avg=+38.13
+    downtrend_retrace   :   76 trades  PnL=+411.9  WR=46%  avg=+5.42
+    uptrend_retrace     :  357 trades  PnL=+1280.1  WR=47%  avg=+3.59
+
+  LONG total :  363  PnL=+1566.9  WR=48%
+  SHORT total:   87  PnL=+831.3  WR=51%
+
+  Last 10 trades (HKT):
+  04-08 08:00 LONG  pnl=-20.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 21:58 SHORT pnl=-1.39  pattern=downtrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+  BASE   450 tr  WR= 48.2%  PnL=+2398.2
+
+=== min_gap=0 — train once ===
+Training patterns (per registry feature_set — see docs/v14_2398_baseline.md)
+  current: reversal_fvg_short
+
+Loading feature matrix set=current…
+Loading data from 2020-01-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=0)...
+Redefining target with Horizon=15, TP=40.0, SL=30.0...
+Adding pattern features (set=current)…
+Pattern path: 363052 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+  Matrix: 362963 bars | 102 model features
+
+Pattern sample counts (full history):
+  uptrend_retrace     :  37964
+  downtrend_retrace   :  55383
+  breakthrough_long   :  11053
+  breakthrough_short  :   2433
+  reversal_wick_long  :      0
+  reversal_fvg_long   :  92399
+  reversal_wick_short :      0
+  reversal_fvg_short  :  55523
+
+============================================================
+  Pattern: reversal_fvg_short (short, single-stage)  →  h15_tp40_sl30
+  Features: current (102 cols)
+  Labels  : H=15 TP=40.0 SL=30.0
+  Samples : 55523 / 362963 total bars
+  Range   : 2025-05-13 07:45:00+00:00 → 2026-05-22 14:59:00+00:00
+  Target+ : 720 (1.3%)
+============================================================
+  Saved prod model -> /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v14_patterns/reversal_fvg_short/h15_tp40_sl30/filter_prod.joblib (n=27845)
+  Cycle 1 (2025-01-03): train n=0
+  Cycle 2 (2025-01-17): train n=0
+  Cycle 3 (2025-01-31): train n=0
+  Cycle 4 (2025-02-14): train n=0
+  Cycle 5 (2025-02-28): train n=0
+  Cycle 6 (2025-03-14): train n=0
+  Cycle 7 (2025-03-28): train n=0
+  Cycle 8 (2025-04-11): train n=0
+  Cycle 9 (2025-04-25): train n=0
+  Cycle 10 (2025-05-09): train n=0
+  Cycle 11 (2025-05-23): train n=1902
+  Cycle 12 (2025-06-06): train n=3822
+  Cycle 13 (2025-06-20): train n=5906
+  Cycle 14 (2025-07-04): train n=7928
+  Cycle 15 (2025-07-18): train n=10417
+  Cycle 16 (2025-08-01): train n=12397
+  Cycle 17 (2025-08-15): train n=14706
+  Cycle 18 (2025-08-29): train n=16969
+  Cycle 19 (2025-09-12): train n=18874
+  Cycle 20 (2025-09-26): train n=20793
+  Cycle 21 (2025-10-10): train n=22473
+  Cycle 22 (2025-10-24): train n=24498
+  Cycle 23 (2025-11-07): train n=26988
+  Cycle 24 (2025-11-21): train n=29045
+  Cycle 25 (2025-12-05): train n=30886
+  Cycle 26 (2025-12-19): train n=32791
+  Cycle 27 (2026-01-02): train n=34441
+  Cycle 28 (2026-01-16): train n=36525
+  Cycle 29 (2026-01-30): train n=38415
+  Cycle 30 (2026-02-13): train n=40200
+  Cycle 31 (2026-02-27): train n=42090
+  Cycle 32 (2026-03-13): train n=44415
+  Cycle 33 (2026-03-27): train n=46995
+  Cycle 34 (2026-04-10): train n=48735
+  Cycle 35 (2026-04-24): train n=50955
+  Cycle 36 (2026-05-08): train n=53339
+  Walk-forward complete for reversal_fvg_short
+  time<15 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=0)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363037 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 98928 (28.73%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 4633
+  breakthrough_short  : 879
+  reversal_fvg_short  : 18490
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2998 (LONG=2383 SHORT=615)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 458
+  Win rate : 47.4%
+  Net PnL  : +2369.91
+  Avg/trade: +5.17
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    8 trades  PnL=+310.8  WR=88%  avg=+38.85
+    downtrend_retrace   :   74 trades  PnL=+410.0  WR=47%  avg=+5.54
+    reversal_fvg_short  :   15 trades  PnL=+218.9  WR=40%  avg=+14.60
+    uptrend_retrace     :  355 trades  PnL=+1143.4  WR=46%  avg=+3.22
+
+  LONG total :  361  PnL=+1430.2  WR=47%
+  SHORT total:   97  PnL=+939.8  WR=49%
+
+  Last 10 trades (HKT):
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 22:48 SHORT pnl=+9.69  pattern=reversal_fvg_short
+  04-16 21:57 SHORT pnl=-10.44  pattern=downtrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-12 22:37 SHORT pnl=+5.59  pattern=downtrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 0 time<15  COMB  458 tr PnL=+2369.9 (Δ+8, Δ-28.3)  trial 15 tr / +218.9
+  time<20 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=0)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363037 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 104030 (30.21%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 4575
+  breakthrough_short  : 826
+  reversal_fvg_short  : 23703
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 3010 (LONG=2383 SHORT=627)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 459
+  Win rate : 47.3%
+  Net PnL  : +2334.75
+  Avg/trade: +5.09
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    8 trades  PnL=+310.8  WR=88%  avg=+38.85
+    downtrend_retrace   :   74 trades  PnL=+411.5  WR=47%  avg=+5.56
+    reversal_fvg_short  :   16 trades  PnL=+194.5  WR=38%  avg=+12.16
+    uptrend_retrace     :  355 trades  PnL=+1131.2  WR=46%  avg=+3.19
+
+  LONG total :  361  PnL=+1417.9  WR=47%
+  SHORT total:   98  PnL=+916.8  WR=49%
+
+  Last 10 trades (HKT):
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 22:48 SHORT pnl=+9.69  pattern=reversal_fvg_short
+  04-16 21:57 SHORT pnl=-10.44  pattern=downtrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-12 22:37 SHORT pnl=+5.59  pattern=downtrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 0 time<20  COMB  459 tr PnL=+2334.8 (Δ+9, Δ-63.4)  trial 16 tr / +194.5
+  time<30 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=0)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363037 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 114249 (33.18%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 4442
+  breakthrough_short  : 690
+  reversal_fvg_short  : 34191
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 3024 (LONG=2383 SHORT=641)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 462
+  Win rate : 47.4%
+  Net PnL  : +2402.80
+  Avg/trade: +5.20
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    8 trades  PnL=+310.8  WR=88%  avg=+38.85
+    downtrend_retrace   :   70 trades  PnL=+307.5  WR=46%  avg=+4.39
+    reversal_fvg_short  :   24 trades  PnL=+351.6  WR=46%  avg=+14.65
+    uptrend_retrace     :  354 trades  PnL=+1146.2  WR=46%  avg=+3.24
+
+  LONG total :  360  PnL=+1432.9  WR=47%
+  SHORT total:  102  PnL=+969.9  WR=49%
+
+  Last 10 trades (HKT):
+  04-16 21:57 SHORT pnl=-10.44  pattern=downtrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  04-21 21:08 SHORT pnl=+1.45  pattern=reversal_fvg_short
+  05-05 00:08 SHORT pnl=-9.89  pattern=reversal_fvg_short
+  05-12 22:37 SHORT pnl=+5.59  pattern=downtrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 0 time<30  COMB  462 tr PnL=+2402.8 (Δ+12, Δ+4.6)  trial 24 tr / +351.6
+  time<45 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=0)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363037 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 126651 (36.78%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 4238
+  breakthrough_short  : 573
+  reversal_fvg_short  : 46914
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 3032 (LONG=2383 SHORT=649)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 467
+  Win rate : 47.3%
+  Net PnL  : +2412.50
+  Avg/trade: +5.17
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    6 trades  PnL=+216.8  WR=83%  avg=+36.14
+    downtrend_retrace   :   70 trades  PnL=+348.3  WR=47%  avg=+4.98
+    reversal_fvg_short  :   29 trades  PnL=+389.5  WR=45%  avg=+13.43
+    uptrend_retrace     :  356 trades  PnL=+1171.1  WR=46%  avg=+3.29
+
+  LONG total :  362  PnL=+1457.9  WR=47%
+  SHORT total:  105  PnL=+954.6  WR=49%
+
+  Last 10 trades (HKT):
+  04-16 21:57 SHORT pnl=-10.44  pattern=downtrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  04-21 21:08 SHORT pnl=+1.45  pattern=reversal_fvg_short
+  05-05 00:08 SHORT pnl=-9.89  pattern=reversal_fvg_short
+  05-12 22:37 SHORT pnl=+5.59  pattern=downtrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 0 time<45  COMB  467 tr PnL=+2412.5 (Δ+17, Δ+14.3)  trial 29 tr / +389.5
+  time<60 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=0)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363037 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 136853 (39.75%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 4096
+  breakthrough_short  : 505
+  reversal_fvg_short  : 57326
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 3048 (LONG=2383 SHORT=665)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 470
+  Win rate : 47.2%
+  Net PnL  : +2448.94
+  Avg/trade: +5.21
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    5 trades  PnL=+204.5  WR=80%  avg=+40.90
+    downtrend_retrace   :   69 trades  PnL=+427.3  WR=48%  avg=+6.19
+    reversal_fvg_short  :   34 trades  PnL=+349.1  WR=44%  avg=+10.27
+    uptrend_retrace     :  356 trades  PnL=+1181.2  WR=46%  avg=+3.32
+
+  LONG total :  362  PnL=+1468.0  WR=47%
+  SHORT total:  108  PnL=+981.0  WR=48%
+
+  Last 10 trades (HKT):
+  04-16 21:57 SHORT pnl=-10.44  pattern=downtrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  04-21 21:08 SHORT pnl=+1.45  pattern=reversal_fvg_short
+  05-05 00:08 SHORT pnl=-9.89  pattern=reversal_fvg_short
+  05-12 22:37 SHORT pnl=+5.59  pattern=downtrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 0 time<60  COMB  470 tr PnL=+2448.9 (Δ+20, Δ+50.7)  trial 34 tr / +349.1
+=== min_gap=1 — train once ===
+Training patterns (per registry feature_set — see docs/v14_2398_baseline.md)
+  current: reversal_fvg_short
+
+Loading feature matrix set=current…
+Loading data from 2020-01-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=1)...
+Redefining target with Horizon=15, TP=40.0, SL=30.0...
+Adding pattern features (set=current)…
+Pattern path: 363037 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+  Matrix: 362948 bars | 102 model features
+
+Pattern sample counts (full history):
+  uptrend_retrace     :  37964
+  downtrend_retrace   :  55383
+  breakthrough_long   :  11053
+  breakthrough_short  :   2433
+  reversal_wick_long  :      0
+  reversal_fvg_long   :  67529
+  reversal_wick_short :      0
+  reversal_fvg_short  :  38659
+
+============================================================
+  Pattern: reversal_fvg_short (short, single-stage)  →  h15_tp40_sl30
+  Features: current (102 cols)
+  Labels  : H=15 TP=40.0 SL=30.0
+  Samples : 38659 / 362948 total bars
+  Range   : 2025-05-13 07:45:00+00:00 → 2026-05-22 14:59:00+00:00
+  Target+ : 683 (1.8%)
+============================================================
+  Saved prod model -> /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v14_patterns/reversal_fvg_short/h15_tp40_sl30/filter_prod.joblib (n=17345)
+  Cycle 1 (2025-01-03): train n=0
+  Cycle 2 (2025-01-17): train n=0
+  Cycle 3 (2025-01-31): train n=0
+  Cycle 4 (2025-02-14): train n=0
+  Cycle 5 (2025-02-28): train n=0
+  Cycle 6 (2025-03-14): train n=0
+  Cycle 7 (2025-03-28): train n=0
+  Cycle 8 (2025-04-11): train n=0
+  Cycle 9 (2025-04-25): train n=0
+  Cycle 10 (2025-05-09): train n=0
+  Cycle 11 (2025-05-23): train n=1422
+  Cycle 12 (2025-06-06): train n=2907
+  Cycle 13 (2025-06-20): train n=4016
+  Cycle 14 (2025-07-04): train n=5168
+  Cycle 15 (2025-07-18): train n=6412
+  Cycle 16 (2025-08-01): train n=7387
+  Cycle 17 (2025-08-15): train n=8616
+  Cycle 18 (2025-08-29): train n=9529
+  Cycle 19 (2025-09-12): train n=10639
+  Cycle 20 (2025-09-26): train n=11838
+  Cycle 21 (2025-10-10): train n=13023
+  Cycle 22 (2025-10-24): train n=14823
+  Cycle 23 (2025-11-07): train n=16653
+  Cycle 24 (2025-11-21): train n=18350
+  Cycle 25 (2025-12-05): train n=19516
+  Cycle 26 (2025-12-19): train n=20626
+  Cycle 27 (2026-01-02): train n=22006
+  Cycle 28 (2026-01-16): train n=23565
+  Cycle 29 (2026-01-30): train n=25110
+  Cycle 30 (2026-02-13): train n=26790
+  Cycle 31 (2026-02-27): train n=28230
+  Cycle 32 (2026-03-13): train n=30090
+  Cycle 33 (2026-03-27): train n=32310
+  Cycle 34 (2026-04-10): train n=33660
+  Cycle 35 (2026-04-24): train n=35145
+  Cycle 36 (2026-05-08): train n=36895
+  Walk-forward complete for reversal_fvg_short
+  time<15 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=1)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363022 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 92308 (26.81%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 5080
+  breakthrough_short  : 935
+  reversal_fvg_short  : 11367
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2990 (LONG=2386 SHORT=604)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 455
+  Win rate : 47.5%
+  Net PnL  : +2317.00
+  Avg/trade: +5.09
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    8 trades  PnL=+310.8  WR=88%  avg=+38.85
+    downtrend_retrace   :   72 trades  PnL=+271.6  WR=46%  avg=+3.77
+    reversal_fvg_short  :   14 trades  PnL=+242.1  WR=43%  avg=+17.29
+    uptrend_retrace     :  355 trades  PnL=+1205.7  WR=46%  avg=+3.40
+
+  LONG total :  361  PnL=+1492.5  WR=47%
+  SHORT total:   94  PnL=+824.5  WR=49%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 1 time<15  COMB  455 tr PnL=+2317.0 (Δ+5, Δ-81.2)  trial 14 tr / +242.1
+  time<20 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=1)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363022 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 95562 (27.75%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 5043
+  breakthrough_short  : 880
+  reversal_fvg_short  : 14713
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 3004 (LONG=2386 SHORT=618)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 455
+  Win rate : 47.3%
+  Net PnL  : +2255.82
+  Avg/trade: +4.96
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    8 trades  PnL=+310.8  WR=88%  avg=+38.85
+    downtrend_retrace   :   72 trades  PnL=+351.8  WR=46%  avg=+4.89
+    reversal_fvg_short  :   14 trades  PnL=+113.0  WR=36%  avg=+8.07
+    uptrend_retrace     :  355 trades  PnL=+1193.5  WR=46%  avg=+3.36
+
+  LONG total :  361  PnL=+1480.3  WR=47%
+  SHORT total:   94  PnL=+775.6  WR=48%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 1 time<20  COMB  455 tr PnL=+2255.8 (Δ+5, Δ-142.4)  trial 14 tr / +113.0
+  time<30 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=1)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363022 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 102060 (29.64%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 4945
+  breakthrough_short  : 765
+  reversal_fvg_short  : 21424
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 3025 (LONG=2386 SHORT=639)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 457
+  Win rate : 47.5%
+  Net PnL  : +2404.30
+  Avg/trade: +5.26
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    8 trades  PnL=+310.8  WR=88%  avg=+38.85
+    downtrend_retrace   :   69 trades  PnL=+240.3  WR=43%  avg=+3.48
+    reversal_fvg_short  :   19 trades  PnL=+372.9  WR=53%  avg=+19.63
+    uptrend_retrace     :  355 trades  PnL=+1193.5  WR=46%  avg=+3.36
+
+  LONG total :  361  PnL=+1480.3  WR=47%
+  SHORT total:   96  PnL=+924.1  WR=49%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 1 time<30  COMB  457 tr PnL=+2404.3 (Δ+7, Δ+6.1)  trial 19 tr / +372.9
+  time<45 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=1)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363022 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 110530 (32.10%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 4798
+  breakthrough_short  : 658
+  reversal_fvg_short  : 30148
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 3033 (LONG=2386 SHORT=647)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 460
+  Win rate : 47.4%
+  Net PnL  : +2380.34
+  Avg/trade: +5.17
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    6 trades  PnL=+216.8  WR=83%  avg=+36.14
+    downtrend_retrace   :   71 trades  PnL=+251.0  WR=44%  avg=+3.54
+    reversal_fvg_short  :   22 trades  PnL=+432.2  WR=55%  avg=+19.65
+    uptrend_retrace     :  355 trades  PnL=+1193.5  WR=46%  avg=+3.36
+
+  LONG total :  361  PnL=+1480.3  WR=47%
+  SHORT total:   99  PnL=+900.1  WR=48%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 1 time<45  COMB  460 tr PnL=+2380.3 (Δ+10, Δ-17.9)  trial 22 tr / +432.2
+  time<60 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=1)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363022 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 118020 (34.28%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 4675
+  breakthrough_short  : 593
+  reversal_fvg_short  : 37826
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 3045 (LONG=2386 SHORT=659)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 463
+  Win rate : 47.1%
+  Net PnL  : +2341.42
+  Avg/trade: +5.06
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    6 trades  PnL=+222.3  WR=83%  avg=+37.06
+    downtrend_retrace   :   70 trades  PnL=+243.0  WR=43%  avg=+3.47
+    reversal_fvg_short  :   26 trades  PnL=+395.9  WR=50%  avg=+15.23
+    uptrend_retrace     :  355 trades  PnL=+1193.5  WR=46%  avg=+3.36
+
+  LONG total :  361  PnL=+1480.3  WR=47%
+  SHORT total:  102  PnL=+861.2  WR=47%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 1 time<60  COMB  463 tr PnL=+2341.4 (Δ+13, Δ-56.8)  trial 26 tr / +395.9
+=== min_gap=3 — train once ===
+Training patterns (per registry feature_set — see docs/v14_2398_baseline.md)
+  current: reversal_fvg_short
+
+Loading feature matrix set=current…
+Loading data from 2020-01-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=3)...
+Redefining target with Horizon=15, TP=40.0, SL=30.0...
+Adding pattern features (set=current)…
+Pattern path: 363037 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+  Matrix: 362948 bars | 102 model features
+
+Pattern sample counts (full history):
+  uptrend_retrace     :  37964
+  downtrend_retrace   :  55383
+  breakthrough_long   :  11053
+  breakthrough_short  :   2433
+  reversal_wick_long  :      0
+  reversal_fvg_long   :  35404
+  reversal_wick_short :      0
+  reversal_fvg_short  :  20107
+
+============================================================
+  Pattern: reversal_fvg_short (short, single-stage)  →  h15_tp40_sl30
+  Features: current (102 cols)
+  Labels  : H=15 TP=40.0 SL=30.0
+  Samples : 20107 / 362948 total bars
+  Range   : 2025-05-13 12:15:00+00:00 → 2026-05-22 14:59:00+00:00
+  Target+ : 574 (2.9%)
+============================================================
+  Saved prod model -> /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v14_patterns/reversal_fvg_short/h15_tp40_sl30/filter_prod.joblib (n=6971)
+  Cycle 1 (2025-01-03): train n=0
+  Cycle 2 (2025-01-17): train n=0
+  Cycle 3 (2025-01-31): train n=0
+  Cycle 4 (2025-02-14): train n=0
+  Cycle 5 (2025-02-28): train n=0
+  Cycle 6 (2025-03-14): train n=0
+  Cycle 7 (2025-03-28): train n=0
+  Cycle 8 (2025-04-11): train n=0
+  Cycle 9 (2025-04-25): train n=0
+  Cycle 10 (2025-05-09): train n=0
+  Cycle 11 (2025-05-23): train n=569
+  Cycle 12 (2025-06-06): train n=1049
+  Cycle 13 (2025-06-20): train n=1483
+  Cycle 14 (2025-07-04): train n=1871
+  Cycle 15 (2025-07-18): train n=2275
+  Cycle 16 (2025-08-01): train n=2590
+  Cycle 17 (2025-08-15): train n=2875
+  Cycle 18 (2025-08-29): train n=3145
+  Cycle 19 (2025-09-12): train n=3400
+  Cycle 20 (2025-09-26): train n=3774
+  Cycle 21 (2025-10-10): train n=4389
+  Cycle 22 (2025-10-24): train n=5589
+  Cycle 23 (2025-11-07): train n=6504
+  Cycle 24 (2025-11-21): train n=7586
+  Cycle 25 (2025-12-05): train n=8231
+  Cycle 26 (2025-12-19): train n=8606
+  Cycle 27 (2026-01-02): train n=9476
+  Cycle 28 (2026-01-16): train n=10331
+  Cycle 29 (2026-01-30): train n=11276
+  Cycle 30 (2026-02-13): train n=12446
+  Cycle 31 (2026-02-27): train n=13301
+  Cycle 32 (2026-03-13): train n=14681
+  Cycle 33 (2026-03-27): train n=16496
+  Cycle 34 (2026-04-10): train n=17456
+  Cycle 35 (2026-04-24): train n=18221
+  Cycle 36 (2026-05-08): train n=19177
+  Walk-forward complete for reversal_fvg_short
+  time<15 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=3)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363022 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 86698 (25.18%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 5945
+  breakthrough_short  : 1013
+  reversal_fvg_short  : 4814
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2942 (LONG=2386 SHORT=556)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 448
+  Win rate : 47.5%
+  Net PnL  : +2291.69
+  Avg/trade: +5.12
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    8 trades  PnL=+310.8  WR=88%  avg=+38.85
+    downtrend_retrace   :   75 trades  PnL=+350.4  WR=45%  avg=+4.67
+    reversal_fvg_short  :    3 trades  PnL=+140.4  WR=67%  avg=+46.80
+    uptrend_retrace     :  356 trades  PnL=+1203.3  WR=46%  avg=+3.38
+
+  LONG total :  362  PnL=+1490.1  WR=47%
+  SHORT total:   86  PnL=+801.6  WR=50%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 3 time<15  COMB  448 tr PnL=+2291.7 (Δ-2, Δ-106.5)  trial 3 tr / +140.4
+  time<20 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=3)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363022 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 88061 (25.58%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 5930
+  breakthrough_short  : 965
+  reversal_fvg_short  : 6240
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2944 (LONG=2386 SHORT=558)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 449
+  Win rate : 47.4%
+  Net PnL  : +2289.65
+  Avg/trade: +5.10
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    8 trades  PnL=+310.8  WR=88%  avg=+38.85
+    downtrend_retrace   :   75 trades  PnL=+350.4  WR=45%  avg=+4.67
+    reversal_fvg_short  :    4 trades  PnL=+138.4  WR=50%  avg=+34.59
+    uptrend_retrace     :  356 trades  PnL=+1203.3  WR=46%  avg=+3.38
+
+  LONG total :  362  PnL=+1490.1  WR=47%
+  SHORT total:   87  PnL=+799.6  WR=49%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 3 time<20  COMB  449 tr PnL=+2289.7 (Δ-1, Δ-108.5)  trial 4 tr / +138.4
+  time<30 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=3)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363022 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 90760 (26.36%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 5888
+  breakthrough_short  : 867
+  reversal_fvg_short  : 9079
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2949 (LONG=2386 SHORT=563)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 450
+  Win rate : 47.6%
+  Net PnL  : +2345.70
+  Avg/trade: +5.21
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    8 trades  PnL=+310.8  WR=88%  avg=+38.85
+    downtrend_retrace   :   75 trades  PnL=+350.4  WR=45%  avg=+4.67
+    reversal_fvg_short  :    5 trades  PnL=+194.4  WR=60%  avg=+38.88
+    uptrend_retrace     :  356 trades  PnL=+1203.3  WR=46%  avg=+3.38
+
+  LONG total :  362  PnL=+1490.1  WR=47%
+  SHORT total:   88  PnL=+855.6  WR=50%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 3 time<30  COMB  450 tr PnL=+2345.7 (Δ+0, Δ-52.5)  trial 5 tr / +194.4
+  time<45 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=3)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363022 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 94476 (27.44%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 5820
+  breakthrough_short  : 777
+  reversal_fvg_short  : 12953
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2944 (LONG=2386 SHORT=558)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 456
+  Win rate : 47.8%
+  Net PnL  : +2371.05
+  Avg/trade: +5.20
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    7 trades  PnL=+241.2  WR=86%  avg=+34.46
+    downtrend_retrace   :   77 trades  PnL=+427.8  WR=47%  avg=+5.56
+    reversal_fvg_short  :    8 trades  PnL=+187.0  WR=62%  avg=+23.37
+    uptrend_retrace     :  358 trades  PnL=+1228.2  WR=46%  avg=+3.43
+
+  LONG total :  364  PnL=+1515.0  WR=47%
+  SHORT total:   92  PnL=+856.0  WR=51%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 3 time<45  COMB  456 tr PnL=+2371.1 (Δ+6, Δ-27.1)  trial 8 tr / +187.0
+  time<60 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=3)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 363022 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 98059 (28.48%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 5716
+  breakthrough_short  : 722
+  reversal_fvg_short  : 16695
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2947 (LONG=2386 SHORT=561)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 459
+  Win rate : 47.5%
+  Net PnL  : +2354.78
+  Avg/trade: +5.13
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    7 trades  PnL=+241.2  WR=86%  avg=+34.46
+    downtrend_retrace   :   77 trades  PnL=+433.7  WR=47%  avg=+5.63
+    reversal_fvg_short  :   11 trades  PnL=+164.9  WR=45%  avg=+14.99
+    uptrend_retrace     :  358 trades  PnL=+1228.2  WR=46%  avg=+3.43
+
+  LONG total :  364  PnL=+1515.0  WR=47%
+  SHORT total:   95  PnL=+839.8  WR=49%
+
+  Last 10 trades (HKT):
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 10:45 SHORT pnl=-1.67  pattern=reversal_fvg_short
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 3 time<60  COMB  459 tr PnL=+2354.8 (Δ+9, Δ-43.4)  trial 11 tr / +164.9
+=== min_gap=5 — train once ===
+Training patterns (per registry feature_set — see docs/v14_2398_baseline.md)
+  current: reversal_fvg_short
+
+Loading feature matrix set=current…
+Loading data from 2020-01-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=5)...
+Redefining target with Horizon=15, TP=40.0, SL=30.0...
+Adding pattern features (set=current)…
+Pattern path: 362588 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+  Matrix: 362499 bars | 102 model features
+
+Pattern sample counts (full history):
+  uptrend_retrace     :  37964
+  downtrend_retrace   :  55383
+  breakthrough_long   :  11049
+  breakthrough_short  :   2433
+  reversal_wick_long  :      0
+  reversal_fvg_long   :  19332
+  reversal_wick_short :      0
+  reversal_fvg_short  :  12005
+
+============================================================
+  Pattern: reversal_fvg_short (short, single-stage)  →  h15_tp40_sl30
+  Features: current (102 cols)
+  Labels  : H=15 TP=40.0 SL=30.0
+  Samples : 12005 / 362499 total bars
+  Range   : 2025-05-14 00:30:00+00:00 → 2026-05-22 14:59:00+00:00
+  Target+ : 453 (3.8%)
+============================================================
+  Saved prod model -> /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v14_patterns/reversal_fvg_short/h15_tp40_sl30/filter_prod.joblib (n=3571)
+  Cycle 1 (2025-01-03): train n=0
+  Cycle 2 (2025-01-17): train n=0
+  Cycle 3 (2025-01-31): train n=0
+  Cycle 4 (2025-02-14): train n=0
+  Cycle 5 (2025-02-28): train n=0
+  Cycle 6 (2025-03-14): train n=0
+  Cycle 7 (2025-03-28): train n=0
+  Cycle 8 (2025-04-11): train n=0
+  Cycle 9 (2025-04-25): train n=0
+  Cycle 10 (2025-05-09): train n=0
+  Cycle 11 (2025-05-23): train n=315
+  Cycle 12 (2025-06-06): train n=495
+  Cycle 13 (2025-06-20): train n=555
+  Cycle 14 (2025-07-04): train n=749
+  Cycle 15 (2025-07-18): train n=914
+  Cycle 16 (2025-08-01): train n=1124
+  Cycle 17 (2025-08-15): train n=1274
+  Cycle 18 (2025-08-29): train n=1394
+  Cycle 19 (2025-09-12): train n=1514
+  Cycle 20 (2025-09-26): train n=1694
+  Cycle 21 (2025-10-10): train n=2084
+  Cycle 22 (2025-10-24): train n=2894
+  Cycle 23 (2025-11-07): train n=3284
+  Cycle 24 (2025-11-21): train n=3856
+  Cycle 25 (2025-12-05): train n=4261
+  Cycle 26 (2025-12-19): train n=4501
+  Cycle 27 (2026-01-02): train n=5026
+  Cycle 28 (2026-01-16): train n=5326
+  Cycle 29 (2026-01-30): train n=6016
+  Cycle 30 (2026-02-13): train n=7081
+  Cycle 31 (2026-02-27): train n=7591
+  Cycle 32 (2026-03-13): train n=8431
+  Cycle 33 (2026-03-27): train n=9856
+  Cycle 34 (2026-04-10): train n=10591
+  Cycle 35 (2026-04-24): train n=10981
+  Cycle 36 (2026-05-08): train n=11495
+  Walk-forward complete for reversal_fvg_short
+  time<15 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=5)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 362573 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 84891 (24.66%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 6613
+  breakthrough_short  : 1082
+  reversal_fvg_short  : 2270
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2939 (LONG=2386 SHORT=553)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 452
+  Win rate : 47.3%
+  Net PnL  : +2206.46
+  Avg/trade: +4.88
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    9 trades  PnL=+280.8  WR=78%  avg=+31.20
+    downtrend_retrace   :   75 trades  PnL=+295.6  WR=44%  avg=+3.94
+    reversal_fvg_short  :    3 trades  PnL=+140.4  WR=67%  avg=+46.80
+    uptrend_retrace     :  359 trades  PnL=+1202.9  WR=46%  avg=+3.35
+
+  LONG total :  365  PnL=+1489.7  WR=47%
+  SHORT total:   87  PnL=+716.8  WR=48%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 5 time<15  COMB  452 tr PnL=+2206.5 (Δ+2, Δ-191.7)  trial 3 tr / +140.4
+  time<20 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=5)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 362573 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 85500 (24.83%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 6603
+  breakthrough_short  : 1053
+  reversal_fvg_short  : 2918
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2940 (LONG=2386 SHORT=554)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 452
+  Win rate : 47.3%
+  Net PnL  : +2237.56
+  Avg/trade: +4.95
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    9 trades  PnL=+280.8  WR=78%  avg=+31.20
+    downtrend_retrace   :   74 trades  PnL=+204.3  WR=43%  avg=+2.76
+    reversal_fvg_short  :    4 trades  PnL=+262.8  WR=75%  avg=+65.70
+    uptrend_retrace     :  359 trades  PnL=+1202.9  WR=46%  avg=+3.35
+
+  LONG total :  365  PnL=+1489.7  WR=47%
+  SHORT total:   87  PnL=+747.9  WR=48%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 5 time<20  COMB  452 tr PnL=+2237.6 (Δ+2, Δ-160.6)  trial 4 tr / +262.8
+  time<30 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=5)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 362573 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 86704 (25.18%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 6583
+  breakthrough_short  : 977
+  reversal_fvg_short  : 4218
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2948 (LONG=2386 SHORT=562)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 452
+  Win rate : 47.6%
+  Net PnL  : +2339.00
+  Avg/trade: +5.17
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    9 trades  PnL=+280.8  WR=78%  avg=+31.20
+    downtrend_retrace   :   74 trades  PnL=+194.7  WR=43%  avg=+2.63
+    reversal_fvg_short  :    5 trades  PnL=+358.9  WR=80%  avg=+71.77
+    uptrend_retrace     :  358 trades  PnL=+1217.9  WR=46%  avg=+3.40
+
+  LONG total :  364  PnL=+1504.7  WR=47%
+  SHORT total:   88  PnL=+834.3  WR=49%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 5 time<30  COMB  452 tr PnL=+2339.0 (Δ+2, Δ-59.2)  trial 5 tr / +358.9
+  time<45 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=5)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 362573 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 88338 (25.66%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 6545
+  breakthrough_short  : 897
+  reversal_fvg_short  : 5970
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2947 (LONG=2386 SHORT=561)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 456
+  Win rate : 47.6%
+  Net PnL  : +2341.12
+  Avg/trade: +5.13
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    8 trades  PnL=+211.2  WR=75%  avg=+26.41
+    downtrend_retrace   :   77 trades  PnL=+286.1  WR=44%  avg=+3.72
+    reversal_fvg_short  :    8 trades  PnL=+324.1  WR=62%  avg=+40.51
+    uptrend_retrace     :  357 trades  PnL=+1232.9  WR=46%  avg=+3.45
+
+  LONG total :  363  PnL=+1519.7  WR=47%
+  SHORT total:   93  PnL=+821.4  WR=48%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 5 time<45  COMB  456 tr PnL=+2341.1 (Δ+6, Δ-57.1)  trial 8 tr / +324.1
+  time<60 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=5)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 362573 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 89922 (26.12%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 6471
+  breakthrough_short  : 851
+  reversal_fvg_short  : 7674
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2951 (LONG=2386 SHORT=565)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 456
+  Win rate : 47.6%
+  Net PnL  : +2325.02
+  Avg/trade: +5.10
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :    8 trades  PnL=+211.2  WR=75%  avg=+26.41
+    downtrend_retrace   :   76 trades  PnL=+278.0  WR=43%  avg=+3.66
+    reversal_fvg_short  :    9 trades  PnL=+316.0  WR=67%  avg=+35.11
+    uptrend_retrace     :  357 trades  PnL=+1232.9  WR=46%  avg=+3.45
+
+  LONG total :  363  PnL=+1519.7  WR=47%
+  SHORT total:   93  PnL=+805.3  WR=48%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap= 5 time<60  COMB  456 tr PnL=+2325.0 (Δ+6, Δ-73.2)  trial 9 tr / +316.0
+=== min_gap=10 — train once ===
+Training patterns (per registry feature_set — see docs/v14_2398_baseline.md)
+  current: reversal_fvg_short
+
+Loading feature matrix set=current…
+Loading data from 2020-01-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=10)...
+Redefining target with Horizon=15, TP=40.0, SL=30.0...
+Adding pattern features (set=current)…
+Pattern path: 355597 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+  Matrix: 355508 bars | 102 model features
+
+Pattern sample counts (full history):
+  uptrend_retrace     :  37890
+  downtrend_retrace   :  54776
+  breakthrough_long   :  10937
+  breakthrough_short  :   2427
+  reversal_wick_long  :      0
+  reversal_fvg_long   :   6179
+  reversal_wick_short :      0
+  reversal_fvg_short  :   4260
+
+============================================================
+  Pattern: reversal_fvg_short (short, single-stage)  →  h15_tp40_sl30
+  Features: current (102 cols)
+  Labels  : H=15 TP=40.0 SL=30.0
+  Samples : 4260 / 355508 total bars
+  Range   : 2025-05-22 14:15:00+00:00 → 2026-05-20 03:29:00+00:00
+  Target+ : 301 (7.1%)
+============================================================
+  Saved prod model -> /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v14_patterns/reversal_fvg_short/h15_tp40_sl30/filter_prod.joblib (n=1050)
+  Cycle 1 (2025-01-03): train n=0
+  Cycle 2 (2025-01-17): train n=0
+  Cycle 3 (2025-01-31): train n=0
+  Cycle 4 (2025-02-14): train n=0
+  Cycle 5 (2025-02-28): train n=0
+  Cycle 6 (2025-03-14): train n=0
+  Cycle 7 (2025-03-28): train n=0
+  Cycle 8 (2025-04-11): train n=0
+  Cycle 9 (2025-04-25): train n=0
+  Cycle 10 (2025-05-09): train n=0
+  Cycle 11 (2025-05-23): train n=30
+  Cycle 12 (2025-06-06): train n=60
+  Cycle 13 (2025-06-20): train n=90
+  Cycle 14 (2025-07-04): train n=120
+  Cycle 15 (2025-07-18): train n=150
+  Cycle 16 (2025-08-01): train n=210
+  Cycle 17 (2025-08-15): train n=240
+  Cycle 18 (2025-08-29): train n=240
+  Cycle 19 (2025-09-12): train n=240
+  Cycle 20 (2025-09-26): train n=300
+  Cycle 21 (2025-10-10): train n=420
+  Cycle 22 (2025-10-24): train n=825
+  Cycle 23 (2025-11-07): train n=855
+  Cycle 24 (2025-11-21): train n=1170
+  Cycle 25 (2025-12-05): train n=1260
+  Cycle 26 (2025-12-19): train n=1380
+  Cycle 27 (2026-01-02): train n=1560
+  Cycle 28 (2026-01-16): train n=1650
+  Cycle 29 (2026-01-30): train n=1980
+  Cycle 30 (2026-02-13): train n=2490
+  Cycle 31 (2026-02-27): train n=2655
+  Cycle 32 (2026-03-13): train n=3015
+  Cycle 33 (2026-03-27): train n=3690
+  Cycle 34 (2026-04-10): train n=3900
+  Cycle 35 (2026-04-24): train n=4020
+  Cycle 36 (2026-05-08): train n=4140
+  Walk-forward complete for reversal_fvg_short
+  time<15 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=10)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 355582 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 83914 (24.37%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 7266
+  breakthrough_short  : 1162
+  reversal_fvg_short  : 560
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2929 (LONG=2386 SHORT=543)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 451
+  Win rate : 48.1%
+  Net PnL  : +2381.67
+  Avg/trade: +5.28
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :   10 trades  PnL=+328.5  WR=80%  avg=+32.85
+    downtrend_retrace   :   75 trades  PnL=+352.5  WR=45%  avg=+4.70
+    reversal_fvg_short  :    2 trades  PnL=+143.8  WR=100%  avg=+71.88
+    uptrend_retrace     :  358 trades  PnL=+1270.1  WR=47%  avg=+3.55
+
+  LONG total :  364  PnL=+1556.9  WR=48%
+  SHORT total:   87  PnL=+824.8  WR=51%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap=10 time<15  COMB  451 tr PnL=+2381.7 (Δ+1, Δ-16.5)  trial 2 tr / +143.8
+  time<20 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=10)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 355582 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 84025 (24.40%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 7266
+  breakthrough_short  : 1140
+  reversal_fvg_short  : 693
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2931 (LONG=2386 SHORT=545)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 451
+  Win rate : 48.1%
+  Net PnL  : +2412.77
+  Avg/trade: +5.35
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :   10 trades  PnL=+328.5  WR=80%  avg=+32.85
+    downtrend_retrace   :   74 trades  PnL=+261.2  WR=45%  avg=+3.53
+    reversal_fvg_short  :    3 trades  PnL=+266.2  WR=100%  avg=+88.72
+    uptrend_retrace     :  358 trades  PnL=+1270.1  WR=47%  avg=+3.55
+
+  LONG total :  364  PnL=+1556.9  WR=48%
+  SHORT total:   87  PnL=+855.9  WR=51%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap=10 time<20  COMB  451 tr PnL=+2412.8 (Δ+1, Δ+14.6)  trial 3 tr / +266.2
+  time<30 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=10)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 355582 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 84238 (24.47%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 7266
+  breakthrough_short  : 1097
+  reversal_fvg_short  : 949
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2939 (LONG=2386 SHORT=553)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 451
+  Win rate : 48.3%
+  Net PnL  : +2522.79
+  Avg/trade: +5.59
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :   10 trades  PnL=+328.5  WR=80%  avg=+32.85
+    downtrend_retrace   :   74 trades  PnL=+261.2  WR=45%  avg=+3.53
+    reversal_fvg_short  :    4 trades  PnL=+361.2  WR=100%  avg=+90.29
+    uptrend_retrace     :  357 trades  PnL=+1285.1  WR=47%  avg=+3.60
+
+  LONG total :  363  PnL=+1571.9  WR=48%
+  SHORT total:   88  PnL=+950.9  WR=51%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap=10 time<30  COMB  451 tr PnL=+2522.8 (Δ+1, Δ+124.6)  trial 4 tr / +361.2
+  time<45 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=10)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 355582 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 84522 (24.55%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 7263
+  breakthrough_short  : 1037
+  reversal_fvg_short  : 1296
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2936 (LONG=2386 SHORT=550)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 452
+  Win rate : 48.5%
+  Net PnL  : +2518.74
+  Avg/trade: +5.57
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :   10 trades  PnL=+328.5  WR=80%  avg=+32.85
+    downtrend_retrace   :   75 trades  PnL=+301.2  WR=45%  avg=+4.02
+    reversal_fvg_short  :    4 trades  PnL=+317.1  WR=100%  avg=+79.28
+    uptrend_retrace     :  357 trades  PnL=+1285.1  WR=47%  avg=+3.60
+
+  LONG total :  363  PnL=+1571.9  WR=48%
+  SHORT total:   89  PnL=+946.9  WR=52%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap=10 time<45  COMB  452 tr PnL=+2518.7 (Δ+2, Δ+120.5)  trial 4 tr / +317.1
+  time<60 backtest…
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg, FVG min_gap=10)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 355582 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 344307
+Pattern-routed bars: 84798 (24.63%)
+  uptrend_retrace     : 37881
+  downtrend_retrace   : 37045
+  breakthrough_long   : 7248
+  breakthrough_short  : 1011
+  reversal_fvg_short  : 1613
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Entry signals: 2936 (LONG=2386 SHORT=550)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+============================================================
+  COMBINED PATTERN BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 452
+  Win rate : 48.5%
+  Net PnL  : +2518.74
+  Avg/trade: +5.57
+  Max DD   : -229.86
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    6 trades  PnL=+286.8  WR=100%  avg=+47.79
+    breakthrough_short  :   10 trades  PnL=+328.5  WR=80%  avg=+32.85
+    downtrend_retrace   :   75 trades  PnL=+301.2  WR=45%  avg=+4.02
+    reversal_fvg_short  :    4 trades  PnL=+317.1  WR=100%  avg=+79.28
+    uptrend_retrace     :  357 trades  PnL=+1285.1  WR=47%  avg=+3.60
+
+  LONG total :  363  PnL=+1571.9  WR=48%
+  SHORT total:   89  PnL=+946.9  WR=52%
+
+  Last 10 trades (HKT):
+  04-08 08:12 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 08:22 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:00 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-08 09:20 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:05 LONG  pnl=-15.00  pattern=uptrend_retrace
+  04-17 22:22 LONG  pnl=-2.89  pattern=uptrend_retrace
+  05-15 22:15 LONG  pnl=+12.08  pattern=uptrend_retrace
+  05-18 08:36 SHORT pnl=-10.38  pattern=downtrend_retrace
+  05-19 21:36 SHORT pnl=-17.82  pattern=downtrend_retrace
+  05-20 22:38 LONG  pnl=+15.73  pattern=uptrend_retrace
+    gap=10 time<60  COMB  452 tr PnL=+2518.7 (Δ+2, Δ+120.5)  trial 4 tr / +317.1
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/sweep_reversal_fvg_short.csv
+
+Top 10 by ΔPnL:
+ min_gap  time_max  baseline_trades  baseline_pnl  combined_trades  combined_pnl  delta_trades  delta_pnl  trial_trades  trial_pnl
+      10        30              450        2398.2              451        2522.8             1      124.6             4      361.2
+      10        45              450        2398.2              452        2518.7             2      120.5             4      317.1
+      10        60              450        2398.2              452        2518.7             2      120.5             4      317.1
+       0        60              450        2398.2              470        2448.9            20       50.7            34      349.1
+      10        20              450        2398.2              451        2412.8             1       14.6             3      266.2
+       0        45              450        2398.2              467        2412.5            17       14.3            29      389.5
+       1        30              450        2398.2              457        2404.3             7        6.1            19      372.9
+       0        30              450        2398.2              462        2402.8            12        4.6            24      351.6
+      10        15              450        2398.2              451        2381.7             1      -16.5             2      143.8
+       1        45              450        2398.2              460        2380.3            10      -17.9            22      432.2
+
+Best profitable: min_gap=10 time<30 → COMB PnL=+2522.8 (Δ+124.6)

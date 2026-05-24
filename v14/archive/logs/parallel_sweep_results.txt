@@ -1,0 +1,42 @@
+Horizon,TP,SL,Trades,WinRate,NetPnL
+Combo 15/30/15 -> PnL:  | Trades:  | WinRate: 
+Combo 15/30/10 -> PnL:  | Trades:  | WinRate: 
+Combo 15/30/25 -> PnL:  | Trades:  | WinRate: 
+Combo 15/45/10 -> PnL:  | Trades:  | WinRate: 
+Combo 15/45/15 -> PnL:  | Trades:  | WinRate: 
+Combo 15/45/25 -> PnL:  | Trades:  | WinRate: 
+Combo 15/15/10 -> PnL:  | Trades:  | WinRate: 
+Combo 30/15/10 -> PnL:  | Trades:  | WinRate: 
+Combo 30/30/15 -> PnL:  | Trades:  | WinRate: 
+Combo 30/30/10 -> PnL:  | Trades:  | WinRate: 
+Combo 30/30/25 -> PnL:  | Trades:  | WinRate: 
+Combo 30/45/15 -> PnL:  | Trades:  | WinRate: 
+Combo 30/45/10 -> PnL:  | Trades:  | WinRate: 
+Combo 45/30/10 -> PnL:  | Trades:  | WinRate: 
+Combo 30/45/25 -> PnL:  | Trades:  | WinRate: 
+Combo 45/15/10 -> PnL:  | Trades:  | WinRate: 
+Combo 45/45/25 -> PnL: -802.7 | Trades: 381
+8.3 | WinRate: 42.3%
+Rate
+Rate
+Rate
+Combo 45/45/10 -> PnL: 192.9 | Trades: 475
+11.0 | WinRate: 28.0%
+Rate
+Rate
+Rate
+Combo 45/45/15 -> PnL: 293.3 | Trades: 434
+9.4 | WinRate: 37.1%
+Rate
+Rate
+Rate
+Combo 45/30/15 -> PnL: 383.9 | Trades: 1067
+14.4 | WinRate: 40.7%
+Rate
+Rate
+Rate
+Combo 45/30/25 -> PnL: -225.8 | Trades: 892
+12.1 | WinRate: 47.5%
+Rate
+Rate
+Rate

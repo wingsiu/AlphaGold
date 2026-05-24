@@ -1,0 +1,3 @@
+pass,trades,win_rate,net_pnl,blocked_cells
+baseline,1057,48.6,3125.47,0
+filtered,713,54.0,4305.01,35

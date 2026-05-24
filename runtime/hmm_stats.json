@@ -1,0 +1,26 @@
+[
+  {
+    "regime": 0,
+    "frequency_pct": 49.53703703703704,
+    "mean_return": 0.0900814034676654,
+    "volatility": 1.1185182841026524,
+    "mean_range": 2.2099600689729963,
+    "avg_duration_hours": 5.956262425447316
+  },
+  {
+    "regime": 1,
+    "frequency_pct": 41.12103174603175,
+    "mean_return": 0.2630596036539029,
+    "volatility": 2.729112266827889,
+    "mean_range": 4.837358266182409,
+    "avg_duration_hours": 3.4686192468619246
+  },
+  {
+    "regime": 2,
+    "frequency_pct": 9.341931216931217,
+    "mean_return": -1.0378447367751376,
+    "volatility": 9.05262531464954,
+    "mean_range": 12.997080988501144,
+    "avg_duration_hours": 2.3940677966101696
+  }
+]

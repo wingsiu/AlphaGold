@@ -1,0 +1,62 @@
+
+--- Labels H=15 TP=20.0 SL=15.0 ---
+Loading data from 2020-01-01 to 2026-05-23...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Skipping 15m Price Action features
+Redefining target with Horizon=15, TP=20.0, SL=15.0...
+Adding pattern features (wr_120/240, cross flags)...
+Pattern path: 363127 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+
+============================================================
+  breakthrough_long (long)  H=15 TP=20.0 SL=15.0  →  h15_tp20_sl15
+  Samples: 2721  |  Target+: 111 (4.1%)
+============================================================
+  Saved /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v14_patterns/breakthrough_long/h15_tp20_sl15/filter_prod.joblib (n=822)
+  Cycle 1 (2025-01-03): n=0
+  Cycle 2 (2025-01-17): n=0
+  Cycle 3 (2025-01-31): n=0
+  Cycle 4 (2025-02-14): n=0
+  Cycle 5 (2025-02-28): n=0
+  Cycle 6 (2025-03-14): n=0
+  Cycle 7 (2025-03-28): n=0
+  Cycle 8 (2025-04-11): n=0
+  Cycle 9 (2025-04-25): n=0
+  Cycle 10 (2025-05-09): n=0
+  Cycle 11 (2025-05-23): n=77
+  Cycle 12 (2025-06-06): n=118
+  Cycle 13 (2025-06-20): n=159
+  Cycle 14 (2025-07-04): n=175
+  Cycle 15 (2025-07-18): n=184
+  Cycle 16 (2025-08-01): n=206
+  Cycle 17 (2025-08-15): n=210
+  Cycle 18 (2025-08-29): n=220
+  Cycle 19 (2025-09-12): n=267
+  Cycle 20 (2025-09-26): n=303
+  Cycle 21 (2025-10-10): n=414
+  Cycle 22 (2025-10-24): n=616
+  Cycle 23 (2025-11-07): n=756
+  Cycle 24 (2025-11-21): n=879
+  Cycle 25 (2025-12-05): n=966
+  Cycle 26 (2025-12-19): n=1047
+  Cycle 27 (2026-01-02): n=1161
+  Cycle 28 (2026-01-16): n=1281
+  Cycle 29 (2026-01-30): n=1525
+  Cycle 30 (2026-02-13): n=1755
+  Cycle 31 (2026-02-27): n=1948
+  Cycle 32 (2026-03-13): n=2110
+  Cycle 33 (2026-03-27): n=2271
+  Cycle 34 (2026-04-10): n=2426
+  Cycle 35 (2026-04-24): n=2519
+  Cycle 36 (2026-05-08): n=2636

@@ -1,0 +1,64 @@
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_breakthrough_long_ret3.py:87: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = sig.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_breakthrough_long_ret3.py:87: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = sig.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_breakthrough_long_ret3.py:87: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = sig.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_breakthrough_long_ret3.py:87: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = sig.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_breakthrough_long_ret3.py:87: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = sig.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_breakthrough_long_ret3.py:87: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = sig.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_breakthrough_long_ret3.py:87: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = sig.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_breakthrough_long_ret3.py:87: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = sig.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_breakthrough_long_ret3.py:87: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = sig.reindex(sim.index).fillna(False)
+
+============================================================
+  Breakthrough LONG — ret_3m rally sweep
+  WR(90) > -30.0  |  ret_3m thresholds: [4, 6, 8, 10, 12, 15, 18, 20, 25]
+  Model: h60_tp30_sl20  |  Exec H=60 TP=30.0 SL=20.0
+  Period: 2025-06-01 → 2026-05-23
+============================================================
+
+Loading data…
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Skipping 15m Price Action features
+Redefining target with Horizon=60, TP=30.0, SL=20.0...
+Adding pattern features (wr_120/240, cross flags)...
+Pattern path: 363082 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Scoring with model (loose ret > 4)…
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+
+   ret   bars   tgt+   tgt%   sig   trd     WR      PnL    avg
+--------------------------------------------------------------
+     4  10854   1207  11.1%   140    75  38.7%   -285.9  -3.81
+     6   5149    777  15.1%    81    49  36.7%   -228.4  -4.66
+     8   2843    524  18.4%    50    35  31.4%   -226.0  -6.46
+    10   1676    361  21.5%    25    20  30.0%    -95.8  -4.79
+    12   1098    247  22.5%    17    14  35.7%    -61.3  -4.38
+    15    641    148  23.1%    10     8  12.5%    -95.0 -11.87
+    18    396     98  24.7%     6     4   0.0%    -65.0 -16.24
+    20    296     74  25.0%     6     4   0.0%    -65.0 -16.24
+    25    131     36  27.5%     2     1   0.0%    -20.0 -20.00
+
+Best PnL: ret_3m > 25 → 1 trades, PnL=-20.0
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/sweep_breakthrough_long_ret3.csv

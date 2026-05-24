@@ -1,0 +1,170 @@
+Loading data from 2020-01-01 to 2026-05-16...
+Loading data from 2020-01-01 to 2026-05-16...
+Data successfully loaded: 358319 rows.
+Data loaded successfully: 358319 rows.
+Features and labels prepared.
+Adding liquidity zone, recovery, and equal high/low indicators...
+Adding image model prediction features...
+Calculating image model predictions for 15705 samples...
+  Progress: 0/15705
+  Progress: 2000/15705
+  Progress: 4000/15705
+  Progress: 6000/15705
+  Progress: 8000/15705
+  Progress: 10000/15705
+  Progress: 12000/15705
+  Progress: 14000/15705
+Redefining target with Horizon=45, TP=20, SL=10...
+
+>>> WF Cycle 1: Testing 2025-01-01 to 2025-01-15
+No test data for this cycle, skipping.
+
+>>> WF Cycle 2: Testing 2025-01-15 to 2025-01-29
+No test data for this cycle, skipping.
+
+>>> WF Cycle 3: Testing 2025-01-29 to 2025-02-12
+No test data for this cycle, skipping.
+
+>>> WF Cycle 4: Testing 2025-02-12 to 2025-02-26
+No test data for this cycle, skipping.
+
+>>> WF Cycle 5: Testing 2025-02-26 to 2025-03-12
+No test data for this cycle, skipping.
+
+>>> WF Cycle 6: Testing 2025-03-12 to 2025-03-26
+No test data for this cycle, skipping.
+
+>>> WF Cycle 7: Testing 2025-03-26 to 2025-04-09
+No test data for this cycle, skipping.
+
+>>> WF Cycle 8: Testing 2025-04-09 to 2025-04-23
+No test data for this cycle, skipping.
+
+>>> WF Cycle 9: Testing 2025-04-23 to 2025-05-07
+No test data for this cycle, skipping.
+
+>>> WF Cycle 10: Testing 2025-05-07 to 2025-05-21
+Not enough trend/flat samples to train, skipping.
+
+>>> WF Cycle 11: Testing 2025-05-21 to 2025-06-04
+  Cycle 11 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_11_2025-05-21.joblib
+Cycle 11 OOS Balanced Accuracy: 0.6400
+
+>>> WF Cycle 12: Testing 2025-06-04 to 2025-06-18
+  Cycle 12 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_12_2025-06-04.joblib
+Cycle 12 OOS Balanced Accuracy: 0.5000
+
+>>> WF Cycle 13: Testing 2025-06-18 to 2025-07-02
+  Cycle 13 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_13_2025-06-18.joblib
+Cycle 13 OOS Balanced Accuracy: 0.8421
+
+>>> WF Cycle 14: Testing 2025-07-02 to 2025-07-16
+  Cycle 14 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_14_2025-07-02.joblib
+Cycle 14 OOS Balanced Accuracy: 0.4375
+
+>>> WF Cycle 15: Testing 2025-07-16 to 2025-07-30
+  Cycle 15 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_15_2025-07-16.joblib
+Cycle 15 OOS Balanced Accuracy: 0.2979
+
+>>> WF Cycle 16: Testing 2025-07-30 to 2025-08-13
+  Cycle 16 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_16_2025-07-30.joblib
+Cycle 16 OOS Balanced Accuracy: 0.5694
+
+>>> WF Cycle 17: Testing 2025-08-13 to 2025-08-27
+  Cycle 17 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_17_2025-08-13.joblib
+Cycle 17 OOS Balanced Accuracy: 0.7308
+
+>>> WF Cycle 18: Testing 2025-08-27 to 2025-09-10
+  Cycle 18 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_18_2025-08-27.joblib
+Cycle 18 OOS Balanced Accuracy: 0.7449
+
+>>> WF Cycle 19: Testing 2025-09-10 to 2025-09-24
+  Cycle 19 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_19_2025-09-10.joblib
+Cycle 19 OOS Balanced Accuracy: 0.6822
+
+>>> WF Cycle 20: Testing 2025-09-24 to 2025-10-08
+  Cycle 20 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_20_2025-09-24.joblib
+Cycle 20 OOS Balanced Accuracy: 0.7313
+
+>>> WF Cycle 21: Testing 2025-10-08 to 2025-10-22
+  Cycle 21 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_21_2025-10-08.joblib
+Cycle 21 OOS Balanced Accuracy: 0.6383
+
+>>> WF Cycle 22: Testing 2025-10-22 to 2025-11-05
+  Cycle 22 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_22_2025-10-22.joblib
+Cycle 22 OOS Balanced Accuracy: 0.5616
+
+>>> WF Cycle 23: Testing 2025-11-05 to 2025-11-19
+  Cycle 23 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_23_2025-11-05.joblib
+Cycle 23 OOS Balanced Accuracy: 0.6562
+
+>>> WF Cycle 24: Testing 2025-11-19 to 2025-12-03
+  Cycle 24 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_24_2025-11-19.joblib
+Cycle 24 OOS Balanced Accuracy: 0.5673
+
+>>> WF Cycle 25: Testing 2025-12-03 to 2025-12-17
+  Cycle 25 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_25_2025-12-03.joblib
+Cycle 25 OOS Balanced Accuracy: 0.5909
+
+>>> WF Cycle 26: Testing 2025-12-17 to 2025-12-31
+  Cycle 26 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_26_2025-12-17.joblib
+Cycle 26 OOS Balanced Accuracy: 0.6124
+
+>>> WF Cycle 27: Testing 2025-12-31 to 2026-01-14
+  Cycle 27 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_27_2025-12-31.joblib
+Cycle 27 OOS Balanced Accuracy: 0.6456
+
+>>> WF Cycle 28: Testing 2026-01-14 to 2026-01-28
+  Cycle 28 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_28_2026-01-14.joblib
+Cycle 28 OOS Balanced Accuracy: 0.5511
+
+>>> WF Cycle 29: Testing 2026-01-28 to 2026-02-11
+  Cycle 29 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_29_2026-01-28.joblib
+Cycle 29 OOS Balanced Accuracy: 0.4264
+
+>>> WF Cycle 30: Testing 2026-02-11 to 2026-02-25
+  Cycle 30 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_30_2026-02-11.joblib
+Cycle 30 OOS Balanced Accuracy: 0.5804
+
+>>> WF Cycle 31: Testing 2026-02-25 to 2026-03-11
+  Cycle 31 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_31_2026-02-25.joblib
+Cycle 31 OOS Balanced Accuracy: 0.5320
+
+>>> WF Cycle 32: Testing 2026-03-11 to 2026-03-25
+  Cycle 32 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_32_2026-03-11.joblib
+Cycle 32 OOS Balanced Accuracy: 0.5389
+
+>>> WF Cycle 33: Testing 2026-03-25 to 2026-04-08
+  Cycle 33 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_33_2026-03-25.joblib
+Cycle 33 OOS Balanced Accuracy: 0.5338
+
+>>> WF Cycle 34: Testing 2026-04-08 to 2026-04-22
+  Cycle 34 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_34_2026-04-08.joblib
+Cycle 34 OOS Balanced Accuracy: 0.5833
+
+>>> WF Cycle 35: Testing 2026-04-22 to 2026-05-06
+  Cycle 35 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_35_2026-04-22.joblib
+Cycle 35 OOS Balanced Accuracy: 0.6390
+
+>>> WF Cycle 36: Testing 2026-05-06 to 2026-05-16
+  Cycle 36 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/filter_v13_cycle_36_2026-05-06.joblib
+Cycle 36 OOS Balanced Accuracy: 0.6551
+
+==================================================
+FINISHED WALK-FORWARD VALIDATION
+==================================================
+
+--- Aggregate OOS Walk-Forward Performance ---
+              precision    recall  f1-score   support
+
+           0       0.69      0.54      0.61      9702
+           1       0.45      0.61      0.51      5956
+
+    accuracy                           0.56     15658
+   macro avg       0.57      0.57      0.56     15658
+weighted avg       0.60      0.56      0.57     15658
+
+Results saved to /Users/alpha/Desktop/python/AlphaGold/xgboost_filter_model/wf_v13_results.csv
+
+Training final production model on last window...
+Final model saved to /Users/alpha/Desktop/python/AlphaGold/xgboost_filter_model/filter_model_v13_wf_image.joblib

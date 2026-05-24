@@ -1,0 +1,3 @@
+label,trades,win_rate,net_pnl,delta_vs_none
+NONE,583,47.7,1612.4,0.0
+CANDLE15,592,45.6,627.5,-984.9000000000001

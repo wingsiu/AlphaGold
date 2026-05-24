@@ -1,0 +1,34 @@
+v10-style time filter (session heatmaps: hkt / london / ny)
+Weak-cell rule: trades>=3, pnl<0, wr<40.0%
+
+Pass 1: baseline backtest...
+  Baseline: trades=583  WR=47.7%  PnL=1612.4
+
+Blocked slots (21):
+  hkt    Monday    08:00  trades=16  pnl=-67.6  wr=31%
+  hkt    Monday    14:00  trades=12  pnl=-61.9  wr=33%
+  hkt    Tuesday   10:00  trades=5  pnl=-92.9  wr=0%
+  hkt    Tuesday   14:00  trades=3  pnl=-39.1  wr=0%
+  hkt    Wednesday 09:00  trades=7  pnl=-83.8  wr=14%
+  hkt    Thursday  13:00  trades=6  pnl=-8.6  wr=33%
+  hkt    Friday    09:00  trades=4  pnl=-66.1  wr=25%
+  london Monday    08:00  trades=3  pnl=-75.0  wr=0%
+  london Monday    11:00  trades=11  pnl=-11.4  wr=36%
+  london Monday    12:00  trades=8  pnl=-61.7  wr=25%
+  london Monday    13:00  trades=5  pnl=-9.5  wr=20%
+  london Thursday  10:00  trades=3  pnl=-57.3  wr=0%
+  london Thursday  15:00  trades=26  pnl=-129.1  wr=35%
+  london Friday    14:00  trades=11  pnl=-48.3  wr=27%
+  london Friday    15:00  trades=7  pnl=-47.3  wr=29%
+  ny     Monday    08:00  trades=10  pnl=-85.3  wr=20%
+  ny     Monday    09:00  trades=13  pnl=-120.6  wr=38%
+  ny     Monday    14:00  trades=5  pnl=-7.7  wr=20%
+  ny     Thursday  10:00  trades=34  pnl=-213.4  wr=38%
+  ny     Friday    09:00  trades=10  pnl=-69.2  wr=20%
+  ny     Friday    10:00  trades=12  pnl=-92.0  wr=25%
+
+Pass 2: backtest with time filter...
+  Filtered: trades=459  WR=52.7%  PnL=2354.3
+  Delta PnL: +741.9
+
+Saved /Users/alpha/Desktop/python/AlphaGold/time_filter_v14_results.csv and /Users/alpha/Desktop/python/AlphaGold/runtime/v14_weak_time_slots.json

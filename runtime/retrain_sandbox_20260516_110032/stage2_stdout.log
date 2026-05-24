@@ -1,0 +1,149 @@
+Preparing Stage 2 data from 2020-01-01 to 2026-05-10...
+Loading cached data from /Users/alpha/Desktop/python/AlphaGold/runtime/_tmp_cache/data_v13_2020-01-01_2026-05-10.joblib...
+Adding new directional features...
+Adding moving average features...
+Adding momentum features (RSI, MACD, ROC)...
+
+>>> Stage 2 WF Cycle 1: Testing 2025-01-01 to 2025-01-15
+No test data for this cycle, skipping.
+
+>>> Stage 2 WF Cycle 2: Testing 2025-01-15 to 2025-01-29
+No test data for this cycle, skipping.
+
+>>> Stage 2 WF Cycle 3: Testing 2025-01-29 to 2025-02-12
+No test data for this cycle, skipping.
+
+>>> Stage 2 WF Cycle 4: Testing 2025-02-12 to 2025-02-26
+No test data for this cycle, skipping.
+
+>>> Stage 2 WF Cycle 5: Testing 2025-02-26 to 2025-03-12
+No test data for this cycle, skipping.
+
+>>> Stage 2 WF Cycle 6: Testing 2025-03-12 to 2025-03-26
+No test data for this cycle, skipping.
+
+>>> Stage 2 WF Cycle 7: Testing 2025-03-26 to 2025-04-09
+No test data for this cycle, skipping.
+
+>>> Stage 2 WF Cycle 8: Testing 2025-04-09 to 2025-04-23
+No test data for this cycle, skipping.
+
+>>> Stage 2 WF Cycle 9: Testing 2025-04-23 to 2025-05-07
+No test data for this cycle, skipping.
+
+>>> Stage 2 WF Cycle 10: Testing 2025-05-07 to 2025-05-21
+No test data for this cycle, skipping.
+
+>>> Stage 2 WF Cycle 11: Testing 2025-05-21 to 2025-06-04
+Insufficient samples (Train: 0, Test: 5). Skipping cycle.
+
+>>> Stage 2 WF Cycle 12: Testing 2025-06-04 to 2025-06-18
+Insufficient samples (Train: 2, Test: 11). Skipping cycle.
+
+>>> Stage 2 WF Cycle 13: Testing 2025-06-18 to 2025-07-02
+Insufficient samples (Train: 8, Test: 1). Skipping cycle.
+
+>>> Stage 2 WF Cycle 14: Testing 2025-07-02 to 2025-07-16
+Insufficient samples (Train: 8, Test: 4). Skipping cycle.
+
+>>> Stage 2 WF Cycle 15: Testing 2025-07-16 to 2025-07-30
+Insufficient samples (Train: 10, Test: 15). Skipping cycle.
+
+>>> Stage 2 WF Cycle 16: Testing 2025-07-30 to 2025-08-13
+Insufficient samples (Train: 24, Test: 18). Skipping cycle.
+
+>>> Stage 2 WF Cycle 17: Testing 2025-08-13 to 2025-08-27
+Insufficient samples (Train: 32, Test: 9). Skipping cycle.
+
+>>> Stage 2 WF Cycle 18: Testing 2025-08-27 to 2025-09-10
+Insufficient samples (Train: 40, Test: 13). Skipping cycle.
+
+>>> Stage 2 WF Cycle 19: Testing 2025-09-10 to 2025-09-24
+Insufficient samples (Train: 43, Test: 31). Skipping cycle.
+
+>>> Stage 2 WF Cycle 20: Testing 2025-09-24 to 2025-10-08
+  Stage 2 Cycle 20 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_20_2025-09-24.joblib
+Cycle 20 Directional Accuracy (on actual Trends): 0.8333
+
+>>> Stage 2 WF Cycle 21: Testing 2025-10-08 to 2025-10-22
+  Stage 2 Cycle 21 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_21_2025-10-08.joblib
+Cycle 21 Directional Accuracy (on actual Trends): 0.5054
+
+>>> Stage 2 WF Cycle 22: Testing 2025-10-22 to 2025-11-05
+  Stage 2 Cycle 22 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_22_2025-10-22.joblib
+Cycle 22 Directional Accuracy (on actual Trends): 0.6139
+
+>>> Stage 2 WF Cycle 23: Testing 2025-11-05 to 2025-11-19
+  Stage 2 Cycle 23 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_23_2025-11-05.joblib
+Cycle 23 Directional Accuracy (on actual Trends): 0.4684
+
+>>> Stage 2 WF Cycle 24: Testing 2025-11-19 to 2025-12-03
+  Stage 2 Cycle 24 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_24_2025-11-19.joblib
+Cycle 24 Directional Accuracy (on actual Trends): 0.5750
+
+>>> Stage 2 WF Cycle 25: Testing 2025-12-03 to 2025-12-17
+  Stage 2 Cycle 25 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_25_2025-12-03.joblib
+Cycle 25 Directional Accuracy (on actual Trends): 0.6304
+
+>>> Stage 2 WF Cycle 26: Testing 2025-12-17 to 2025-12-31
+  Stage 2 Cycle 26 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_26_2025-12-17.joblib
+Cycle 26 Directional Accuracy (on actual Trends): 0.5234
+
+>>> Stage 2 WF Cycle 27: Testing 2025-12-31 to 2026-01-14
+  Stage 2 Cycle 27 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_27_2025-12-31.joblib
+Cycle 27 Directional Accuracy (on actual Trends): 0.3380
+
+>>> Stage 2 WF Cycle 28: Testing 2026-01-14 to 2026-01-28
+  Stage 2 Cycle 28 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_28_2026-01-14.joblib
+Cycle 28 Directional Accuracy (on actual Trends): 0.5961
+
+>>> Stage 2 WF Cycle 29: Testing 2026-01-28 to 2026-02-11
+  Stage 2 Cycle 29 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_29_2026-01-28.joblib
+Cycle 29 Directional Accuracy (on actual Trends): 0.6344
+
+>>> Stage 2 WF Cycle 30: Testing 2026-02-11 to 2026-02-25
+  Stage 2 Cycle 30 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_30_2026-02-11.joblib
+Cycle 30 Directional Accuracy (on actual Trends): 0.5305
+
+>>> Stage 2 WF Cycle 31: Testing 2026-02-25 to 2026-03-11
+  Stage 2 Cycle 31 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_31_2026-02-25.joblib
+Cycle 31 Directional Accuracy (on actual Trends): 0.5497
+
+>>> Stage 2 WF Cycle 32: Testing 2026-03-11 to 2026-03-25
+  Stage 2 Cycle 32 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_32_2026-03-11.joblib
+Cycle 32 Directional Accuracy (on actual Trends): 0.4849
+
+>>> Stage 2 WF Cycle 33: Testing 2026-03-25 to 2026-04-08
+  Stage 2 Cycle 33 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_33_2026-03-25.joblib
+Cycle 33 Directional Accuracy (on actual Trends): 0.5285
+
+>>> Stage 2 WF Cycle 34: Testing 2026-04-08 to 2026-04-22
+  Stage 2 Cycle 34 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_34_2026-04-08.joblib
+Cycle 34 Directional Accuracy (on actual Trends): 0.5350
+
+>>> Stage 2 WF Cycle 35: Testing 2026-04-22 to 2026-05-06
+  Stage 2 Cycle 35 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_35_2026-04-22.joblib
+Cycle 35 Directional Accuracy (on actual Trends): 0.6667
+
+>>> Stage 2 WF Cycle 36: Testing 2026-05-06 to 2026-05-10
+  Stage 2 Cycle 36 model saved to /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v13/directional_v13_cycle_36_2026-05-06.joblib
+Cycle 36 Directional Accuracy (on actual Trends): 0.5556
+
+==================================================
+FINISHED STAGE 2 WALK-FORWARD VALIDATION
+==================================================
+
+--- Aggregate Stage 2 Directional Performance (OOS) ---
+              precision    recall  f1-score   support
+
+   Down (-1)       0.56      0.51      0.54      2622
+     Up (+1)       0.52      0.57      0.54      2414
+
+    accuracy                           0.54      5036
+   macro avg       0.54      0.54      0.54      5036
+weighted avg       0.54      0.54      0.54      5036
+
+Results saved to /Users/alpha/Desktop/python/AlphaGold/xgboost_filter_model/wf_v13_stage2_results.csv
+
+Training final Stage 2 model on most recent data...
+Final Stage 2 model saved to /Users/alpha/Desktop/python/AlphaGold/xgboost_filter_model/directional_model_v13_wf.joblib

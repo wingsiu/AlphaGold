@@ -1,12 +1,20 @@
 .env
 __pycache__/
 *.pyc
+.venv/
+venv/
+.DS_Store
 
 # Runtime logs and state (never commit)
 runtime/trading_bot.log
 runtime/mock_best_base_replay.log
 runtime/trading_bot_state.json
 runtime/trading_bot_status.json
+runtime/trading_bot_hybrid_state.json
+runtime/trading_bot_hybrid_v14.log
+runtime/launchd_*.log
+runtime/launchd_*.err
+runtime/mobile/
 
 # Temp diagnostic outputs (prefixed with _)
 runtime/_*
@@ -14,6 +22,12 @@ runtime/_*
 # Backtest result directories
 runtime/_tmp_backtest_no_retrain/
 runtime/backtest_no_retrain/
+
+# Large model artifacts (retrain locally)
+runtime/bot_assets/wf_models_v14_patterns/
+v14/runtime/model_snapshots/
+v14/runtime/experiments/
+runtime/retrain_logs/
 
 # Recovery backups
 training/*.recovery_baseline_*

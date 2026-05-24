@@ -1,0 +1,117 @@
+
+============================================================
+  AlphaGold v14 Backtest
+  Period : 2026-01-01 → 2026-05-21
+  Models : Walk-Forward cycle
+============================================================
+
+Loading data from 2025-09-03 to 2026-05-21 (loader end-exclusive 2026-05-22)…
+Loading data from 2025-09-03 to 2026-05-22...
+Data successfully loaded: 252737 rows.
+Data loaded successfully: 252737 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding new directional features...
+Adding moving average features...
+Adding momentum features (RSI, MACD, ROC)...
+Energetic bars in test window: 14726
+Scoring with walk-forward cycle models…
+S1 ≥ 0.5 bars : 3865
+Entry signals        : 3550  (LONG=1090  SHORT=2460)
+Loading full 1-min bars for exit simulation…
+Loading data from 2026-01-01 to 2026-05-22...
+Data successfully loaded: 136100 rows.
+Data loaded successfully: 136100 rows.
+
+============================================================
+  BACKTEST RESULTS  |  2026-01-01 → 2026-05-21
+============================================================
+  Trades       : 594  (W:282  L:312)
+  Win Rate     : 47.5%
+  Net PnL      : 1573.9
+  Avg Trade    : 2.65
+
+  LONG :  252 trades  PnL=720.9  WR=50.8%  avg=2.86
+  SHORT:  342 trades  PnL=853.0  WR=45.0%  avg=2.49
+
+  Exit Breakdown:
+    reverse_signal    :  200  WR= 75.0%  avg=  17.71
+    stop_loss         :  203  WR=  0.0%  avg= -25.00
+    target_hit        :   64  WR=100.0%  avg=  39.95
+    timeout           :  127  WR= 53.5%  avg=   4.33
+
+  Performance Metrics:
+    Max Drawdown : -393.6
+    Profit Factor: 1.26
+    Largest Win  : +144.4
+    Largest Loss : -25.0
+============================================================
+
+
+────────────────────────────────────────────────────────────
+  LAST 30 TRADES (HKT)
+────────────────────────────────────────────────────────────
+  entry_hkt exit_hkt  dir  entry_price  exit_price    pnl    exit_reason    s1    s2
+04-08 20:25    20:37   -1      4769.67     4794.67 -25.00      stop_loss 0.548 0.242
+04-08 21:35    22:08   -1      4783.03     4780.74   2.29        timeout 0.579 0.167
+04-08 22:09    23:30   -1      4780.28     4753.82  26.46        timeout 0.559 0.095
+04-13 06:08    06:25    1      4678.58     4653.58 -25.00      stop_loss 0.540 0.817
+04-13 06:26    07:03    1      4650.73     4659.95   9.22        timeout 0.633 0.862
+04-20 06:05    06:40    1      4775.44     4783.31   7.87        timeout 0.528 0.850
+04-20 07:44    08:24   -1      4750.77     4763.11 -12.34        timeout 0.618 0.308
+04-28 19:37    20:07   -1      4581.23     4570.39  10.84        timeout 0.577 0.085
+04-28 21:32    22:36   -1      4573.00     4565.24   7.76        timeout 0.506 0.365
+04-28 22:42    23:12   -1      4564.15     4574.68 -10.53        timeout 0.531 0.131
+04-29 21:41    22:20   -1      4518.80     4533.98 -15.18        timeout 0.543 0.047
+04-30 16:06    16:36    1      4622.79     4614.76  -8.03        timeout 0.519 0.785
+05-06 16:51    17:21   -1      4695.53     4696.04  -0.51        timeout 0.525 0.370
+05-06 18:55    19:27   -1      4721.30     4710.85  10.45        timeout 0.595 0.325
+05-06 21:16    22:04   -1      4687.06     4706.08 -19.02        timeout 0.529 0.197
+05-06 22:16    22:46   -1      4717.05     4709.52   7.53        timeout 0.620 0.224
+05-11 09:01    09:31    1      4677.96     4694.37  16.41        timeout 0.567 0.574
+05-15 08:26    09:03   -1      4632.00     4626.23   5.77        timeout 0.597 0.333
+05-15 09:10    09:40    1      4609.92     4618.84   8.92        timeout 0.635 0.567
+05-15 13:19    14:29   -1      4584.39     4575.19   9.20        timeout 0.518 0.105
+05-15 21:13    22:30   -1      4544.05     4558.64 -14.59        timeout 0.521 0.058
+05-18 08:34    09:14   -1      4500.62     4496.31   4.31 reverse_signal 0.758 0.295
+05-18 09:15    09:21    1      4495.93     4498.95   3.02 reverse_signal 0.671 0.570
+05-18 09:22    09:28   -1      4498.89     4503.71  -4.82 reverse_signal 0.629 0.402
+05-18 09:29    09:51    1      4503.76     4533.76  30.00     target_hit 0.510 0.574
+05-19 21:08    21:31   -1      4516.96     4470.94  46.02 reverse_signal 0.525 0.193
+05-19 21:32    21:55    1      4471.12     4508.22  37.10 reverse_signal 0.735 0.851
+05-19 21:56    22:51   -1      4508.37     4492.16  16.21        timeout 0.506 0.062
+05-20 09:30    09:36    1      4473.80     4460.54 -13.26 reverse_signal 0.523 0.583
+05-20 09:37    09:50   -1      4460.40     4485.40 -25.00      stop_loss 0.731 0.283
+
+────────────────────────────────────────────────────────────
+  LAST 20 S1 SIGNAL BARS (HKT)
+────────────────────────────────────────────────────────────
+   time_hkt   close    s1    s2   dir
+05-18 09:28 4503.46 0.510 0.574  LONG
+05-19 21:07 4517.26 0.525 0.193 SHORT
+05-19 21:23 4505.25 0.564 0.127 SHORT
+05-19 21:28 4498.13 0.561 0.169 SHORT
+05-19 21:29 4492.48 0.630 0.199 SHORT
+05-19 21:31 4470.69 0.735 0.851  LONG
+05-19 21:32 4482.90 0.558 0.688  LONG
+05-19 21:36 4482.98 0.537 0.664  LONG
+05-19 21:55 4508.47 0.506 0.062 SHORT
+05-19 21:57 4502.95 0.514 0.070 SHORT
+05-19 21:58 4508.07 0.532 0.065 SHORT
+05-19 21:59 4503.43 0.528 0.086 SHORT
+05-19 22:00 4498.26 0.536 0.113 SHORT
+05-19 22:07 4497.25 0.517 0.168 SHORT
+05-19 22:10 4499.47 0.514 0.122 SHORT
+05-19 22:21 4485.68 0.551 0.301 SHORT
+05-20 09:29 4473.58 0.523 0.583  LONG
+05-20 09:34 4473.21 0.632 0.659  LONG
+05-20 09:36 4460.79 0.731 0.283 SHORT
+05-20 09:38 4466.88 0.550 0.288 SHORT

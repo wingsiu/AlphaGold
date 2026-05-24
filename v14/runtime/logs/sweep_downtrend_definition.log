@@ -1,0 +1,309 @@
+=== Sat May 23 03:24:30 UTC 2026 downtrend fall/bounce sweep (H=60 TP=30 SL=25) ===
+
+--- Labels H=60 TP=30.0 SL=25.0 ---
+Loading data from 2020-01-01 to 2026-05-23...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Skipping 15m Price Action features
+Redefining target with Horizon=60, TP=30.0, SL=25.0...
+Adding pattern features (wr_120/240, cross flags)...
+Pattern path: 363082 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+
+============================================================
+  downtrend_retrace (short)  H=60 TP=30.0 SL=25.0  →  h60_tp30_sl25
+  Samples: 28295  |  Target+: 5632 (19.9%)
+============================================================
+  Saved /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v14_patterns/downtrend_retrace/h60_tp30_sl25/filter_prod.joblib (n=4397)
+  Cycle 1 (2025-01-03): n=0
+  Cycle 2 (2025-01-17): n=0
+  Cycle 3 (2025-01-31): n=0
+  Cycle 4 (2025-02-14): n=0
+  Cycle 5 (2025-02-28): n=0
+  Cycle 6 (2025-03-14): n=0
+  Cycle 7 (2025-03-28): n=0
+  Cycle 8 (2025-04-11): n=0
+  Cycle 9 (2025-04-25): n=0
+  Cycle 10 (2025-05-09): n=0
+  Cycle 11 (2025-05-23): n=150
+  Cycle 12 (2025-06-06): n=287
+  Cycle 13 (2025-06-20): n=287
+  Cycle 14 (2025-07-04): n=299
+  Cycle 15 (2025-07-18): n=301
+  Cycle 16 (2025-08-01): n=301
+  Cycle 17 (2025-08-15): n=301
+  Cycle 18 (2025-08-29): n=301
+  Cycle 19 (2025-09-12): n=332
+  Cycle 20 (2025-09-26): n=518
+  Cycle 21 (2025-10-10): n=1092
+  Cycle 22 (2025-10-24): n=3002
+  Cycle 23 (2025-11-07): n=3956
+  Cycle 24 (2025-11-21): n=4858
+  Cycle 25 (2025-12-05): n=5178
+  Cycle 26 (2025-12-19): n=5560
+  Cycle 27 (2026-01-02): n=6491
+  Cycle 28 (2026-01-16): n=6625
+  Cycle 29 (2026-01-30): n=9608
+  Cycle 30 (2026-02-13): n=14150
+  Cycle 31 (2026-02-27): n=15454
+  Cycle 32 (2026-03-13): n=18698
+  Cycle 33 (2026-03-27): n=23325
+  Cycle 34 (2026-04-10): n=25738
+  Cycle 35 (2026-04-24): n=26582
+  Cycle 36 (2026-05-08): n=27450
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+/Users/alpha/Desktop/python/AlphaGold/sweep_pattern_downtrend_definition.py:89: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  fired = pat.reindex(sim.index).fillna(False)
+
+============================================================
+  Downtrend retrace DEFINITION sweep
+  Fall (from 240m high): [15, 20, 25, 30, 35, 40, 45, 50]
+  Bounce (from 240m low): [5, 8, 10, 12, 15, 20, 25, 30]
+  Model: h60_tp30_sl25  |  Exec H=60 TP=30.0 SL=25.0
+  Period: 2025-06-01 → 2026-05-23
+============================================================
+
+Loading data from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Skipping 15m Price Action features
+Redefining target with Horizon=60, TP=30.0, SL=25.0...
+Adding pattern features (wr_120/240, cross flags)...
+Pattern path: 363082 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Loading data from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 345423 rows.
+Data loaded successfully: 345423 rows.
+Scoring model…
+
+ Fall   Bnc | PatBars   Sigs Trades    WR%    NetPnL     Avg
+--------------------------------------------------------------
+   15     5 |   97437   6889    327  41.0%   +374.68   +1.15
+   15     8 |   86145   6666    326  40.8%   +242.18   +0.74
+   15    10 |   77937   6470    321  41.7%   +205.61   +0.64
+   15    12 |   69960   6230    309  42.1%   +200.68   +0.65
+   15    15 |   59425   5946    289  40.5%     -8.02   -0.03
+   15    20 |   45537   5565    272  39.7%   -119.18   -0.44
+   15    25 |   36198   5178    253  40.7%   -101.00   -0.40
+   15    30 |   28431   4838    239  40.2%    -47.57   -0.20
+   20     5 |   72470   6197    300  39.3%   +341.58   +1.14
+   20     8 |   64665   5975    298  38.9%   +228.82   +0.77
+   20    10 |   58571   5789    296  39.9%   +227.90   +0.77
+   20    12 |   52645   5565    286  40.2%   +190.11   +0.66
+   20    15 |   44771   5306    268  39.2%    +29.10   +0.11
+   20    20 |   34629   4945    246  38.2%   -104.76   -0.43
+   20    25 |   27889   4591    223  40.4%    +12.12   +0.05
+   20    30 |   22228   4271    204  39.7%    +75.35   +0.37
+   25     5 |   54441   5503    281  41.6%   +520.97   +1.85
+   25     8 |   48913   5302    277  41.2%   +418.81   +1.51
+   25    10 |   44580   5146    276  42.4%   +404.07   +1.46
+   25    12 |   40416   4949    260  42.7%   +409.44   +1.57
+   25    15 |   34981   4712    240  39.6%   +127.39   +0.53
+   25    20 |   27621   4395    220  39.5%    +17.70   +0.08
+   25    25 |   22435   4077    204  41.7%   +146.03   +0.72
+   25    30 |   17874   3813    184  41.8%   +231.17   +1.26
+   30     5 |   41685   4863    265  41.1%   +339.28   +1.28
+   30     8 |   37988   4673    256  40.2%   +241.72   +0.94
+   30    10 |   34986   4539    250  40.8%   +261.53   +1.05
+   30    12 |   32164   4358    236  41.1%   +244.92   +1.04
+   30    15 |   28119   4153    218  40.4%   +130.37   +0.60
+   30    20 |   22612   3891    205  41.5%   +171.02   +0.83
+   30    25 |   18420   3632    186  43.0%   +222.93   +1.20
+   30    30 |   14908   3417    172  42.4%   +240.28   +1.40
+   35     5 |   32628   4358    241  39.0%   +276.25   +1.15
+   35     8 |   30240   4215    230  39.1%   +245.99   +1.07
+   35    10 |   28104   4098    225  40.0%   +276.18   +1.23
+   35    12 |   26072   3934    217  41.0%   +299.39   +1.38
+   35    15 |   23116   3754    202  40.1%   +214.37   +1.06
+   35    20 |   19089   3520    187  39.6%   +188.94   +1.01
+   35    25 |   15751   3297    172  41.9%   +251.82   +1.46
+   35    30 |   12839   3097    159  41.5%   +318.17   +2.00
+   40     5 |   26412   3923    221  38.9%   +268.72   +1.22
+   40     8 |   24769   3796    212  38.7%   +214.07   +1.01
+   40    10 |   23235   3699    210  39.0%   +218.83   +1.04
+   40    12 |   21664   3562    196  40.8%   +287.09   +1.46
+   40    15 |   19473   3414    184  40.2%   +225.44   +1.23
+   40    20 |   16240   3222    173  39.9%   +149.61   +0.86
+   40    25 |   13460   3011    159  42.1%   +229.87   +1.45
+   40    30 |   11102   2832    142  42.3%   +369.37   +2.60
+   45     5 |   21324   3444    199  40.2%   +255.56   +1.28
+   45     8 |   20195   3347    191  38.7%   +164.82   +0.86
+   45    10 |   19106   3289    188  39.4%   +202.87   +1.08
+   45    12 |   18014   3194    181  41.4%   +263.03   +1.45
+   45    15 |   16280   3075    173  40.5%   +176.60   +1.02
+   45    20 |   13770   2898    165  40.6%   +146.75   +0.89
+   45    25 |   11558   2714    152  42.1%   +197.80   +1.30
+   45    30 |    9648   2561    137  41.6%   +206.88   +1.51
+   50     5 |   17679   3145    176  40.9%   +323.48   +1.84
+   50     8 |   16999   3076    174  40.8%   +248.95   +1.43
+   50    10 |   16229   3025    170  41.8%   +298.18   +1.75
+   50    12 |   15396   2938    166  43.4%   +328.79   +1.98
+   50    15 |   14094   2833    157  42.7%   +273.36   +1.74
+   50    20 |   12101   2664    153  41.8%   +143.54   +0.94
+   50    25 |   10249   2501    144  43.8%   +211.11   +1.47
+   50    30 |    8717   2353    130  43.1%   +198.96   +1.53
+
+Saved -> /Users/alpha/Desktop/python/AlphaGold/runtime/sweep_downtrend_retrace_definition.csv
+
+Top combos (≥15 trades):
+ fall  bounce  pattern_bars  signals  trades  win_rate  net_pnl  avg_pnl
+   25       5         54441     5503     281      41.6   520.97     1.85
+   25       8         48913     5302     277      41.2   418.81     1.51
+   25      12         40416     4949     260      42.7   409.44     1.57
+   25      10         44580     5146     276      42.4   404.07     1.46
+   15       5         97437     6889     327      41.0   374.68     1.15
+   40      30         11102     2832     142      42.3   369.37     2.60
+   20       5         72470     6197     300      39.3   341.58     1.14
+   30       5         41685     4863     265      41.1   339.28     1.28
+   50      12         15396     2938     166      43.4   328.79     1.98
+   50       5         17679     3145     176      40.9   323.48     1.84
+   35      30         12839     3097     159      41.5   318.17     2.00
+   35      12         26072     3934     217      41.0   299.39     1.38
+
+Best: fall>=25 bounce>=5 → 281 trades WR=41.6% PnL=+521.0
+Mirror 35/10: 225 trades WR=40.0% PnL=+276.2

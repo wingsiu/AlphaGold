@@ -1,0 +1,209 @@
+Loading pattern feature matrix (set=v2398, labels per-pattern exec H/TP/SL)…
+Loading data from 2020-01-01 to 2026-05-24...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Skipping 15m Price Action features
+Redefining target with Horizon=15, TP=20.0, SL=15.0...
+Adding pattern features (set=v2398)…
+Pattern path: 363127 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+
+Pattern sample counts (full history):
+  uptrend_retrace     :  37964
+  downtrend_retrace   :  55383
+  breakthrough_long   :  11056
+  breakthrough_short  :   2433
+
+============================================================
+  Pattern: uptrend_retrace (long, single-stage)  →  h15_tp20_sl15
+  Labels  : H=15 TP=20.0 SL=15.0
+  Samples : 37964 / 363038 total bars
+  Range   : 2025-05-15 17:33:00+00:00 → 2026-05-22 16:36:00+00:00
+  Target+ : 3005 (7.9%)
+============================================================
+  Saved prod model -> /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v14_patterns/uptrend_retrace/h15_tp20_sl15/filter_prod.joblib (n=5144)
+  Cycle 1 (2025-01-03): train n=0
+  Cycle 2 (2025-01-17): train n=0
+  Cycle 3 (2025-01-31): train n=0
+  Cycle 4 (2025-02-14): train n=0
+  Cycle 5 (2025-02-28): train n=0
+  Cycle 6 (2025-03-14): train n=0
+  Cycle 7 (2025-03-28): train n=0
+  Cycle 8 (2025-04-11): train n=0
+  Cycle 9 (2025-04-25): train n=0
+  Cycle 10 (2025-05-09): train n=0
+  Cycle 11 (2025-05-23): train n=83
+  Cycle 12 (2025-06-06): train n=103
+  Cycle 13 (2025-06-20): train n=176
+  Cycle 14 (2025-07-04): train n=176
+  Cycle 15 (2025-07-18): train n=323
+  Cycle 16 (2025-08-01): train n=385
+  Cycle 17 (2025-08-15): train n=385
+  Cycle 18 (2025-08-29): train n=390
+  Cycle 19 (2025-09-12): train n=550
+  Cycle 20 (2025-09-26): train n=577
+  Cycle 21 (2025-10-10): train n=854
+  Cycle 22 (2025-10-24): train n=3759
+  Cycle 23 (2025-11-07): train n=4772
+  Cycle 24 (2025-11-21): train n=5840
+  Cycle 25 (2025-12-05): train n=6037
+  Cycle 26 (2025-12-19): train n=6395
+  Cycle 27 (2026-01-02): train n=7210
+  Cycle 28 (2026-01-16): train n=8252
+  Cycle 29 (2026-01-30): train n=12685
+  Cycle 30 (2026-02-13): train n=19186
+  Cycle 31 (2026-02-27): train n=21451
+  Cycle 32 (2026-03-13): train n=25869
+  Cycle 33 (2026-03-27): train n=30996
+  Cycle 34 (2026-04-10): train n=34314
+  Cycle 35 (2026-04-24): train n=35595
+  Cycle 36 (2026-05-08): train n=36713
+  Walk-forward complete for uptrend_retrace
+
+============================================================
+  Pattern: downtrend_retrace (short, single-stage)  →  h15_tp40_sl30
+  Labels  : H=15 TP=40.0 SL=30.0
+  Samples : 55383 / 363038 total bars
+  Range   : 2025-05-13 14:04:00+00:00 → 2026-05-22 15:13:00+00:00
+  Target+ : 1599 (2.9%)
+============================================================
+  Saved prod model -> /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v14_patterns/downtrend_retrace/h15_tp40_sl30/filter_prod.joblib (n=11589)
+  Cycle 1 (2025-01-03): train n=0
+  Cycle 2 (2025-01-17): train n=0
+  Cycle 3 (2025-01-31): train n=0
+  Cycle 4 (2025-02-14): train n=0
+  Cycle 5 (2025-02-28): train n=0
+  Cycle 6 (2025-03-14): train n=0
+  Cycle 7 (2025-03-28): train n=0
+  Cycle 8 (2025-04-11): train n=0
+  Cycle 9 (2025-04-25): train n=0
+  Cycle 10 (2025-05-09): train n=0
+  Cycle 11 (2025-05-23): train n=681
+  Cycle 12 (2025-06-06): train n=1342
+  Cycle 13 (2025-06-20): train n=1508
+  Cycle 14 (2025-07-04): train n=1896
+  Cycle 15 (2025-07-18): train n=2206
+  Cycle 16 (2025-08-01): train n=2508
+  Cycle 17 (2025-08-15): train n=2551
+  Cycle 18 (2025-08-29): train n=2551
+  Cycle 19 (2025-09-12): train n=2883
+  Cycle 20 (2025-09-26): train n=3341
+  Cycle 21 (2025-10-10): train n=4421
+  Cycle 22 (2025-10-24): train n=7928
+  Cycle 23 (2025-11-07): train n=10601
+  Cycle 24 (2025-11-21): train n=12865
+  Cycle 25 (2025-12-05): train n=13985
+  Cycle 26 (2025-12-19): train n=15040
+  Cycle 27 (2026-01-02): train n=17361
+  Cycle 28 (2026-01-16): train n=18585
+  Cycle 29 (2026-01-30): train n=22560
+  Cycle 30 (2026-02-13): train n=28805
+  Cycle 31 (2026-02-27): train n=31552
+  Cycle 32 (2026-03-13): train n=36809
+  Cycle 33 (2026-03-27): train n=43629
+  Cycle 34 (2026-04-10): train n=48209
+  Cycle 35 (2026-04-24): train n=50369
+  Cycle 36 (2026-05-08): train n=52916
+  Walk-forward complete for downtrend_retrace
+
+============================================================
+  Pattern: breakthrough_long (long, single-stage)  →  h15_tp40_sl20
+  Labels  : H=15 TP=40.0 SL=20.0
+  Samples : 11056 / 363038 total bars
+  Range   : 2025-05-13 05:12:00+00:00 → 2026-05-22 17:30:00+00:00
+  Target+ : 142 (1.3%)
+============================================================
+  Saved prod model -> /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v14_patterns/breakthrough_long/h15_tp40_sl20/filter_prod.joblib (n=7367)
+  Cycle 1 (2025-01-03): train n=0
+  Cycle 2 (2025-01-17): train n=0
+  Cycle 3 (2025-01-31): train n=0
+  Cycle 4 (2025-02-14): train n=0
+  Cycle 5 (2025-02-28): train n=0
+  Cycle 6 (2025-03-14): train n=0
+  Cycle 7 (2025-03-28): train n=0
+  Cycle 8 (2025-04-11): train n=0
+  Cycle 9 (2025-04-25): train n=0
+  Cycle 10 (2025-05-09): train n=0
+  Cycle 11 (2025-05-23): train n=170
+  Cycle 12 (2025-06-06): train n=243
+  Cycle 13 (2025-06-20): train n=356
+  Cycle 14 (2025-07-04): train n=401
+  Cycle 15 (2025-07-18): train n=438
+  Cycle 16 (2025-08-01): train n=480
+  Cycle 17 (2025-08-15): train n=531
+  Cycle 18 (2025-08-29): train n=560
+  Cycle 19 (2025-09-12): train n=658
+  Cycle 20 (2025-09-26): train n=733
+  Cycle 21 (2025-10-10): train n=933
+  Cycle 22 (2025-10-24): train n=1624
+  Cycle 23 (2025-11-07): train n=2018
+  Cycle 24 (2025-11-21): train n=2453
+  Cycle 25 (2025-12-05): train n=2681
+  Cycle 26 (2025-12-19): train n=2891
+  Cycle 27 (2026-01-02): train n=3173
+  Cycle 28 (2026-01-16): train n=3584
+  Cycle 29 (2026-01-30): train n=4764
+  Cycle 30 (2026-02-13): train n=6229
+  Cycle 31 (2026-02-27): train n=6877
+  Cycle 32 (2026-03-13): train n=7728
+  Cycle 33 (2026-03-27): train n=8830
+  Cycle 34 (2026-04-10): train n=9716
+  Cycle 35 (2026-04-24): train n=10184
+  Cycle 36 (2026-05-08): train n=10633
+  Walk-forward complete for breakthrough_long
+
+============================================================
+  Pattern: breakthrough_short (short, single-stage)  →  h30_tp40_sl30
+  Labels  : H=30 TP=40.0 SL=30.0
+  Samples : 2433 / 363038 total bars
+  Range   : 2025-05-14 12:46:00+00:00 → 2026-05-22 14:15:00+00:00
+  Target+ : 468 (19.2%)
+============================================================
+  Saved prod model -> /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v14_patterns/breakthrough_short/h30_tp40_sl30/filter_prod.joblib (n=326)
+  Cycle 1 (2025-01-03): train n=0
+  Cycle 2 (2025-01-17): train n=0
+  Cycle 3 (2025-01-31): train n=0
+  Cycle 4 (2025-02-14): train n=0
+  Cycle 5 (2025-02-28): train n=0
+  Cycle 6 (2025-03-14): train n=0
+  Cycle 7 (2025-03-28): train n=0
+  Cycle 8 (2025-04-11): train n=0
+  Cycle 9 (2025-04-25): train n=0
+  Cycle 10 (2025-05-09): train n=0
+  Cycle 11 (2025-05-23): train n=9
+  Cycle 12 (2025-06-06): train n=15
+  Cycle 13 (2025-06-20): train n=19
+  Cycle 14 (2025-07-04): train n=24
+  Cycle 15 (2025-07-18): train n=27
+  Cycle 16 (2025-08-01): train n=30
+  Cycle 17 (2025-08-15): train n=34
+  Cycle 18 (2025-08-29): train n=34
+  Cycle 19 (2025-09-12): train n=37
+  Cycle 20 (2025-09-26): train n=43
+  Cycle 21 (2025-10-10): train n=71
+  Cycle 22 (2025-10-24): train n=252
+  Cycle 23 (2025-11-07): train n=297
+  Cycle 24 (2025-11-21): train n=349
+  Cycle 25 (2025-12-05): train n=370
+  Cycle 26 (2025-12-19): train n=397
+  Cycle 27 (2026-01-02): train n=474
+  Cycle 28 (2026-01-16): train n=507
+  Cycle 29 (2026-01-30): train n=900
+  Cycle 30 (2026-02-13): train n=1387
+  Cycle 31 (2026-02-27): train n=1480
+  Cycle 32 (2026-03-13): train n=1735
+  Cycle 33 (2026-03-27): train n=2147
+  Cycle 34 (2026-04-10): train n=2289
+  Cycle 35 (2026-04-24): train n=2334
+  Cycle 36 (2026-05-08): train n=2381
+  Walk-forward complete for breakthrough_short

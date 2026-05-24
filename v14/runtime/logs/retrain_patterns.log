@@ -1,0 +1,250 @@
+=== Fri May 22 21:04:55 UTC 2026 retrain start ===
+
+--- Labels H=60 TP=30.0 SL=15.0 ---
+Loading data from 2020-01-01 to 2026-05-23...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Skipping 15m Price Action features
+Redefining target with Horizon=60, TP=30.0, SL=15.0...
+Adding pattern features (wr_120/240, cross flags)...
+Pattern path: 363082 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+
+============================================================
+  uptrend_retrace (long)  H=60 TP=30.0 SL=15.0  →  h60_tp30_sl15
+  Samples: 29842  |  Target+: 3124 (10.5%)
+============================================================
+  Saved /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v14_patterns/uptrend_retrace/h60_tp30_sl15/filter_prod.joblib (n=3588)
+  Cycle 1 (2025-01-03): n=0
+  Cycle 2 (2025-01-17): n=0
+  Cycle 3 (2025-01-31): n=0
+  Cycle 4 (2025-02-14): n=0
+  Cycle 5 (2025-02-28): n=0
+  Cycle 6 (2025-03-14): n=0
+  Cycle 7 (2025-03-28): n=0
+  Cycle 8 (2025-04-11): n=0
+  Cycle 9 (2025-04-25): n=0
+  Cycle 10 (2025-05-09): n=0
+  Cycle 11 (2025-05-23): n=41
+  Cycle 12 (2025-06-06): n=41
+  Cycle 13 (2025-06-20): n=102
+  Cycle 14 (2025-07-04): n=102
+  Cycle 15 (2025-07-18): n=154
+  Cycle 16 (2025-08-01): n=216
+  Cycle 17 (2025-08-15): n=216
+  Cycle 18 (2025-08-29): n=221
+  Cycle 19 (2025-09-12): n=361
+  Cycle 20 (2025-09-26): n=368
+  Cycle 21 (2025-10-10): n=440
+  Cycle 22 (2025-10-24): n=2610
+  Cycle 23 (2025-11-07): n=3199
+  Cycle 24 (2025-11-21): n=3783
+  Cycle 25 (2025-12-05): n=3843
+  Cycle 26 (2025-12-19): n=4136
+  Cycle 27 (2026-01-02): n=4633
+  Cycle 28 (2026-01-16): n=5408
+  Cycle 29 (2026-01-30): n=9258
+  Cycle 30 (2026-02-13): n=15017
+  Cycle 31 (2026-02-27): n=16770
+  Cycle 32 (2026-03-13): n=20346
+  Cycle 33 (2026-03-27): n=24570
+  Cycle 34 (2026-04-10): n=27242
+  Cycle 35 (2026-04-24): n=28129
+  Cycle 36 (2026-05-08): n=28972
+
+--- Labels H=60 TP=30.0 SL=20.0 ---
+Loading data from 2020-01-01 to 2026-05-23...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Skipping 15m Price Action features
+Redefining target with Horizon=60, TP=30.0, SL=20.0...
+Adding pattern features (wr_120/240, cross flags)...
+Pattern path: 363082 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+
+============================================================
+  uptrend_retrace (long)  H=60 TP=30.0 SL=20.0  →  h60_tp30_sl20
+  Samples: 29842  |  Target+: 3533 (11.8%)
+============================================================
+  Saved /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v14_patterns/uptrend_retrace/h60_tp30_sl20/filter_prod.joblib (n=3588)
+  Cycle 1 (2025-01-03): n=0
+  Cycle 2 (2025-01-17): n=0
+  Cycle 3 (2025-01-31): n=0
+  Cycle 4 (2025-02-14): n=0
+  Cycle 5 (2025-02-28): n=0
+  Cycle 6 (2025-03-14): n=0
+  Cycle 7 (2025-03-28): n=0
+  Cycle 8 (2025-04-11): n=0
+  Cycle 9 (2025-04-25): n=0
+  Cycle 10 (2025-05-09): n=0
+  Cycle 11 (2025-05-23): n=41
+  Cycle 12 (2025-06-06): n=41
+  Cycle 13 (2025-06-20): n=102
+  Cycle 14 (2025-07-04): n=102
+  Cycle 15 (2025-07-18): n=154
+  Cycle 16 (2025-08-01): n=216
+  Cycle 17 (2025-08-15): n=216
+  Cycle 18 (2025-08-29): n=221
+  Cycle 19 (2025-09-12): n=361
+  Cycle 20 (2025-09-26): n=368
+  Cycle 21 (2025-10-10): n=440
+  Cycle 22 (2025-10-24): n=2610
+  Cycle 23 (2025-11-07): n=3199
+  Cycle 24 (2025-11-21): n=3783
+  Cycle 25 (2025-12-05): n=3843
+  Cycle 26 (2025-12-19): n=4136
+  Cycle 27 (2026-01-02): n=4633
+  Cycle 28 (2026-01-16): n=5408
+  Cycle 29 (2026-01-30): n=9258
+  Cycle 30 (2026-02-13): n=15017
+  Cycle 31 (2026-02-27): n=16770
+  Cycle 32 (2026-03-13): n=20346
+  Cycle 33 (2026-03-27): n=24570
+  Cycle 34 (2026-04-10): n=27242
+  Cycle 35 (2026-04-24): n=28129
+  Cycle 36 (2026-05-08): n=28972
+
+--- Labels H=60 TP=30.0 SL=25.0 ---
+Loading data from 2020-01-01 to 2026-05-23...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Skipping 15m Price Action features
+Redefining target with Horizon=60, TP=30.0, SL=25.0...
+Adding pattern features (wr_120/240, cross flags)...
+Pattern path: 363082 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+
+============================================================
+  uptrend_retrace (long)  H=60 TP=30.0 SL=25.0  →  h60_tp30_sl25
+  Samples: 29842  |  Target+: 3827 (12.8%)
+============================================================
+  Saved /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v14_patterns/uptrend_retrace/h60_tp30_sl25/filter_prod.joblib (n=3588)
+  Cycle 1 (2025-01-03): n=0
+  Cycle 2 (2025-01-17): n=0
+  Cycle 3 (2025-01-31): n=0
+  Cycle 4 (2025-02-14): n=0
+  Cycle 5 (2025-02-28): n=0
+  Cycle 6 (2025-03-14): n=0
+  Cycle 7 (2025-03-28): n=0
+  Cycle 8 (2025-04-11): n=0
+  Cycle 9 (2025-04-25): n=0
+  Cycle 10 (2025-05-09): n=0
+  Cycle 11 (2025-05-23): n=41
+  Cycle 12 (2025-06-06): n=41
+  Cycle 13 (2025-06-20): n=102
+  Cycle 14 (2025-07-04): n=102
+  Cycle 15 (2025-07-18): n=154
+  Cycle 16 (2025-08-01): n=216
+  Cycle 17 (2025-08-15): n=216
+  Cycle 18 (2025-08-29): n=221
+  Cycle 19 (2025-09-12): n=361
+  Cycle 20 (2025-09-26): n=368
+  Cycle 21 (2025-10-10): n=440
+  Cycle 22 (2025-10-24): n=2610
+  Cycle 23 (2025-11-07): n=3199
+  Cycle 24 (2025-11-21): n=3783
+  Cycle 25 (2025-12-05): n=3843
+  Cycle 26 (2025-12-19): n=4136
+  Cycle 27 (2026-01-02): n=4633
+  Cycle 28 (2026-01-16): n=5408
+  Cycle 29 (2026-01-30): n=9258
+  Cycle 30 (2026-02-13): n=15017
+  Cycle 31 (2026-02-27): n=16770
+  Cycle 32 (2026-03-13): n=20346
+  Cycle 33 (2026-03-27): n=24570
+  Cycle 34 (2026-04-10): n=27242
+  Cycle 35 (2026-04-24): n=28129
+  Cycle 36 (2026-05-08): n=28972
+
+--- Labels H=60 TP=30.0 SL=15.0 ---
+Loading data from 2020-01-01 to 2026-05-23...
+Data successfully loaded: 364578 rows.
+Data loaded successfully: 364578 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Skipping 15m Price Action features
+Redefining target with Horizon=60, TP=30.0, SL=15.0...
+Adding pattern features (wr_120/240, cross flags)...
+Pattern path: 363082 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+
+============================================================
+  downtrend_retrace (short)  H=60 TP=30.0 SL=15.0  →  h60_tp30_sl15
+  Samples: 28295  |  Target+: 4561 (16.1%)
+============================================================
+  Saved /Users/alpha/Desktop/python/AlphaGold/runtime/bot_assets/wf_models_v14_patterns/downtrend_retrace/h60_tp30_sl15/filter_prod.joblib (n=4397)
+  Cycle 1 (2025-01-03): n=0
+  Cycle 2 (2025-01-17): n=0
+  Cycle 3 (2025-01-31): n=0
+  Cycle 4 (2025-02-14): n=0
+  Cycle 5 (2025-02-28): n=0
+  Cycle 6 (2025-03-14): n=0
+  Cycle 7 (2025-03-28): n=0
+  Cycle 8 (2025-04-11): n=0
+  Cycle 9 (2025-04-25): n=0
+  Cycle 10 (2025-05-09): n=0
+  Cycle 11 (2025-05-23): n=150
+  Cycle 12 (2025-06-06): n=287
+  Cycle 13 (2025-06-20): n=287
+  Cycle 14 (2025-07-04): n=299
+  Cycle 15 (2025-07-18): n=301
+  Cycle 16 (2025-08-01): n=301
+  Cycle 17 (2025-08-15): n=301
+  Cycle 18 (2025-08-29): n=301
+  Cycle 19 (2025-09-12): n=332
+  Cycle 20 (2025-09-26): n=518
+  Cycle 21 (2025-10-10): n=1092
+  Cycle 22 (2025-10-24): n=3002
+  Cycle 23 (2025-11-07): n=3956
+  Cycle 24 (2025-11-21): n=4858
+  Cycle 25 (2025-12-05): n=5178
+  Cycle 26 (2025-12-19): n=5560
+  Cycle 27 (2026-01-02): n=6491
+  Cycle 28 (2026-01-16): n=6625
+  Cycle 29 (2026-01-30): n=9608
+  Cycle 30 (2026-02-13): n=14150
+  Cycle 31 (2026-02-27): n=15454
+  Cycle 32 (2026-03-13): n=18698
+  Cycle 33 (2026-03-27): n=23325
+  Cycle 34 (2026-04-10): n=25738
+  Cycle 35 (2026-04-24): n=26582
+  Cycle 36 (2026-05-08): n=27450
+=== Fri May 22 21:07:04 UTC 2026 retrain done ===

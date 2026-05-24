@@ -1,0 +1,4 @@
+trial,rule,baseline_trades,baseline_pnl,combined_trades,combined_pnl,delta_trades,delta_pnl,trial_trades,trial_pnl
+reversal_fvg_long,time_from_fvg_bull<30.0,450,2398.2,522,2485.7,72,87.5,76,249.3
+reversal_wick_short,time_from_long_upper_wick<30.0,450,2398.2,463,2204.0,13,-194.2,22,113.6
+reversal_fvg_short,time_from_fvg_bear<30.0,450,2398.2,463,2314.5,13,-83.7,24,418.3
