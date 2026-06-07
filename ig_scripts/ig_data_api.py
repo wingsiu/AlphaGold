@@ -9,6 +9,46 @@ from dotenv import load_dotenv
 import os
 import keyring
 
+# launchd / headless processes often cannot use the macOS login keychain (err -61).
+_KEYRING_OK: bool | None = None
+
+
+def _keyring_available() -> bool:
+    global _KEYRING_OK
+    if _KEYRING_OK is not None:
+        return _KEYRING_OK
+    if os.environ.get("IG_SKIP_KEYRING", "").strip().lower() in ("1", "true", "yes"):
+        _KEYRING_OK = False
+        return False
+    try:
+        keyring.get_password("ig_api", "cst_token")
+        _KEYRING_OK = True
+    except Exception:
+        _KEYRING_OK = False
+    return _KEYRING_OK
+
+
+def _keyring_save(service: str, user: str, value: Optional[str]) -> None:
+    if not value or not _keyring_available():
+        return
+    try:
+        keyring.set_password(service, user, value)
+    except Exception:
+        global _KEYRING_OK
+        _KEYRING_OK = False
+
+
+def _keyring_load(service: str, user: str) -> Optional[str]:
+    if not _keyring_available():
+        return None
+    try:
+        return keyring.get_password(service, user)
+    except Exception:
+        global _KEYRING_OK
+        _KEYRING_OK = False
+        return None
+
+
 # Ensure all columns are displayed in pandas DataFrame
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
@@ -70,28 +110,37 @@ class IGService:
         }
         self.authenticate()
 
+    def _session_headers(self) -> dict[str, str]:
+        """Login headers only — never send stale CST/X-SECURITY-TOKEN to /session."""
+        return {
+            'Content-Type': 'application/json; charset=UTF-8',
+            'Accept': 'application/json; charset=UTF-8',
+            'VERSION': '2',
+            'X-IG-API-KEY': self.api_key,
+        }
+
     def authenticate(self):
         """Authenticate and store CST and X-SECURITY-TOKEN."""
         payload = {"identifier": self.username, "password": self.password}
         url = f"{self.base_url}/session"
-        #url = f"https://api.ig.com/gateway/deal/session"
-
-
-        response = requests.post(url, json=payload, headers=self.headers)
-        #print("login response:", response.headers)
+        response = requests.post(url, json=payload, headers=self._session_headers(), timeout=30)
         if response.status_code == 200:
             self.headers['CST'] = response.headers.get('CST')
             self.headers['X-SECURITY-TOKEN'] = response.headers.get('X-SECURITY-TOKEN')
-            # Store tokens securely
-            keyring.set_password('ig_api', 'cst_token', self.headers['CST'])
-            keyring.set_password('ig_api', 'security_token', self.headers['X-SECURITY-TOKEN'])
+            _keyring_save('ig_api', 'cst_token', self.headers['CST'])
+            _keyring_save('ig_api', 'security_token', self.headers['X-SECURITY-TOKEN'])
         else:
             raise Exception(f"Authentication failed: {response.status_code} - {response.text}")
 
     def refresh_tokens_if_needed(self):
-        """Refresh tokens if not available."""
-        cst_token = keyring.get_password('ig_api', 'cst_token')
-        security_token = keyring.get_password('ig_api', 'security_token')
+        """Use in-memory session tokens; avoid stale launchd keyring under IG_SKIP_KEYRING."""
+        if os.environ.get("IG_SKIP_KEYRING", "").strip().lower() in ("1", "true", "yes"):
+            if not self.headers.get("CST") or not self.headers.get("X-SECURITY-TOKEN"):
+                self.authenticate()
+            return
+
+        cst_token = _keyring_load('ig_api', 'cst_token')
+        security_token = _keyring_load('ig_api', 'security_token')
 
         if not cst_token or not security_token:
             self.authenticate()
@@ -104,6 +153,14 @@ def _safe_float(value: Any) -> Optional[float]:
     try:
         if value is None or value == "":
             return None
+        if isinstance(value, str):
+            cleaned = value.strip().replace(",", "")
+            for sym in ("$", "£", "€", "USD", "GBP", "EUR"):
+                cleaned = cleaned.replace(sym, "")
+            cleaned = cleaned.strip()
+            if not cleaned:
+                return None
+            return float(cleaned)
         return float(value)
     except (TypeError, ValueError):
         return None
@@ -410,6 +467,8 @@ def _request_with_reauth(
 
     response = _do_request()
     if response.status_code == 401:
+        service.headers.pop("CST", None)
+        service.headers.pop("X-SECURITY-TOKEN", None)
         service.authenticate()
         response = _do_request()
 
@@ -612,6 +671,21 @@ def close_otc_position(
     }
 
 
+def _activity_pnl(activity: dict[str, Any]) -> float | None:
+    """IG sometimes reports realised PnL on the activity row instead of transactions."""
+    for key in ("profitAndLoss", "profitLoss", "pnl"):
+        val = _safe_float(activity.get(key))
+        if val is not None:
+            return val
+    details = activity.get("details")
+    if isinstance(details, dict):
+        for key in ("profitAndLoss", "profitLoss", "pnl"):
+            val = _safe_float(details.get(key))
+            if val is not None:
+                return val
+    return None
+
+
 def _parse_ig_datetime(value: Any) -> Optional[datetime]:
     if value is None:
         return None
@@ -711,51 +785,101 @@ def _fetch_recent_activities(service: IGService, *, lookback_hours: int = 72) ->
     return rows
 
 
+def _activity_matches_open_deal(row: dict[str, Any], wanted: str) -> bool:
+    row_deal = str(row.get("dealId") or "").strip()
+    if row_deal == wanted:
+        return True
+    details = row.get("details") if isinstance(row.get("details"), dict) else {}
+    if str(details.get("dealId") or "").strip() == wanted:
+        return True
+    for action in details.get("actions") or []:
+        if not isinstance(action, dict):
+            continue
+        if str(action.get("affectedDealId") or "").strip() == wanted:
+            return True
+    desc = str(row.get("description") or "")
+    market_ref = desc.split(":")[-1].strip() if ":" in desc else ""
+    if market_ref and wanted.endswith(market_ref):
+        return True
+    if wanted.startswith("DIAAAARK"):
+        code = wanted[len("DIAAAARK") :]
+        if code and (code in desc or f"K{code}" in desc):
+            return True
+    short = wanted.replace("DIAAA", "") if wanted.startswith("DIAAA") else wanted
+    if short and short in desc:
+        return True
+    return False
+
+
 def get_closed_trade_by_deal_id(service: IGService, deal_id: str, *, lookback_hours: int = 72) -> Optional[dict[str, Any]]:
     wanted = str(deal_id or "").strip()
     if not wanted:
         return None
 
-    # --- Primary: /history/activity (matches by original opening dealId) ---
+    # --- Primary: /history/activity (opening dealId or affectedDealId on close) ---
     activities = _fetch_recent_activities(service, lookback_hours=lookback_hours)
     matched_activities: list[dict[str, Any]] = []
     for row in activities:
-        row_deal = str(row.get("dealId") or "").strip()
-        if not row_deal:
-            details = row.get("details") if isinstance(row.get("details"), dict) else {}
-            row_deal = str(details.get("dealId") or "").strip() if details else ""
-        if row_deal == wanted:
+        if _activity_matches_open_deal(row, wanted):
             matched_activities.append(row)
 
     close_activity: Optional[dict[str, Any]] = None
     close_ref: Optional[str] = None
+    close_deal: Optional[str] = None
     if matched_activities:
         def _row_dt(item: dict[str, Any]) -> datetime:
             dt = _parse_ig_datetime(item.get("date") or item.get("dateUtc"))
             return dt if dt is not None else datetime.fromtimestamp(0, tz=timezone.utc)
 
-        # Prefer rows representing the CLOSE (status CLOSED or description containing 'closed')
         def _is_close(item: dict[str, Any]) -> bool:
+            details = item.get("details") if isinstance(item.get("details"), dict) else {}
+            for action in details.get("actions") or []:
+                if isinstance(action, dict) and str(action.get("actionType") or "").upper() == "POSITION_CLOSED":
+                    return True
             status = str(item.get("status") or "").upper()
             if status in {"CLOSED", "DELETED"}:
                 return True
             desc = str(item.get("description") or "").lower()
-            return "closed" in desc or "stop" in desc or "limit" in desc
+            return "closed" in desc
+
+        def _is_open(item: dict[str, Any]) -> bool:
+            desc = str(item.get("description") or "").lower()
+            return "opened" in desc or "open" in desc
+
         closes = [r for r in matched_activities if _is_close(r)]
-        pool = closes if closes else matched_activities
+        pool = closes if closes else [r for r in matched_activities if not _is_open(r)]
+        if not pool:
+            pool = matched_activities
         pool.sort(key=_row_dt, reverse=True)
         close_activity = pool[0]
         details = close_activity.get("details") if isinstance(close_activity.get("details"), dict) else {}
         close_ref = str((details or {}).get("dealReference") or close_activity.get("dealReference") or "").strip() or None
+        close_deal = str(close_activity.get("dealId") or "").strip() or None
 
     # --- Secondary: /history/transactions for PnL ---
     tx_rows = _fetch_recent_transactions(service, lookback_hours=lookback_hours)
     matched_tx: list[dict[str, Any]] = []
+    close_dt = (
+        _parse_ig_datetime(close_activity.get("date") or close_activity.get("dateUtc"))
+        if close_activity is not None
+        else None
+    )
     for row in tx_rows:
         row_ref = str(row.get("reference") or "").strip()
         row_deal = str(row.get("dealId") or "").strip()
-        if (close_ref and (row_ref == close_ref or row_deal == close_ref)) or row_deal == wanted or row_ref == wanted:
+        if close_ref and (row_ref == close_ref or row_deal == close_ref):
             matched_tx.append(row)
+            continue
+        if close_deal and (row_deal == close_deal or row_ref in close_deal):
+            matched_tx.append(row)
+            continue
+        if row_deal == wanted or row_ref == wanted:
+            matched_tx.append(row)
+            continue
+        if close_dt is not None:
+            tx_dt = _parse_ig_datetime(row.get("dateUtc") or row.get("date"))
+            if tx_dt is not None and abs((tx_dt - close_dt).total_seconds()) <= 2:
+                matched_tx.append(row)
 
     tx_row: Optional[dict[str, Any]] = None
     if matched_tx:
@@ -780,6 +904,8 @@ def get_closed_trade_by_deal_id(service: IGService, deal_id: str, *, lookback_ho
         if details:
             exit_price = _safe_float(details.get("level"))
         reason = str(close_activity.get("description") or close_activity.get("status") or "") or None
+        if pnl is None:
+            pnl = _activity_pnl(close_activity)
 
     if tx_row is not None:
         if exit_dt is None:

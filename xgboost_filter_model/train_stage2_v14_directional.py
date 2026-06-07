@@ -16,6 +16,11 @@ from xgboost_filter_model.train_directional_model_v2 import add_directional_feat
 from xgboost_filter_model.train_directional_model_v3 import add_ma_features
 from xgboost_filter_model.train_directional_model_v9 import add_momentum_features
 from config.v14_config import MODEL_CONFIG, WF_CONFIG
+from xgboost_filter_model.pattern_training import (
+    iter_wf_train_targets,
+    wf_train_mode,
+    wf_train_as_of,
+)
 
 def prepare_directional_data_v14(df: pd.DataFrame) -> pd.DataFrame:
     """Adds directional features (MA, Momentum, etc.) for Stage 2."""
@@ -39,6 +44,10 @@ def prepare_directional_data_v14(df: pd.DataFrame) -> pd.DataFrame:
     sl = 15.0
     
     # Simplified: 1 if future_max_move > future_min_move.abs() else 0
+    if "future_max_move" not in df.columns or "future_min_move" not in df.columns:
+        # Live / hybrid backtest inference (no future labels on latest bars).
+        df["target_v14"] = 0
+        return df
     df['target_v14'] = (df['future_max_move'] > df['future_min_move'].abs()).astype(int)
     
     # Ensure both classes exist in the target variable to avoid XGBoost ValueError
@@ -92,64 +101,61 @@ def train_walk_forward_s2_v14():
     out_dir = PROJECT_ROOT / os.environ.get("V14_MODEL_OUTPUT_DIR", WF_CONFIG["model_output_dir"])
     out_dir.mkdir(parents=True, exist_ok=True)
     
-    df_train_full = df_s2[df_s2.index < wf_start]
-    print(f"Initial training set: {len(df_train_full)} bars (up to {wf_start.date()})")
-    
-    # Train initial "production" model
-    X_train = df_train_full[features]
-    y_train = df_train_full["target_v14"]
-    
-    if len(y_train.unique()) < 2:
-        print("Warning: Initial training set has < 2 classes. Adding dummy rows.")
-        if len(X_train) == 0:
-            # Create completely dummy rows if empty
-            dummy_row = pd.DataFrame([np.zeros(len(features))], columns=features)
-            X_train = pd.concat([dummy_row, dummy_row])
-            y_train = pd.Series([0, 1])
-        else:
-            X_train = pd.concat([X_train, X_train.iloc[-2:]])
-            y_train = pd.concat([y_train, pd.Series([0, 1], index=X_train.index[-2:])])
-        
-    model = xgb.XGBClassifier(**MODEL_CONFIG["s2"])
-    model.fit(X_train, y_train)
-    
     prod_path = PROJECT_ROOT / "xgboost_filter_model" / "directional_model_v14_wf.joblib"
-    joblib.dump(model, prod_path)
-    print(f"Saved initial PROD S2 model to {prod_path}")
-    
-    current_start = wf_start
-    end_dt = max(df_s2.index.max(), pd.Timestamp.now(tz="UTC"))
-    cycle = 1
-    
-    while current_start < end_dt:
-        model_path = out_dir / f"directional_v14_cycle_{cycle}_{current_start.date()}.joblib"
-        
+    retrain_days = WF_CONFIG["retrain_days"]
+
+    def _cycle_path(cycle: int, start_date) -> Path:
+        return out_dir / f"directional_v14_cycle_{cycle}_{start_date}.joblib"
+
+    targets = iter_wf_train_targets(_cycle_path, as_of=wf_train_as_of())
+    print(f"S2 WF train mode: {wf_train_mode()}  targets={len(targets)}")
+
+    if wf_train_mode() == "full":
+        df_train_full = df_s2[df_s2.index < wf_start]
+        print(f"Initial training set: {len(df_train_full)} bars (up to {wf_start.date()})")
+        X_train = df_train_full[features]
+        y_train = df_train_full["target_v14"]
+        if len(y_train.unique()) < 2:
+            print("Warning: Initial training set has < 2 classes. Adding dummy rows.")
+            if len(X_train) == 0:
+                dummy_row = pd.DataFrame([np.zeros(len(features))], columns=features)
+                X_train = pd.concat([dummy_row, dummy_row])
+                y_train = pd.Series([0, 1])
+            else:
+                X_train = pd.concat([X_train, X_train.iloc[-2:]])
+                y_train = pd.concat([y_train, pd.Series([0, 1], index=X_train.index[-2:])])
+        model = xgb.XGBClassifier(**MODEL_CONFIG["s2"])
+        model.fit(X_train, y_train)
+        joblib.dump(model, prod_path)
+        print(f"Saved initial PROD S2 model to {prod_path}")
+    elif not targets:
+        print("S2 incremental: no new cycle — prod and cycle files unchanged.")
+        return
+
+    prod_model = joblib.load(prod_path) if prod_path.exists() else None
+
+    for cycle, current_start in targets:
+        model_path = _cycle_path(cycle, current_start.date())
         train_chunk = df_s2[df_s2.index < current_start]
         if len(train_chunk) < 10 or len(train_chunk["target_v14"].unique()) < 2:
-            print(f"Cycle {cycle} ({current_start.date()}): Not enough data or classes. Skipping training.")
-            # Just copy the previous model or prod model
-            if cycle > 1:
-                prev_model_path = out_dir / f"directional_v14_cycle_{cycle-1}_{current_start.date() - pd.Timedelta(days=retrain_days)}.joblib"
-                if prev_model_path.exists():
+            print(f"Cycle {cycle} ({current_start.date()}): not enough data/classes.")
+            if prod_model is not None:
+                joblib.dump(prod_model, model_path)
+            elif cycle > 1:
+                prev_date = (current_start - pd.Timedelta(days=retrain_days)).date()
+                prev_path = out_dir / f"directional_v14_cycle_{cycle - 1}_{prev_date}.joblib"
+                if prev_path.exists():
                     import shutil
-                    shutil.copy(prev_model_path, model_path)
-            else:
-                import shutil
-                shutil.copy(prod_path, model_path)
-        else:
-            X_tr = train_chunk[features]
-            y_tr = train_chunk["target_v14"]
-            
-            print(f"Cycle {cycle} ({current_start.date()}): Training on {len(X_tr)} bars...")
-            cycle_model = xgb.XGBClassifier(**MODEL_CONFIG["s2"])
-            cycle_model.fit(X_tr, y_tr)
-            
-            joblib.dump(cycle_model, model_path)
-        
-        current_start += pd.Timedelta(days=retrain_days)
-        cycle += 1
-        
-    print("Walk-forward training complete.")
+                    shutil.copy(prev_path, model_path)
+            continue
+        X_tr = train_chunk[features]
+        y_tr = train_chunk["target_v14"]
+        print(f"Cycle {cycle} ({current_start.date()}): Training on {len(X_tr)} bars...")
+        cycle_model = xgb.XGBClassifier(**MODEL_CONFIG["s2"])
+        cycle_model.fit(X_tr, y_tr)
+        joblib.dump(cycle_model, model_path)
+
+    print("Walk-forward S2 training complete.")
 
 if __name__ == "__main__":
     train_walk_forward_s2_v14()

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,6 +16,38 @@ from config.v14_patterns import EXCLUDE_COLS, PATTERN_MODEL_DIR, PATTERN_REGISTR
 
 def feature_columns(df: pd.DataFrame) -> list[str]:
     return [c for c in df.columns if c not in EXCLUDE_COLS]
+
+
+def execution_target_mode(execution: dict) -> str:
+    return str(execution.get("target_mode", "fixed")).strip().lower()
+
+
+def execution_tp_sl(execution: dict) -> tuple[float, float]:
+    """Return TP/SL — fixed DB units or ATR multipliers when target_mode=='atr'."""
+    if execution_target_mode(execution) == "atr":
+        tp = execution.get("tp_atr", execution.get("tp"))
+        sl = execution.get("sl_atr", execution.get("sl"))
+    else:
+        tp, sl = execution["tp"], execution["sl"]
+    return float(tp), float(sl)
+
+
+def dynamic_tp_sl_series(df: pd.DataFrame, execution: dict) -> tuple[pd.Series, pd.Series]:
+    """Per-bar TP/SL for labeling or backtest (ATR × mult or fixed)."""
+    tp, sl = execution_tp_sl(execution)
+    if execution_target_mode(execution) == "atr":
+        if "atr" not in df.columns:
+            raise ValueError("atr column required for ATR-based TP/SL")
+        atr = df["atr"].astype(float)
+        return atr * tp, atr * sl
+    return pd.Series(tp, index=df.index), pd.Series(sl, index=df.index)
+
+
+def assign_exec_tp_sl(df: pd.DataFrame, index: pd.Index, execution: dict) -> None:
+    """Write exec_tp / exec_sl for signal rows."""
+    tp_s, sl_s = dynamic_tp_sl_series(df.loc[index], execution)
+    df.loc[index, "exec_tp"] = tp_s.values
+    df.loc[index, "exec_sl"] = sl_s.values
 
 
 def add_pattern_entry_target(df: pd.DataFrame, direction_bias: str) -> pd.DataFrame:
@@ -40,6 +73,7 @@ def apply_exec_labels(
     sl: float,
     *,
     future_moves: pd.DataFrame | None = None,
+    target_mode: str = "fixed",
 ) -> pd.DataFrame:
     """Attach future moves + dynamic TP/SL for pattern training (no feature recompute)."""
     out = df.copy()
@@ -52,8 +86,9 @@ def apply_exec_labels(
         moves = build_target(out[["open", "high", "low", "close"]], horizon, tp, sl)
         out["future_max_move"] = moves["future_max_move"]
         out["future_min_move"] = moves["future_min_move"]
-    out["dynamic_tp"] = tp
-    out["dynamic_sl"] = sl
+    tp_s, sl_s = dynamic_tp_sl_series(out, {"target_mode": target_mode, "tp": tp, "sl": sl})
+    out["dynamic_tp"] = tp_s
+    out["dynamic_sl"] = sl_s
     return out
 
 
@@ -84,8 +119,12 @@ def label_df_for_pattern(
 ) -> pd.DataFrame:
     """Apply pattern-specific H/TP/SL labels (not global EXECUTION_CONFIG)."""
     ex = pattern_execution(pattern_name)
-    h, tp, sl = int(ex["horizon"]), float(ex["tp"]), float(ex["sl"])
-    return apply_exec_labels(df_feat, h, tp, sl, future_moves=future_by_h[h])
+    h = int(ex["horizon"])
+    tp, sl = execution_tp_sl(ex)
+    mode = execution_target_mode(ex)
+    return apply_exec_labels(
+        df_feat, h, tp, sl, future_moves=future_by_h[h], target_mode=mode
+    )
 
 
 def fit_pattern_model(
@@ -111,7 +150,13 @@ def pattern_model_dir(base: Path, pattern_name: str, *, variant: str | None = No
     return d
 
 
-def pattern_variant_tag(horizon: int, tp: float, sl: float) -> str:
+def pattern_variant_tag(
+    horizon: int, tp: float, sl: float, *, target_mode: str = "fixed"
+) -> str:
+    if execution_target_mode({"target_mode": target_mode}) == "atr":
+        tp_s = str(tp).replace(".", "p")
+        sl_s = str(sl).replace(".", "p")
+        return f"h{int(horizon)}_atr{tp_s}x_{sl_s}x"
     return f"h{int(horizon)}_tp{int(tp)}_sl{int(sl)}"
 
 
@@ -179,6 +224,132 @@ def wf_cycle_at(
     elapsed = max(0, (dt - anchor).days)
     skip = elapsed // rd
     return anchor + pd.Timedelta(days=skip * rd), 1 + skip
+
+
+def wf_cycle_window(
+    cycle_num: int,
+    wf_anchor: pd.Timestamp | None = None,
+    retrain_days: int | None = None,
+) -> tuple[int, pd.Timestamp, pd.Timestamp]:
+    """Return (cycle_num, cycle_start, cycle_end) for a 1-based WF cycle on the anchor grid."""
+    anchor = wf_anchor if wf_anchor is not None else wf_anchor_ts()
+    rd = retrain_days if retrain_days is not None else WF_CONFIG["retrain_days"]
+    cur = anchor
+    cycle = 1
+    while cycle < cycle_num:
+        cur = cur + pd.Timedelta(days=rd)
+        cycle += 1
+    return cycle, cur, cur + pd.Timedelta(days=rd)
+
+
+def wf_train_mode() -> str:
+    """incremental (default): only latest cycle. full: rewrite every cycle file."""
+    mode = os.environ.get("V14_WF_TRAIN_MODE", "incremental").strip().lower()
+    return mode if mode in ("full", "incremental") else "incremental"
+
+
+def wf_train_as_of() -> pd.Timestamp:
+    raw = os.environ.get("V14_WF_TRAIN_AS_OF", "").strip()
+    if raw:
+        ts = pd.Timestamp(raw)
+        return ts.tz_localize("UTC") if ts.tzinfo is None else ts.tz_convert("UTC")
+    return pd.Timestamp.now(tz="UTC")
+
+
+def wf_force_latest_cycle() -> bool:
+    return os.environ.get("V14_WF_FORCE_LATEST", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def wf_train_grace_days() -> int:
+    return int(WF_CONFIG.get("wf_train_grace_days", 1))
+
+
+def wf_incremental_train_target(
+    as_of: pd.Timestamp | None = None,
+) -> tuple[int, pd.Timestamp] | None:
+    """
+    Cycle model to train for the active WF window, only after it has started.
+
+    Example: cycle 38 starts 2026-06-05 → training allowed from 2026-06-06
+    (wf_train_grace_days after start). Uses data strictly before 2026-06-05.
+
+    Before that (e.g. 2026-05-30 still in cycle 37): returns None so we do not
+    re-run mid-cycle. Pair with last_trained_wf_cycle + no V14_WF_FORCE_LATEST.
+    """
+    as_of = as_of or wf_train_as_of()
+    anchor = wf_anchor_ts()
+    rd = int(WF_CONFIG["retrain_days"])
+    grace = wf_train_grace_days()
+
+    start, cycle = wf_cycle_at(as_of, anchor, rd)
+    # Calendar-day grace (anchor cycles start 22:00 UTC — compare dates, not timestamps)
+    train_after = start.date() + pd.Timedelta(days=grace)
+    if as_of.date() < train_after:
+        return None
+    return cycle, start
+
+
+def iter_wf_train_targets(
+    cycle_model_path_fn,
+    *,
+    as_of: pd.Timestamp | None = None,
+) -> list[tuple[int, pd.Timestamp]]:
+    """
+    Which WF cycles to train this run.
+
+    incremental: one model for the current cycle only (train data strictly before
+    cycle_start). Older cycle_*.joblib files are not touched.
+    full: every cycle from wf_start through as_of (legacy behaviour).
+    """
+    as_of = as_of or wf_train_as_of()
+    anchor = wf_anchor_ts()
+    rd = int(WF_CONFIG["retrain_days"])
+
+    if wf_train_mode() == "full":
+        out: list[tuple[int, pd.Timestamp]] = []
+        cur = anchor
+        cycle = 1
+        while cur < as_of:
+            out.append((cycle, cur))
+            cur = cur + pd.Timedelta(days=rd)
+            cycle += 1
+        return out
+
+    grace = wf_train_grace_days()
+    pending = wf_incremental_train_target(as_of)
+    if pending is None:
+        cur_start, cur_cycle = wf_cycle_at(as_of, anchor, rd)
+        train_after = cur_start.date() + pd.Timedelta(days=grace)
+        print(
+            f"  WF incremental: skip — wait until {train_after} to train "
+            f"cycle_{cur_cycle} (starts {cur_start.date()})"
+        )
+        return []
+
+    cycle, start = pending
+    path = cycle_model_path_fn(cycle, start.date())
+    if wf_force_latest_cycle() or not path.exists():
+        return [(cycle, start)]
+    print(
+        f"  WF incremental: keep cycle_{cycle} ({start.date()}) — "
+        f"exists at {path.name}"
+    )
+    return []
+
+
+def fixed_wf_cycle_from_env() -> tuple[int, pd.Timestamp] | None:
+    """V14_FIXED_WF_CYCLE=21 pins scoring to that cycle's trained models."""
+    raw = os.environ.get("V14_FIXED_WF_CYCLE", "").strip()
+    if not raw:
+        return None
+    cycle_num = int(raw)
+    _, cycle_start, _ = wf_cycle_window(cycle_num)
+    return cycle_num, cycle_start
 
 
 def iter_wf_cycles(

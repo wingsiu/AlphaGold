@@ -1,0 +1,2 @@
+side,entry_time,entry_price,stop,target,timeout,target_updates,stop_updates,s1_prob,s2_prob,tp,sl,horizon,matched_pattern,exit_time,exit_price,exit_reason,pnl,source,pattern
+-1,2026-06-01 13:17:00+00:00,4481.38,4511.38,4428.34,2026-06-01 13:37:00+00:00,4,0,0.6718522310256958,0.3281477689743042,40.0,30.0,15,breakthrough_short,2026-06-01 13:37:00+00:00,4472.29,timeout,9.090000000000146,pattern,breakthrough_short

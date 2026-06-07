@@ -16,11 +16,12 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import subprocess
 import sys
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -46,18 +47,17 @@ from ig_scripts.ig_data_api import (
     fetch_open_positions,
     fetch_prices,
 )
-from trading_bot_v14 import AlphaGoldV14Bot, BotState, _ts_to_ny
+from trading_bot_v14 import AlphaGoldV14Bot, BotState
 from xgboost_filter_model.hybrid_live import HybridLiveScorer, LiveSignal
 from xgboost_filter_model.time_slot_filter import is_blocked_entry, load_weak_filter, resolve_v14_time_filter_path
-from mobile_api.journal import SignalJournal
+from mobile_api.journal import SignalJournal, trading_day_label, trading_day_start_utc
 
 UTC = timezone.utc
-NY_TZ = __import__("zoneinfo").ZoneInfo("America/New_York")
-TRADING_DAY_CUTOFF_HOUR_NY = 17
 
 
 @dataclass
 class HybridBotState(BotState):
+    last_trained_wf_cycle: Optional[int] = None  # avoid re-running same cycle train
     open_position_source: Optional[str] = None  # pattern | energetic
     open_pattern_name: Optional[str] = None
     open_tp: Optional[float] = None
@@ -149,20 +149,24 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
         self._feature_df_end = None
 
     def _maybe_weekend_retrain(self) -> None:
+        """Train next WF cycle only after the current 14d cycle closes (+ grace)."""
         now = datetime.now(UTC)
-        if now.weekday() != 5 or now.hour != 1:
-            return
-        should_retrain = False
-        if self.state.last_retrain_date is None:
-            should_retrain = True
-        else:
-            last_date = datetime.fromisoformat(self.state.last_retrain_date).date()
-            if (now.date() - last_date).days >= 14:
-                should_retrain = True
-        if not should_retrain:
+        if now.hour != 1:
             return
 
-        self.logger.info("Starting scheduled bi-weekly hybrid retraining...")
+        from xgboost_filter_model.pattern_training import wf_incremental_train_target
+
+        pending = wf_incremental_train_target(pd.Timestamp(now))
+        if pending is None:
+            return
+        cycle_num, cycle_start = pending
+        if self.state.last_trained_wf_cycle == cycle_num:
+            return
+
+        self.logger.info(
+            f"WF cycle closed — training cycle_{cycle_num} "
+            f"(start {cycle_start.date()}, data before {cycle_start.date()})…"
+        )
         retrain_log_dir = PROJECT_ROOT / "runtime" / "retrain_logs"
         retrain_log_dir.mkdir(parents=True, exist_ok=True)
         day_tag = now.date().isoformat()
@@ -181,21 +185,31 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
             return True
 
         try:
-            s1_ok = _run("stage1", PROJECT_ROOT / "xgboost_filter_model" / "train_filter_v14.py")
-            if not s1_ok:
-                return
-            s2_ok = _run(
-                "stage2",
-                PROJECT_ROOT / "xgboost_filter_model" / "train_stage2_v14_directional.py",
+            retrain_env = {
+                **os.environ,
+                "V14_WF_TRAIN_MODE": "incremental",
+                "PYTHONPATH": str(PROJECT_ROOT),
+            }
+            wf_end = date.today().strftime("%Y-%m-%d")
+            cmd = [
+                sys.executable,
+                str(PROJECT_ROOT / "v14" / "tools" / "retrain_hybrid_wf.py"),
+                "2025-06-01",
+                wf_end,
+            ]
+            self.logger.info("Running incremental hybrid retrain + weak-filter rebuild…")
+            res = subprocess.run(cmd, capture_output=True, text=True, env=retrain_env)
+            (retrain_log_dir / f"retrain_hybrid_{day_tag}.log").write_text(
+                f"=== STDOUT ===\n{res.stdout}\n=== STDERR ===\n{res.stderr}\n",
+                encoding="utf-8",
             )
-            if not s2_ok:
-                return
-            pat_ok = _run("patterns", PROJECT_ROOT / "v14" / "tools" / "train_patterns_v14.py")
-            if not pat_ok:
+            if res.returncode != 0:
+                self.logger.error(f"retrain_hybrid_wf failed: {res.stderr[-2000:]}")
                 return
             self.logger.info("Hybrid retraining complete — hot-reloading scorer…")
             self._load_models()
             self.state.last_retrain_date = now.date().isoformat()
+            self.state.last_trained_wf_cycle = cycle_num
             self._save_state()
         except Exception as e:
             self.logger.error(f"Weekend retrain error: {e}")
@@ -408,6 +422,14 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
                         datetime.now(UTC) - datetime.fromisoformat(self.state.closed_first_seen_at)
                     ).total_seconds() > 300:
                         self.logger.warning("Force-clearing stale open_deal_id")
+                        try:
+                            self.journal.close_trade(
+                                self.state.open_deal_id,
+                                exit_time=datetime.now(UTC).isoformat(),
+                                exit_reason="stale_sync",
+                            )
+                        except Exception as je:
+                            self.logger.error(f"Journal stale close failed: {je}")
                         self._clear_position_state()
                         self._save_state()
             else:
@@ -429,6 +451,7 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
                 return
             pos_wrap = self.broker.get_position_by_deal_id(self.state.open_deal_id)
             if not pos_wrap:
+                self._sync_trade_results()
                 return
             pos = pos_wrap.get("position", {})
             direction = str(pos.get("direction", "")).upper()
@@ -496,10 +519,10 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
         end_ts = self.cached_df.index.max()
         if self._feature_df is not None and self._feature_df_end == end_ts:
             return self._feature_df
-        start = (end_ts - pd.Timedelta(days=self.feature_warmup_days)).strftime("%Y-%m-%d")
-        end = (end_ts + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
-        self.logger.info(f"Building pattern feature matrix {start} → {end}…")
-        self._feature_df = self.scorer.build_feature_df(start, end)
+        self.logger.info(
+            f"Building live feature matrix ({len(self.cached_df)} bars ending {end_ts})…"
+        )
+        self._feature_df = self.scorer.build_feature_df_from_ohlcv(self.cached_df)
         self._feature_df_end = end_ts
         return self._feature_df
 
@@ -558,7 +581,9 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
         if exec_res.submitted:
             deal_id = exec_res.deal_id
             self.state.open_deal_id = deal_id
-            self.state.open_entry_time = pd.Timestamp(latest_ts).tz_convert("UTC").isoformat()
+            signal_ts = pd.Timestamp(latest_ts).tz_convert("UTC")
+            entry_bar_ts = signal_ts + pd.Timedelta(minutes=1)
+            self.state.open_entry_time = signal_ts.isoformat()
             self.state.open_position_source = sig.source
             self.state.open_pattern_name = sig.pattern_name
             self.state.open_tp = sig.tp
@@ -581,12 +606,14 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
                         "source": sig.source,
                         "pattern_name": sig.pattern_name,
                         "side": sig.side,
-                        "entry_time": self.state.open_entry_time,
+                        "signal_time": signal_ts.isoformat(),
+                        "entry_time": entry_bar_ts.isoformat(),
                         "entry_price": float(entry_price),
                         "tp": sig.tp,
                         "sl": sig.sl,
                         "horizon": sig.horizon,
                         "probability": sig.probability,
+                        "horizon_deadline": self.state.open_horizon_deadline,
                     }
                 )
                 self.journal.record_score(
@@ -607,21 +634,22 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
     def poll(self, store_to_db: bool = False):
         now = datetime.now(UTC)
         now_pd = pd.Timestamp(now)
-        now_ny = now_pd.tz_convert(NY_TZ)
 
         if not store_to_db:
-            current_trading_day = (now_ny - pd.Timedelta(hours=TRADING_DAY_CUTOFF_HOUR_NY)).floor("D")
+            current_label = trading_day_label(trading_day_start_utc(now))
             last_recon_str = self.state.last_reconciliation_day
-            last_recon_day = _ts_to_ny(last_recon_str).floor("D") if last_recon_str else None
-            if last_recon_day is not None and current_trading_day > last_recon_day:
-                recon_cmd = [sys.executable, str(PROJECT_ROOT / "v14" / "tools" / "daily_reconciliation.py"), last_recon_day.strftime("%Y-%m-%d")]
+            if last_recon_str and current_label > last_recon_str:
+                recon_cmd = [
+                    sys.executable,
+                    str(PROJECT_ROOT / "v14" / "tools" / "daily_reconciliation.py"),
+                    last_recon_str,
+                ]
                 try:
                     subprocess.Popen(recon_cmd)
                 except Exception as e:
                     self.logger.error(f"Reconciliation trigger failed: {e}")
-            new_recon = current_trading_day.strftime("%Y-%m-%d")
-            if self.state.last_reconciliation_day != new_recon:
-                self.state.last_reconciliation_day = new_recon
+            if self.state.last_reconciliation_day != current_label:
+                self.state.last_reconciliation_day = current_label
                 self._save_state()
 
         if store_to_db:
@@ -671,32 +699,69 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
 
         if self.last_predicted_bar_ts == raw_latest_ts:
             return
-        self.last_predicted_bar_ts = raw_latest_ts
 
         feat_df = self._get_feature_df()
+        bar_iso = pd.Timestamp(raw_latest_ts).tz_convert("UTC").isoformat()
         if feat_df.empty or raw_latest_ts not in feat_df.index:
             self.logger.warning(f"No feature row for {raw_latest_ts}")
+            try:
+                self.journal.record_score(
+                    bar_iso,
+                    action="score",
+                    open_source=self.state.open_position_source,
+                )
+            except Exception as je:
+                self.logger.error(f"Journal score failed: {je}")
+            self.last_predicted_bar_ts = raw_latest_ts
             return
 
         latest_ts = raw_latest_ts
-        pat_sig, en_sig = self.scorer.score_bar(
-            feat_df, latest_ts, consecutive_losses=self.state.consecutive_losses
+        try:
+            snap = self.scorer.bar_score_snapshot(
+                feat_df, latest_ts, consecutive_losses=self.state.consecutive_losses
+            )
+            pat_sig, en_sig = self.scorer.score_bar(
+                feat_df, latest_ts, consecutive_losses=self.state.consecutive_losses
+            )
+        except Exception as e:
+            self.logger.error(f"Score failed at {latest_ts}: {e}")
+            try:
+                self.journal.record_score(
+                    bar_iso,
+                    action="score",
+                    open_source=self.state.open_position_source,
+                )
+            except Exception as je:
+                self.logger.error(f"Journal score failed: {je}")
+            self.last_predicted_bar_ts = raw_latest_ts
+            return
+
+        self.last_predicted_bar_ts = raw_latest_ts
+
+        routed = snap.routed_pattern
+        pat_prob = snap.pattern_prob
+        self.logger.info(
+            f"[{latest_ts}] pattern={routed or '—'} prob={pat_prob if pat_prob is not None else '—'} "
+            f"pass={snap.pattern_passes} en={en_sig.side if en_sig else 0} "
+            f"open={self.state.open_position_source or 'flat'}"
         )
 
-        self.logger.info(
-            f"[{latest_ts}] pattern={pat_sig.pattern_name if pat_sig else None} "
-            f"en={en_sig.side if en_sig else 0} open={self.state.open_position_source or 'flat'}"
-        )
+        detail_parts = []
+        if routed and not snap.pattern_passes:
+            detail_parts.append("pattern_no_signal")
+        if snap.energetic_on_bar and not snap.energetic_passes:
+            detail_parts.append("energetic_no_signal")
 
         try:
             self.journal.record_score(
                 pd.Timestamp(latest_ts).tz_convert("UTC").isoformat(),
-                pattern_name=pat_sig.pattern_name if pat_sig else None,
-                pattern_side=pat_sig.side if pat_sig else 0,
-                pattern_prob=pat_sig.probability if pat_sig else None,
-                energetic_side=en_sig.side if en_sig else 0,
-                energetic_prob=en_sig.probability if en_sig else None,
+                pattern_name=routed,
+                pattern_side=snap.pattern_side,
+                pattern_prob=pat_prob,
+                energetic_side=snap.energetic_side,
+                energetic_prob=snap.energetic_prob,
                 action="score",
+                detail=";".join(detail_parts) if detail_parts else None,
                 open_source=self.state.open_position_source,
             )
         except Exception as je:

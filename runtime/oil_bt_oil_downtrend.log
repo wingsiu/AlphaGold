@@ -1,0 +1,120 @@
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-23
+  Patterns: oil_downtrend_retrace
+  oil_downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Gates: energetic=False  s1=False (≥0.50)
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-23…
+Loading prices from 2025-02-01 to 2026-05-24...
+Data successfully loaded: 454280 rows.
+Data loaded successfully: 454280 rows.
+Features and labels prepared.
+Features prepared (live inference mode — no future labels).
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=wick)...
+Adding pattern features (set=current)…
+Loading prices from 2025-06-01 to 2025-06-08...
+Data successfully loaded: 6733 rows.
+Data loaded successfully: 6733 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Skipping 15m Price Action features
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding new directional features...
+Adding moving average features...
+Pattern path: 381873 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 282126
+Pattern-routed bars: 155307 (55.05%)
+  oil_downtrend_retrace: 155307
+  Model oil_downtrend_retrace: h15_tp40_sl30
+
+Applying pattern gates…
+
+Pattern entry signals: 53841 (LONG=0 SHORT=53841)
+Loading full 1-min bars for exit simulation…
+Loading prices from 2025-06-01 to 2026-05-24...
+Data successfully loaded: 341175 rows.
+Data loaded successfully: 341175 rows.
+
+============================================================
+  COMBINED BACKTEST  |  2025-06-01 → 2026-05-23
+============================================================
+  Trades   : 4324
+  Win rate : 31.8%
+  Net PnL  : -4245.55
+  Avg/trade: -0.98
+  Max DD   : -6205.75
+
+Saved -> /Users/alpha/AlphaGold/runtime/oil_pattern_backtest_trades.csv
+
+  By pattern:
+    oil_downtrend_retrace: 4322 trades  PnL=-4255.5  WR=32%  avg=-0.98
+    unknown             :    2 trades  PnL=+10.0  WR=50%  avg=+5.00
+  SHORT total: 4324  PnL=-4245.5  WR=32%
+
+────────────────────────────────────────────────────────────
+  LAST 30 TRADES (HKT)
+────────────────────────────────────────────────────────────
+  entry_hkt exit_hkt  dir  entry_price  exit_price    pnl exit_reason               pattern
+05-22 01:24    01:33 down      9812.95     9842.95 -30.00   stop_loss oil_downtrend_retrace
+05-22 01:34    01:41 down      9841.95     9730.70 111.25  target_hit oil_downtrend_retrace
+05-22 01:42    01:42 down      9729.25     9689.25  40.00  target_hit oil_downtrend_retrace
+05-22 01:44    01:49 down      9719.25     9644.30  74.95  target_hit oil_downtrend_retrace
+05-22 01:54    01:56 down      9596.25     9556.25  40.00  target_hit oil_downtrend_retrace
+05-22 02:00    02:04 down      9605.55     9635.55 -30.00   stop_loss oil_downtrend_retrace
+05-22 02:05    02:49 down      9673.05     9703.05 -30.00   stop_loss oil_downtrend_retrace
+05-22 02:50    02:52 down      9695.85     9725.85 -30.00   stop_loss oil_downtrend_retrace
+05-22 02:53    02:55 down      9748.45     9778.45 -30.00   stop_loss oil_downtrend_retrace
+05-22 02:56    04:41 down      9786.65     9767.15  19.50     timeout oil_downtrend_retrace
+05-22 06:02    06:18 down      9740.35     9741.55  -1.20     timeout oil_downtrend_retrace
+05-22 14:02    15:33 down      9808.95     9838.95 -30.00   stop_loss oil_downtrend_retrace
+05-22 15:44    16:34 down      9824.85     9854.85 -30.00   stop_loss oil_downtrend_retrace
+05-22 16:36    20:12 down      9880.55     9671.70 208.85  target_hit oil_downtrend_retrace
+05-22 20:14    20:17 down      9604.85     9634.85 -30.00   stop_loss oil_downtrend_retrace
+05-22 20:18    20:18 down      9640.35     9600.35  40.00  target_hit oil_downtrend_retrace
+05-22 20:19    20:19 down      9597.85     9557.85  40.00  target_hit oil_downtrend_retrace
+05-22 20:21    20:22 down      9575.55     9605.55 -30.00   stop_loss oil_downtrend_retrace
+05-22 20:23    20:27 down      9606.95     9636.95 -30.00   stop_loss oil_downtrend_retrace
+05-22 20:28    21:33 down      9646.55     9676.55 -30.00   stop_loss oil_downtrend_retrace
+05-22 21:34    21:42 down      9680.95     9710.95 -30.00   stop_loss oil_downtrend_retrace
+05-22 21:43    21:48 down      9701.45     9731.45 -30.00   stop_loss oil_downtrend_retrace
+05-22 21:49    21:50 down      9722.35     9752.35 -30.00   stop_loss oil_downtrend_retrace
+05-22 21:51    01:28 down      9757.15     9552.10 205.05  target_hit oil_downtrend_retrace
+05-23 01:31    01:32 down      9487.75     9517.75 -30.00   stop_loss oil_downtrend_retrace
+05-23 01:33    01:34 down      9517.65     9547.65 -30.00   stop_loss oil_downtrend_retrace
+05-23 01:35    01:55 down      9546.65     9576.65 -30.00   stop_loss oil_downtrend_retrace
+05-23 01:56    02:04 down      9577.15     9607.15 -30.00   stop_loss oil_downtrend_retrace
+05-23 02:05    02:29 down      9594.15     9624.15 -30.00   stop_loss oil_downtrend_retrace
+05-23 02:30    03:15 down      9634.55     9639.55  -5.00     timeout oil_downtrend_retrace
+Oil backtest: /Users/alpha/AlphaGold/.venv/bin/python3 /Users/alpha/AlphaGold/v14/backtest/backtest_patterns_v14.py 2025-06-01 2026-05-23 oil_downtrend_retrace
+
+============================================================
+  OIL BACKTEST  2025-06-01 → 2026-05-23  patterns=oil_downtrend_retrace
+============================================================
+  Trades   : 4324
+  Win rate : 31.8%
+  Net PnL  : -4245.55  (DB price units; ÷100 ≈ spot $ per contract)
+  Avg/trade: -0.98
+
+  By pattern:
+    oil_downtrend_retrace: 4322 trades  PnL=-4255.5  WR=32%

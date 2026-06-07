@@ -50,11 +50,18 @@ def main() -> None:
         print(f"Hybrid backtest: pattern-first → energetic fallback + time filter\n  ({filter_path})\n")
     else:
         print("Hybrid backtest: pattern-first → energetic fallback (time filter OFF)\n")
-    subprocess.run(cmd, cwd=PROJECT_ROOT, check=True)
 
-    if not TRADES_CSV.exists():
-        print(f"No trades file at {TRADES_CSV}")
-        sys.exit(1)
+    csv_mtime_before = TRADES_CSV.stat().st_mtime if TRADES_CSV.exists() else None
+    subprocess.run(cmd, cwd=PROJECT_ROOT, env={**os.environ, "PYTHONPATH": str(PROJECT_ROOT)}, check=True)
+    csv_updated = (
+        TRADES_CSV.exists()
+        and (csv_mtime_before is None or TRADES_CSV.stat().st_mtime > csv_mtime_before)
+    )
+
+    if not csv_updated:
+        print("\nNo trades written for this window (no entry signals or early exit).")
+        print("Previous CSV was left unchanged — stats below are NOT for this run.\n")
+        sys.exit(0)
 
     tdf = pd.read_csv(TRADES_CSV)
     if tdf.empty:

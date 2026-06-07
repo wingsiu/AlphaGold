@@ -1,0 +1,51 @@
+2026-06-08 02:45:42,813 | INFO | --- AlphaGold v14 HYBRID Bot Startup ---
+2026-06-08 02:45:42,813 | INFO | Pattern exec defaults: {
+  "tp": 30.0,
+  "sl": 25.0,
+  "horizon": 30,
+  "s1_threshold": 0.5,
+  "s2_threshold": 0.55,
+  "s2_loss_increment": 0.01,
+  "s2_max_threshold": 0.7,
+  "spread_default": 0.25,
+  "size": 2.0,
+  "take_profit_pct": 0.6,
+  "same_dir_refresh": "entry",
+  "upgrade_stop": false,
+  "close_on_reverse": false
+}
+2026-06-08 02:45:42,813 | INFO | Energetic exec: {
+  "tp": 30.0,
+  "sl": 25.0,
+  "horizon": 30,
+  "s1_threshold": 0.5,
+  "s2_threshold": 0.55,
+  "s2_loss_increment": 0.01,
+  "s2_max_threshold": 0.7,
+  "spread_default": 0.25,
+  "size": 2.0,
+  "take_profit_pct": 0.6,
+  "same_dir_refresh": "global",
+  "upgrade_stop": false,
+  "close_on_reverse": true
+}
+2026-06-08 02:45:42,813 | INFO | Hybrid: pattern reverse=False  refresh=entry  energetic reverse=True  refresh=global
+2026-06-08 02:45:43,383 | INFO | Time slot filter ON: 35 blocked cells
+2026-06-08 02:45:43,391 | INFO | Pattern model loaded: uptrend_retrace (h15_tp20_sl15)
+2026-06-08 02:45:43,393 | INFO | Pattern model loaded: downtrend_retrace (h15_tp40_sl30)
+2026-06-08 02:45:43,395 | INFO | Pattern model loaded: breakthrough_long (h15_tp40_sl20)
+2026-06-08 02:45:43,397 | INFO | Pattern model loaded: breakthrough_short (h30_tp40_sl30)
+2026-06-08 02:45:43,399 | INFO | Pattern model loaded: reversal_fvg_long (h15_tp20_sl15)
+2026-06-08 02:45:43,401 | INFO | Pattern model loaded: reversal_fvg_short (h15_tp40_sl30)
+2026-06-08 02:45:43,405 | INFO | Energetic models: S1=filter_v14_cycle_38_2026-06-05.joblib S2=directional_v14_cycle_38_2026-06-05.joblib
+2026-06-08 02:45:43,406 | INFO | Pattern model loaded: uptrend_retrace (h15_tp20_sl15)
+2026-06-08 02:45:43,408 | INFO | Pattern model loaded: downtrend_retrace (h15_tp40_sl30)
+2026-06-08 02:45:43,409 | INFO | Pattern model loaded: breakthrough_long (h15_tp40_sl20)
+2026-06-08 02:45:43,410 | INFO | Pattern model loaded: breakthrough_short (h30_tp40_sl30)
+2026-06-08 02:45:43,412 | INFO | Pattern model loaded: reversal_fvg_long (h15_tp20_sl15)
+2026-06-08 02:45:43,413 | INFO | Pattern model loaded: reversal_fvg_short (h15_tp40_sl30)
+2026-06-08 02:45:43,416 | INFO | Energetic models: S1=filter_v14_cycle_38_2026-06-05.joblib S2=directional_v14_cycle_38_2026-06-05.joblib
+2026-06-08 02:45:43,416 | INFO | Performing cache warmup (syncing latest from IG and loading ~120 days from DB)...
+Data successfully loaded: 378337 rows.
+2026-06-08 02:45:47,497 | INFO | Cache warmed up with 116438 rows from database.
+2026-06-08 02:45:47,501 | INFO | Hybrid bot execution loop started.

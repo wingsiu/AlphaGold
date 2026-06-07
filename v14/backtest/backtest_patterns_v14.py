@@ -20,13 +20,27 @@ from v14._paths import PROJECT_ROOT
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+# Oil subprocess backtests set V14_PRICE_TABLE=prices before launch.
+if os.environ.get("V14_PRICE_TABLE") == "prices":
+    from oil.bootstrap import apply_oil_registry
+
+    apply_oil_registry()
+    _oil_enrich_features = None
+    try:
+        from oil.patterns import enrich_pattern_features as _oil_enrich_features
+    except ImportError:
+        pass
+else:
+    _oil_enrich_features = None
+
 import joblib
 import numpy as np
 import pandas as pd
 
 from v14.backtest.backtest_core import simulate_hybrid_two_pass, simulate_v13_core
+from v14.backtest.trade_display import print_trades_table_hkt
 from config.v14_config import EXECUTION_CONFIG, ENERGETIC_EXECUTION_CONFIG, TIME_FILTER_CONFIG, WF_CONFIG
-from config.v14_patterns import PATTERN_MODEL_DIR, PATTERN_REGISTRY, PRODUCTION_PATTERNS, collect_pa_groups, backtest_feature_set
+from config.v14_patterns import PATTERN_MODEL_DIR, PATTERN_REGISTRY, PRODUCTION_PATTERNS, collect_pa_groups, backtest_feature_set, pattern_prob_override
 from xgboost_filter_model.energetic_gate import (
     apply_pattern_gates,
     hybrid_config,
@@ -35,8 +49,12 @@ from xgboost_filter_model.energetic_gate import (
 )
 from xgboost_filter_model.pattern_router import assign_patterns
 from xgboost_filter_model.pattern_training import (
+    assign_exec_tp_sl,
     cycle_model_path,
+    execution_target_mode,
+    execution_tp_sl,
     feature_columns,
+    fixed_wf_cycle_from_env,
     iter_wf_cycles,
     pattern_variant_tag,
     prod_model_path,
@@ -46,6 +64,14 @@ from xgboost_filter_model.time_slot_filter import load_weak_filter, resolve_v14_
 from xgboost_filter_model.train_filter_1min import load_price_data
 from xgboost_filter_model.train_filter_v14 import prepare_data_v14
 from xgboost_filter_model.train_stage2_v14_directional import prepare_directional_data_v14
+
+
+def _utc_ts(value: str | pd.Timestamp) -> pd.Timestamp:
+    ts = pd.Timestamp(value)
+    if ts.tzinfo is None:
+        return ts.tz_localize("UTC")
+    return ts.tz_convert("UTC")
+
 
 args = sys.argv[1:]
 today_str = date.today().strftime("%Y-%m-%d")
@@ -72,9 +98,12 @@ print(f"  Period : {bt_start} → {bt_end}")
 print(f"  Patterns: {', '.join(pattern_filter)}")
 for name, spec in active_patterns.items():
     ex = spec["execution"]
+    tp, sl = execution_tp_sl(ex)
+    mode = execution_target_mode(ex)
+    tp_sl = f"TP={tp}×ATR SL={sl}×ATR" if mode == "atr" else f"TP={tp} SL={sl}"
     print(
-        f"  {name}: H={ex['horizon']} TP={ex['tp']} SL={ex['sl']}  "
-        f"({spec['direction_bias']}, prob≥{spec['thresholds']['prob']})"
+        f"  {name}: H={ex['horizon']} {tp_sl}  "
+        f"({spec['direction_bias']}, prob≥{spec['thresholds']['prob']}, target={mode})"
     )
 print(f"  Feature set: {backtest_feature_set()} (widest matrix for mixed models)")
 _gate = pattern_gate_config()
@@ -95,13 +124,14 @@ print(f"  Refresh: {EXECUTION_CONFIG.get('same_dir_refresh', 'entry')}  "
 print(f"{'='*60}\n")
 
 warmup_days = int(WF_CONFIG.get("feature_warmup_days", 120))
+bt_start_dt = _utc_ts(bt_start)
 load_start_dt = max(
-    pd.to_datetime(WF_CONFIG["full_start"]),
-    pd.to_datetime(bt_start) - pd.Timedelta(days=warmup_days),
+    _utc_ts(WF_CONFIG["full_start"]),
+    bt_start_dt - pd.Timedelta(days=warmup_days),
 )
 load_start = load_start_dt.strftime("%Y-%m-%d")
 bt_end_date = bt_end.split("T")[0] if "T" in bt_end else bt_end
-load_end = (pd.to_datetime(bt_end_date) + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+load_end = (_utc_ts(bt_end_date) + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
 bt_start_date = bt_start.split("T")[0] if "T" in bt_start else bt_start
 
 print(f"Loading pattern data {load_start} → {bt_end}…")
@@ -109,17 +139,14 @@ df = prepare_data_v14(
     start_date=load_start,
     end_date=load_end,
     energetic_filter=False,
+    for_live_inference=True,
     pa_groups=collect_pa_groups(list(active_patterns.keys())),
     pattern_feature_set=backtest_feature_set(),
 )
 df = prepare_directional_data_v14(df)
+if _oil_enrich_features is not None:
+    df = _oil_enrich_features(df, list(active_patterns.keys()))
 feats = feature_columns(df)
-
-bt_start_dt = pd.to_datetime(bt_start)
-if bt_start_dt.tzinfo is None:
-    bt_start_dt = bt_start_dt.tz_localize("UTC")
-else:
-    bt_start_dt = bt_start_dt.tz_convert("UTC")
 
 df_test = df[df.index >= bt_start_dt].copy()
 print(f"Bars in test window: {len(df_test)}")
@@ -141,7 +168,9 @@ for name in active_patterns:
 models: dict[str, dict] = {}
 for name, spec in active_patterns.items():
     ex = spec["execution"]
-    variant = pattern_variant_tag(ex["horizon"], ex["tp"], ex["sl"])
+    tp, sl = execution_tp_sl(ex)
+    mode = execution_target_mode(ex)
+    variant = pattern_variant_tag(ex["horizon"], tp, sl, target_mode=mode)
     pdir = PATTERN_MODEL_DIR / name / variant
     mp = prod_model_path(pdir)
     if not mp.exists():
@@ -156,7 +185,7 @@ for name, spec in active_patterns.items():
     print(f"  Model {name}: {variant}")
 
 wf_anchor = wf_anchor_ts()
-end_dt = pd.to_datetime(bt_end).tz_localize("UTC") + pd.Timedelta(days=1)
+end_dt = _utc_ts(bt_end_date) + pd.Timedelta(days=1)
 
 if _hybrid["enabled"]:
     gate_mask = pd.Series(True, index=df_test.index)
@@ -175,7 +204,15 @@ df_test["exec_tp"] = np.nan
 df_test["exec_sl"] = np.nan
 df_test["exec_horizon"] = np.nan
 
-for cycle, current_start, current_end in iter_wf_cycles(bt_start_dt, end_dt, wf_anchor):
+fixed_cycle = fixed_wf_cycle_from_env()
+if fixed_cycle:
+    pin_cycle, pin_start = fixed_cycle
+    print(f"\nFixed WF cycle: cycle_{pin_cycle} (models from {pin_start.date()}) for full window")
+    cycle_iter = [(pin_cycle, bt_start_dt, end_dt)]
+else:
+    cycle_iter = list(iter_wf_cycles(bt_start_dt, end_dt, wf_anchor))
+
+for cycle, current_start, current_end in cycle_iter:
     chunk = (df_test.index >= current_start) & (df_test.index < current_end)
     if not chunk.any():
         continue
@@ -185,12 +222,16 @@ for cycle, current_start, current_end in iter_wf_cycles(bt_start_dt, end_dt, wf_
         if not pat_chunk.any():
             continue
 
-        path = cycle_model_path(m["dir"], cycle, current_start.date())
+        model_start = pin_start.date() if fixed_cycle else current_start.date()
+        path = cycle_model_path(m["dir"], cycle, model_start)
         model = joblib.load(path) if path.exists() else m["prod"]
         model_feats = list(model.feature_names_in_)
         spec = m["spec"]
         ex = spec["execution"]
         prob_thresh = spec["thresholds"]["prob"]
+        _override = pattern_prob_override()
+        if _override is not None:
+            prob_thresh = _override
         bias = spec["direction_bias"]
 
         rows = df_test.loc[pat_chunk]
@@ -199,15 +240,18 @@ for cycle, current_start, current_end in iter_wf_cycles(bt_start_dt, end_dt, wf_
         if not _gate["s1_gate"]:
             df_test.loc[pat_chunk, "s1_prob"] = p
 
-        sig = pat_chunk & (df_test["prob"] >= prob_thresh)
+        # Adaptive prob threshold based on volatility regime
+        from xgboost_filter_model.adaptive_prob import adaptive_prob_threshold
+
+        adaptive_thresh = adaptive_prob_threshold(prob_thresh, df_test)
+        sig = pat_chunk & (df_test["prob"] >= adaptive_thresh)
         side = 1 if bias == "long" else -1
         df_test.loc[sig, "side_signal"] = side
         if bias == "long":
             df_test.loc[sig, "s2_prob"] = df_test.loc[sig, "prob"]
         else:
             df_test.loc[sig, "s2_prob"] = 1.0 - df_test.loc[sig, "prob"]
-        df_test.loc[sig, "exec_tp"] = ex["tp"]
-        df_test.loc[sig, "exec_sl"] = ex["sl"]
+        assign_exec_tp_sl(df_test, df_test.index[sig], ex)
         df_test.loc[sig, "exec_horizon"] = ex["horizon"]
         fired = sig & df_test["matched_pattern"].isna()
         df_test.loc[fired, "matched_pattern"] = name
@@ -335,7 +379,8 @@ print(f"  Net PnL  : {net_pnl:+.2f}")
 print(f"  Avg/trade: {net_pnl/len(tdf):+.2f}")
 print(f"  Max DD   : {max_dd:+.2f}")
 
-out_path = PROJECT_ROOT / "runtime" / "v14_pattern_backtest_trades.csv"
+_out = os.environ.get("V14_BT_TRADES_OUT")
+out_path = (PROJECT_ROOT / _out) if _out else PROJECT_ROOT / "runtime" / "v14_pattern_backtest_trades.csv"
 tdf["entry_time"] = pd.to_datetime(tdf["entry_time"])
 signal_ts = tdf["entry_time"] - pd.Timedelta(minutes=1)
 if "matched_pattern" in tdf.columns:
@@ -372,12 +417,5 @@ if len(long_t):
 if len(short_t):
     print(f"  SHORT total: {len(short_t):4d}  PnL={short_t['pnl'].sum():+.1f}  WR={(short_t['pnl']>0).mean()*100:.0f}%")
 
-print("\n  Last 10 trades (HKT):")
-tdf2 = tdf.copy()
-tdf2["entry_hkt"] = pd.to_datetime(tdf2["entry_time"]).dt.tz_convert("Asia/Hong_Kong")
-for _, r in tdf2.tail(10).iterrows():
-    d = "LONG" if r["side"] == 1 else "SHORT"
-    print(
-        f"  {r['entry_hkt'].strftime('%m-%d %H:%M')} {d:5s} pnl={r['pnl']:+.2f}  "
-        f"pattern={r.get('pattern', '?')}"
-    )
+show_all = len(date_args) == 1 and date_args[0].isdigit()
+print_trades_table_hkt(tdf, show_all=show_all)

@@ -6,23 +6,31 @@
     <string>com.alphagold.hybrid-bot</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/alpha/Desktop/python/AlphaGold/.venv/bin/python3</string>
-        <string>/Users/alpha/Desktop/python/AlphaGold/trading_bot_hybrid_v14.py</string>
+        <string>/bin/bash</string>
+        <string>/Users/alpha/AlphaGold/v14/scripts/run_hybrid_bot.sh</string>
     </array>
     <key>WorkingDirectory</key>
-    <string>/Users/alpha/Desktop/python/AlphaGold</string>
+    <string>/Users/alpha/AlphaGold</string>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
     <true/>
+    <key>Nice</key>
+    <integer>12</integer>
+    <key>ProcessType</key>
+    <string>Background</string>
     <key>StandardOutPath</key>
-    <string>/Users/alpha/Desktop/python/AlphaGold/runtime/launchd_hybrid_bot.log</string>
+    <string>/Users/alpha/AlphaGold/runtime/launchd_hybrid_bot.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/alpha/Desktop/python/AlphaGold/runtime/launchd_hybrid_bot.err</string>
+    <string>/Users/alpha/AlphaGold/runtime/launchd_hybrid_bot.err</string>
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
         <string>/usr/local/bin:/usr/bin:/bin</string>
+        <key>PYTHONPATH</key>
+        <string>/Users/alpha/AlphaGold</string>
+        <key>IG_SKIP_KEYRING</key>
+        <string>1</string>
     </dict>
 </dict>
 </plist>

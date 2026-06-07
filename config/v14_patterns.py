@@ -28,7 +28,7 @@ PATTERN_REGISTRY = {
         "direction_bias": "long",
         "priority": 1,
         "feature_set": "v2398",
-        "thresholds": {"prob": 0.55},
+        "thresholds": {"prob": 0.45},
         # 240m: rallied ≥$30 off 240m low, pulled back ≥$10 from 240m high
         "context": [],
         "pattern": [
@@ -44,7 +44,7 @@ PATTERN_REGISTRY = {
         "direction_bias": "short",
         "priority": 2,
         "feature_set": "v2398",
-        "thresholds": {"prob": 0.55},
+        "thresholds": {"prob": 0.45},
         # 240m: fell ≥$25 from 240m high, bounced ≥$5 off 240m low
         "context": [],
         "pattern": [
@@ -60,7 +60,7 @@ PATTERN_REGISTRY = {
         "direction_bias": "long",
         "priority": 10,
         "feature_set": "current",
-        "thresholds": {"prob": 0.55},
+        "thresholds": {"prob": 0.45},
         # WR(90) > -30 and ret_3m > 4
         "context": [],
         "pattern": [
@@ -73,7 +73,7 @@ PATTERN_REGISTRY = {
         "direction_bias": "short",
         "priority": 11,
         "feature_set": "current",
-        "thresholds": {"prob": 0.55},
+        "thresholds": {"prob": 0.45},
         # WR(90) < -70 and ret_3m < -10
         "context": [],
         "pattern": [
@@ -104,7 +104,7 @@ PATTERN_REGISTRY = {
         "priority": 6,
         "feature_set": "current",
         "pa_groups": ("fvg",),
-        "thresholds": {"prob": 0.55},
+        "thresholds": {"prob": 0.45},
         "context": [],
         "pattern": [
             {"feat": "time_from_fvg_bull", "op": "<", "val": 30.0},
@@ -136,7 +136,7 @@ PATTERN_REGISTRY = {
         "priority": 8,
         "feature_set": "current",
         "pa_groups": ("fvg",),
-        "thresholds": {"prob": 0.55},
+        "thresholds": {"prob": 0.45},
         "context": [],
         "pattern": [
             {"feat": "time_from_fvg_bear", "op": "<", "val": 30.0},
@@ -233,6 +233,12 @@ EXCLUDE_COLS = {
 }
 
 
+def pattern_prob_override() -> float | None:
+    """Env override for pattern probability threshold (e.g. V14_PATTERN_PROB_BASE=0.45)."""
+    raw = os.environ.get("V14_PATTERN_PROB_BASE", "").strip()
+    return float(raw) if raw else None
+
+
 def pattern_feature_set() -> str:
     """Env override for single-set training/sweeps. Prefer per-pattern feature_set in registry."""
     return os.environ.get("V14_PATTERN_FEATURE_SET", "current").strip().lower()
@@ -263,4 +269,6 @@ def collect_pa_groups(pattern_names: list[str] | None = None) -> tuple[str, ...]
         for g in spec.get("pa_groups", ()):
             if g in ALL_GROUPS:
                 out.add(g)
+    if "wick" in ALL_GROUPS:
+        out.add("wick")
     return tuple(sorted(out))

@@ -1,0 +1,48 @@
+Hybrid v10-style time filter (combined pattern + energetic heatmaps)
+Weak-cell rule: trades>3, pnl<0.0
+
+Pass 1: hybrid baseline (no time filter)...
+  Baseline: trades=1064  WR=48.7%  PnL=+3101.6
+
+Blocked slots (35):
+  hkt    Monday    08:00  trades=28  pnl=-98.1  wr=36%
+  hkt    Monday    10:00  trades=10  pnl=-104.0  wr=20%
+  hkt    Monday    11:00  trades=10  pnl=-33.4  wr=30%
+  hkt    Monday    13:00  trades=17  pnl=-57.7  wr=35%
+  hkt    Tuesday   08:00  trades=10  pnl=-24.6  wr=30%
+  hkt    Friday    08:00  trades=8  pnl=-29.1  wr=50%
+  london Monday    09:00  trades=11  pnl=-119.8  wr=27%
+  london Monday    11:00  trades=14  pnl=-32.6  wr=36%
+  london Monday    13:00  trades=19  pnl=-108.1  wr=37%
+  london Monday    15:00  trades=18  pnl=-161.9  wr=28%
+  london Monday    16:00  trades=17  pnl=-7.1  wr=47%
+  london Tuesday   14:00  trades=26  pnl=-9.1  wr=42%
+  london Wednesday 13:00  trades=17  pnl=-73.3  wr=41%
+  london Wednesday 15:00  trades=17  pnl=-96.0  wr=41%
+  london Thursday  10:00  trades=5  pnl=-60.3  wr=20%
+  london Thursday  15:00  trades=44  pnl=-296.4  wr=34%
+  london Thursday  16:00  trades=12  pnl=-77.6  wr=42%
+  london Friday    09:00  trades=11  pnl=-2.9  wr=45%
+  london Friday    13:00  trades=16  pnl=-44.0  wr=31%
+  ny     Monday    08:00  trades=19  pnl=-47.9  wr=37%
+  ny     Monday    09:00  trades=27  pnl=-30.0  wr=48%
+  ny     Monday    10:00  trades=19  pnl=-30.9  wr=37%
+  ny     Monday    11:00  trades=15  pnl=-43.1  wr=47%
+  ny     Monday    13:00  trades=7  pnl=-28.9  wr=29%
+  ny     Tuesday   09:00  trades=25  pnl=-84.1  wr=32%
+  ny     Tuesday   12:00  trades=10  pnl=-7.4  wr=30%
+  ny     Tuesday   13:00  trades=10  pnl=-11.8  wr=60%
+  ny     Wednesday 08:00  trades=16  pnl=-5.8  wr=44%
+  ny     Wednesday 10:00  trades=16  pnl=-102.3  wr=44%
+  ny     Wednesday 13:00  trades=4  pnl=-1.7  wr=50%
+  ny     Thursday  10:00  trades=45  pnl=-260.0  wr=36%
+  ny     Thursday  11:00  trades=17  pnl=-121.0  wr=29%
+  ny     Thursday  12:00  trades=5  pnl=-18.3  wr=40%
+  ny     Thursday  15:00  trades=6  pnl=-8.5  wr=50%
+  ny     Friday    13:00  trades=6  pnl=-1.5  wr=50%
+
+Pass 2: hybrid with time filter (both legs)...
+  Filtered: trades=717  WR=54.0%  PnL=+4282.5
+  Delta PnL: +1181.0
+
+Saved /Users/alpha/AlphaGold/time_filter_hybrid_results.csv and /Users/alpha/AlphaGold/runtime/v14_weak_time_slots.json

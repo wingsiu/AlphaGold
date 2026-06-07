@@ -41,6 +41,11 @@ def build_target(df: pd.DataFrame, horizon: int, tp: float, sl: float) -> pd.Dat
     
     return df
 from config.v14_config import FILTER_CONFIG, TARGET_CONFIG, MODEL_CONFIG, WF_CONFIG
+from xgboost_filter_model.pattern_training import (
+    iter_wf_train_targets,
+    wf_train_mode,
+    wf_train_as_of,
+)
 
 NY_TZ = ZoneInfo("America/New_York")
 HK_TZ = ZoneInfo("Asia/Hong_Kong")
@@ -129,12 +134,14 @@ def prepare_data_v14(
     end_date: str = None,
     *,
     energetic_filter: bool = True,
+    for_live_inference: bool = False,
     label_horizon: int | None = None,
     label_tp: float | None = None,
     label_sl: float | None = None,
     fixed_label_tp_sl: bool = False,
     pa_groups: list[str] | tuple[str, ...] | str | None = None,
     pattern_feature_set: str | None = None,
+    price_table: str | None = None,
 ) -> pd.DataFrame:
     """Prepares the dataset for v14 S1 Filter Model.
 
@@ -143,6 +150,7 @@ def prepare_data_v14(
     fixed_label_tp_sl=True disables ATR-scaled dynamic_tp/sl (train label = exec params).
     pa_groups: optional price-action feature groups for pattern models.
     pattern_feature_set: "current" or "v2398" (see pattern_features.add_pattern_features).
+    for_live_inference: skip future labels and preserve latest bars (hybrid backtest + live).
 
     Pattern specialists must label with each pattern's execution H/TP/SL via
     label_df_for_pattern() — not the global TARGET_CONFIG / EXECUTION_CONFIG defaults.
@@ -150,14 +158,15 @@ def prepare_data_v14(
     lbl_h = label_horizon if label_horizon is not None else TARGET_CONFIG["horizon"]
     lbl_tp = label_tp if label_tp is not None else TARGET_CONFIG["tp"]
     lbl_sl = label_sl if label_sl is not None else TARGET_CONFIG["sl"]
-    df = load_price_data(start_date=start_date, end_date=end_date)
+    df = load_price_data(start_date=start_date, end_date=end_date, table_name=price_table)
     
     print("Features and labels prepared.")
     df = prepare_base_features(
-        df, 
-        move_threshold=TARGET_CONFIG["move_threshold"], 
-        er_threshold=TARGET_CONFIG["er_threshold"], 
-        future_window=TARGET_CONFIG["horizon"]
+        df,
+        move_threshold=TARGET_CONFIG["move_threshold"],
+        er_threshold=TARGET_CONFIG["er_threshold"],
+        future_window=TARGET_CONFIG["horizon"],
+        for_live_inference=for_live_inference,
     )
     
     print("Adding liquidity zone indicators...")
@@ -214,33 +223,36 @@ def prepare_data_v14(
     else:
         print("Skipping 15m Price Action features")
     
-    print(f"Redefining target with Horizon={lbl_h}, TP={lbl_tp}, SL={lbl_sl}...")
-    df = build_target(
-        df,
-        horizon=lbl_h,
-        tp=lbl_tp,
-        sl=lbl_sl,
-    )
+    if not for_live_inference:
+        print(f"Redefining target with Horizon={lbl_h}, TP={lbl_tp}, SL={lbl_sl}...")
+        df = build_target(
+            df,
+            horizon=lbl_h,
+            tp=lbl_tp,
+            sl=lbl_sl,
+        )
 
-    if fixed_label_tp_sl:
-        df["dynamic_tp"] = lbl_tp
-        df["dynamic_sl"] = lbl_sl
-    elif "atr_threshold" in df.columns:
-        df["dynamic_tp"] = np.where(df["atr"] > df["atr_threshold"], lbl_tp * 1.5, lbl_tp)
-        df["dynamic_sl"] = np.where(df["atr"] > df["atr_threshold"], lbl_sl * 1.5, lbl_sl)
+        if fixed_label_tp_sl:
+            df["dynamic_tp"] = lbl_tp
+            df["dynamic_sl"] = lbl_sl
+        elif "atr_threshold" in df.columns:
+            df["dynamic_tp"] = np.where(df["atr"] > df["atr_threshold"], lbl_tp * 1.5, lbl_tp)
+            df["dynamic_sl"] = np.where(df["atr"] > df["atr_threshold"], lbl_sl * 1.5, lbl_sl)
+        else:
+            df["dynamic_tp"] = lbl_tp
+            df["dynamic_sl"] = lbl_sl
+
+        df["trend_label"] = (
+            (df["future_max_move"] >= df["dynamic_tp"])
+            & (df["future_min_move"].abs() <= df["dynamic_sl"])
+        ).astype(int) | (
+            (df["future_min_move"].abs() >= df["dynamic_tp"])
+            & (df["future_max_move"] <= df["dynamic_sl"])
+        ).astype(int)
+
+        df["bar_move"] = (df["close"] - df["open"]).abs()
     else:
-        df["dynamic_tp"] = lbl_tp
-        df["dynamic_sl"] = lbl_sl
-        
-    df["trend_label"] = (
-        (df["future_max_move"] >= df["dynamic_tp"]) & 
-        (df["future_min_move"].abs() <= df["dynamic_sl"])
-    ).astype(int) | (
-        (df["future_min_move"].abs() >= df["dynamic_tp"]) & 
-        (df["future_max_move"] <= df["dynamic_sl"])
-    ).astype(int)
-    
-    df["bar_move"] = (df["close"] - df["open"]).abs()
+        df["bar_move"] = (df["close"] - df["open"]).abs()
 
     if not energetic_filter:
         from config.v14_patterns import pattern_feature_set as _resolve_pfs
@@ -248,7 +260,16 @@ def prepare_data_v14(
         pfs = pattern_feature_set if pattern_feature_set is not None else _resolve_pfs()
         print(f"Adding pattern features (set={pfs})…")
         df = add_pattern_features(df, feature_set=pfs)
-        df.dropna(inplace=True)
+        if for_live_inference:
+            from xgboost_filter_model.energetic_gate import s1_feature_columns
+
+            core = [c for c in s1_feature_columns(df) if c in df.columns]
+            if core:
+                ok = df[core].notna().all(axis=1)
+                if ok.any():
+                    df = df.iloc[int(ok.argmax()) :].copy()
+        else:
+            df.dropna(inplace=True)
         print(f"Pattern path: {len(df)} bars (no HMM/bar_move/volume filter)")
         return df
 
@@ -295,60 +316,55 @@ def train_walk_forward_v14():
     out_dir = PROJECT_ROOT / os.environ.get("V14_MODEL_OUTPUT_DIR", WF_CONFIG["model_output_dir"])
     out_dir.mkdir(parents=True, exist_ok=True)
     
-    df_train_full = df[df.index < wf_start]
-    print(f"Initial training set: {len(df_train_full)} bars (up to {wf_start.date()})")
-    
-    # Train initial "production" model
-    X_train = df_train_full[features]
-    y_train = df_train_full["trend_label"]
-    
-    # Calculate scale_pos_weight to handle class imbalance
-    if y_train.sum() > 0:
-        scale_pos_weight = (len(y_train) - y_train.sum()) / y_train.sum()
-        print(f"Applying scale_pos_weight: {scale_pos_weight:.2f}")
-        model_config = MODEL_CONFIG["s1"].copy()
-        model_config["scale_pos_weight"] = scale_pos_weight
-    else:
-        model_config = MODEL_CONFIG["s1"]
-        
-    model = xgb.XGBClassifier(**model_config)
-    model.fit(X_train, y_train)
-    
     prod_path = PROJECT_ROOT / "xgboost_filter_model" / "filter_model_v14_wf.joblib"
-    joblib.dump(model, prod_path)
-    print(f"Saved initial PROD model to {prod_path}")
-    
-    # Walk-forward cycles
-    current_start = wf_start
-    end_dt = max(df.index.max(), pd.Timestamp.now(tz="UTC"))
-    cycle = 1
-    
-    while current_start < end_dt:
-        model_path = out_dir / f"filter_v14_cycle_{cycle}_{current_start.date()}.joblib"
-        
-        # Train on all data up to current_start
+
+    def _cycle_path(cycle: int, start_date) -> Path:
+        return out_dir / f"filter_v14_cycle_{cycle}_{start_date}.joblib"
+
+    targets = iter_wf_train_targets(_cycle_path, as_of=wf_train_as_of())
+    print(f"S1 WF train mode: {wf_train_mode()}  targets={len(targets)}")
+
+    if wf_train_mode() == "full":
+        df_train_full = df[df.index < wf_start]
+        print(f"Initial training set: {len(df_train_full)} bars (up to {wf_start.date()})")
+        X_train = df_train_full[features]
+        y_train = df_train_full["trend_label"]
+        if y_train.sum() > 0:
+            scale_pos_weight = (len(y_train) - y_train.sum()) / y_train.sum()
+            print(f"Applying scale_pos_weight: {scale_pos_weight:.2f}")
+            model_config = MODEL_CONFIG["s1"].copy()
+            model_config["scale_pos_weight"] = scale_pos_weight
+        else:
+            model_config = MODEL_CONFIG["s1"]
+        model = xgb.XGBClassifier(**model_config)
+        model.fit(X_train, y_train)
+        joblib.dump(model, prod_path)
+        print(f"Saved initial PROD model to {prod_path}")
+    elif not targets:
+        print("S1 incremental: no new cycle — prod and cycle files unchanged.")
+        return
+
+    prod_model = joblib.load(prod_path) if prod_path.exists() else None
+
+    for cycle, current_start in targets:
+        model_path = _cycle_path(cycle, current_start.date())
         train_chunk = df[df.index < current_start]
         X_tr = train_chunk[features]
         y_tr = train_chunk["trend_label"]
-        
         print(f"Cycle {cycle} ({current_start.date()}): Training on {len(X_tr)} bars...")
-        
-        if y_tr.sum() > 0:
-            scale_pos_weight = (len(y_tr) - y_tr.sum()) / y_tr.sum()
-            cycle_config = MODEL_CONFIG["s1"].copy()
-            cycle_config["scale_pos_weight"] = scale_pos_weight
-        else:
-            cycle_config = MODEL_CONFIG["s1"]
-            
+        if len(X_tr) < 10 or y_tr.sum() == 0:
+            if prod_model is not None:
+                joblib.dump(prod_model, model_path)
+                print(f"  Using prod fallback -> {model_path.name}")
+            continue
+        scale_pos_weight = (len(y_tr) - y_tr.sum()) / y_tr.sum()
+        cycle_config = MODEL_CONFIG["s1"].copy()
+        cycle_config["scale_pos_weight"] = scale_pos_weight
         cycle_model = xgb.XGBClassifier(**cycle_config)
         cycle_model.fit(X_tr, y_tr)
-        
         joblib.dump(cycle_model, model_path)
-        
-        current_start += pd.Timedelta(days=retrain_days)
-        cycle += 1
-        
-    print("Walk-forward training complete.")
+
+    print("Walk-forward S1 training complete.")
 
 if __name__ == "__main__":
     train_walk_forward_v14()

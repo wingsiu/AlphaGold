@@ -37,6 +37,7 @@ from xgboost_filter_model.pattern_training import (
     cycle_model_path,
     feature_columns,
     fit_pattern_model,
+    iter_wf_train_targets,
     label_df_for_pattern,
     pattern_execution,
     pattern_horizons,
@@ -45,6 +46,7 @@ from xgboost_filter_model.pattern_training import (
     precompute_future_moves,
     prod_model_path,
     prod_train_slice,
+    wf_train_mode,
     wf_timestamps,
 )
 from xgboost_filter_model.train_filter_v14 import prepare_data_v14
@@ -100,26 +102,33 @@ def train_one_pattern(pattern_name: str, df: pd.DataFrame, *, feature_set: str) 
         print("  SKIP: could not train prod model")
         return
 
-    backup_variant_models(out_dir, tag=variant)
-    joblib.dump(prod, prod_model_path(out_dir))
-    print(f"  Saved prod model -> {prod_model_path(out_dir)} (n={len(df_pre)})")
+    targets = iter_wf_train_targets(
+        lambda c, d: cycle_model_path(out_dir, c, d),
+    )
+    if not targets and wf_train_mode() == "incremental":
+        print(f"  No new cycle to train for {pattern_name}")
+        return
 
-    current_start = wf_start
-    end_dt = max(df_pat.index.max(), pd.Timestamp.now(tz="UTC"))
-    cycle = 1
+    if wf_train_mode() == "full":
+        backup_variant_models(out_dir, tag=variant)
+        joblib.dump(prod, prod_model_path(out_dir))
+        print(f"  Saved prod model -> {prod_model_path(out_dir)} (n={len(df_pre)})")
+    else:
+        print(f"  incremental: prod model unchanged ({prod_model_path(out_dir).name})")
 
-    while current_start < end_dt:
+    for cycle, current_start in targets:
         train_chunk = df_pat[df_pat.index < current_start]
         path = cycle_model_path(out_dir, cycle, current_start.date())
         model = fit_pattern_model(
             train_chunk[feats], train_chunk["target_pattern"], min_samples=20
         )
         joblib.dump(model if model is not None else prod, path)
-        print(f"  Cycle {cycle} ({current_start.date()}): train n={len(train_chunk)}")
-        current_start += pd.Timedelta(days=retrain_days)
-        cycle += 1
+        print(
+            f"  Cycle {cycle} ({current_start.date()}): "
+            f"train n={len(train_chunk)} -> {path.name}"
+        )
 
-    print(f"  Walk-forward complete for {pattern_name}")
+    print(f"  Walk-forward complete for {pattern_name} ({wf_train_mode()})")
 
 
 def main() -> None:

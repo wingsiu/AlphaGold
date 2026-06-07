@@ -58,6 +58,8 @@ def add_pattern_features(df: pd.DataFrame, *, feature_set: str = "current") -> p
     high_240 = df["high"].rolling(240, min_periods=240).max()
     df["rise_from_low_240"] = df["close"] - low_240
     df["drop_from_high_240"] = high_240 - df["close"]
+    # Bearish 1-bar body in price units (open − close); 0 on green bars.
+    df["bar_bear_drop"] = (df["open"] - df["close"]).clip(lower=0)
 
     if not legacy:
         if "day_low_rolling" in df.columns:

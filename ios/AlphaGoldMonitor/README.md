@@ -2,18 +2,23 @@
 
 ## Create Xcode project
 
+**Automated (recommended):**
+
+```bash
+cd ios/AlphaGoldMonitor
+./setup_xcode.sh
+open AlphaGoldMonitor.xcodeproj
+```
+
+Then set **Signing & Capabilities → Team** in Xcode.
+
+**Manual:**
+
 1. Xcode → **File → New → Project → iOS App**
 2. Product name: `AlphaGoldMonitor`, Interface: **SwiftUI**
 3. Replace generated `ContentView.swift` and add `Models.swift`, `APIClient.swift` from this folder
 4. **Signing & Capabilities** → enable your team
-5. **Info.plist** → App Transport Security → allow local HTTP:
-   ```xml
-   <key>NSAppTransportSecurity</key>
-   <dict>
-     <key>NSAllowsLocalNetworking</key>
-     <true/>
-   </dict>
-   ```
+5. Use `Info.plist` from this folder (allows local HTTP via `NSAllowsLocalNetworking`)
 
 ## Apple Watch (optional)
 

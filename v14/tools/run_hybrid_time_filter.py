@@ -17,12 +17,14 @@ import subprocess
 import sys
 from pathlib import Path
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
 from v14._paths import PROJECT_ROOT
 TRADES_CSV = PROJECT_ROOT / "runtime" / "v14_pattern_backtest_trades.csv"
 BASELINE_TRADES_CSV = PROJECT_ROOT / "v14" / "runtime" / "results" / "v14_hybrid_trades_baseline.csv"
 FILTER_JSON = PROJECT_ROOT / "runtime" / "v14_weak_time_slots.json"
-
-sys.path.insert(0, str(PROJECT_ROOT))
 
 from config.v14_config import TIME_FILTER_CONFIG
 from xgboost_filter_model.time_slot_filter import (

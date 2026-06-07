@@ -6,22 +6,27 @@
     <string>com.alphagold.mobile-api</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/alpha/Desktop/python/AlphaGold/.venv/bin/python3</string>
-        <string>/Users/alpha/Desktop/python/AlphaGold/mobile_api/server.py</string>
-        <string>--host</string>
-        <string>0.0.0.0</string>
-        <string>--port</string>
-        <string>8765</string>
+        <string>/bin/bash</string>
+        <string>/Users/alpha/AlphaGold/v14/scripts/run_mobile_api.sh</string>
     </array>
     <key>WorkingDirectory</key>
-    <string>/Users/alpha/Desktop/python/AlphaGold</string>
+    <string>/Users/alpha/AlphaGold</string>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/Users/alpha/Desktop/python/AlphaGold/runtime/launchd_mobile_api.log</string>
+    <string>/Users/alpha/AlphaGold/runtime/launchd_mobile_api.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/alpha/Desktop/python/AlphaGold/runtime/launchd_mobile_api.err</string>
+    <string>/Users/alpha/AlphaGold/runtime/launchd_mobile_api.err</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin</string>
+        <key>PYTHONPATH</key>
+        <string>/Users/alpha/AlphaGold</string>
+        <key>IG_SKIP_KEYRING</key>
+        <string>1</string>
+    </dict>
 </dict>
 </plist>

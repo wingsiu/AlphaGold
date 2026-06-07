@@ -184,18 +184,30 @@ while current_start < end_dt:
     current_start = current_end
     cycle += 1
 
-s1_thresh    = EXECUTION_CONFIG["s1_threshold"]
-s2_base      = EXECUTION_CONFIG["s2_threshold"]
+s1_base = float(EXECUTION_CONFIG["s1_threshold"])
+s2_base = float(EXECUTION_CONFIG["s2_threshold"])
 s2_increment = EXECUTION_CONFIG["s2_loss_increment"]
 s2_max       = EXECUTION_CONFIG["s2_max_threshold"]
 
+# Volatility-adaptive S1/S2 thresholds
+_use_adaptive = os.environ.get("V14_ADAPTIVE_ENERGETIC", "1") not in ("0", "no", "false")
+if _use_adaptive:
+    from xgboost_filter_model.adaptive_prob import adaptive_prob_threshold
+    s1_thresh = adaptive_prob_threshold(s1_base, df_test)
+    s2_thresh = adaptive_prob_threshold(s2_base, df_test)
+    print(f"Adaptive thresholds: S1 base={s1_base:.2f} range=[{s1_thresh.min():.2f}, {s1_thresh.max():.2f}]  "
+          f"S2 base={s2_base:.2f} range=[{s2_thresh.min():.2f}, {s2_thresh.max():.2f}]")
+else:
+    s1_thresh = pd.Series(s1_base, index=df_test.index)
+    s2_thresh = pd.Series(s2_base, index=df_test.index)
+
 trend_mask = df_test['s1_prob'] >= s1_thresh
 df_test['side_signal'] = 0
-df_test.loc[trend_mask & (df_test['s2_prob'] >= s2_base), 'side_signal']         =  1
-df_test.loc[trend_mask & (df_test['s2_prob'] <= (1.0 - s2_base)), 'side_signal'] = -1
+df_test.loc[trend_mask & (df_test['s2_prob'] >= s2_thresh), 'side_signal']         =  1
+df_test.loc[trend_mask & (df_test['s2_prob'] <= (1.0 - s2_thresh)), 'side_signal'] = -1
 
 sig_count = (df_test['side_signal'] != 0).sum()
-print(f"S1 ≥ {s1_thresh} bars : {trend_mask.sum()}")
+print(f"S1 ≥ base={s1_base:.2f} adaptive bars : {trend_mask.sum()}")
 print(f"Entry signals        : {sig_count}  "
       f"(LONG={(df_test['side_signal']==1).sum()}  SHORT={(df_test['side_signal']==-1).sum()})")
 

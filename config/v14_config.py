@@ -77,7 +77,10 @@ WF_CONFIG = {
     "wf_start": "2025-01-03T22:00:00Z",  # 2025-01-03 is a Friday
     "feature_warmup_days": 120,
     "wf_end": _date.today().strftime("%Y-%m-%d"),   # auto-updates to today
-    "model_output_dir": "runtime/bot_assets/wf_models_v14"
+    "model_output_dir": "runtime/bot_assets/wf_models_v14",
+    # Train the NEXT cycle model only after the current 14d cycle ends (+ grace).
+    # e.g. cycle 37 ends 2026-06-05 → train cycle_38 on/after 2026-06-06, not mid-cycle on 5/30.
+    "wf_train_grace_days": 1,
 }
 
 # 6. Time-slot filter (v10-style session heatmaps; see run_hybrid_time_filter.py)

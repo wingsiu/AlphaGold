@@ -12,12 +12,20 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=PROJECT_ROOT / ".env")
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
 STATE_PATH = PROJECT_ROOT / "runtime" / "trading_bot_hybrid_state.json"
 
 from mobile_api.compare import compare_today  # noqa: E402
@@ -33,6 +41,22 @@ app.add_middleware(
 )
 
 journal = SignalJournal()
+
+
+@app.on_event("startup")
+def _startup_warm_caches() -> None:
+    import threading
+    import time
+
+    from mobile_api.ig_account import warm_ig_cache
+    from mobile_api.market_price import warm_gold_price_cache
+
+    def _run() -> None:
+        warm_ig_cache()
+        time.sleep(3)
+        warm_gold_price_cache()
+
+    threading.Thread(target=_run, daemon=True).start()
 
 
 def _load_hybrid_state() -> dict:
@@ -66,19 +90,29 @@ def status():
 
 @app.get("/api/v1/signals", dependencies=[Depends(verify_api_key)])
 def signals(minutes: int = Query(default=30, ge=1, le=240)):
-    rows = journal.signals_since_minutes(minutes)
-    return {"minutes": minutes, "count": len(rows), "signals": rows}
+    from mobile_api.trading_window import get_trading_window_status
+
+    view = journal.resolve_signals_view(minutes)
+    view["trading_window"] = get_trading_window_status()
+    return view
 
 
 @app.get("/api/v1/trades/today", dependencies=[Depends(verify_api_key)])
 def trades_today():
-    trades = journal.trades_today()
-    return {"summary": journal.trades_summary(trades), "trades": trades}
+    view = journal.resolve_trades_view()
+    return {
+        "summary": view["summary"],
+        "trades": view["trades"],
+        "trading_day": view["trading_day"],
+        "trading_day_start_utc": view["trading_day_start_utc"],
+        "is_fallback": view["is_fallback"],
+        "source": view["source"],
+    }
 
 
 @app.get("/api/v1/compare/today", dependencies=[Depends(verify_api_key)])
 def compare(refresh: bool = Query(default=False)):
-    """Live journal vs hybrid backtest for current NY trading day."""
+    """Live journal vs hybrid backtest for current trading day (22:00 UTC / 06:00 HKT)."""
     cached = compare_today(refresh_backtest=refresh)
     return cached
 

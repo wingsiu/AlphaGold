@@ -24,14 +24,22 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from data.data_loader import DataLoader
 
-def load_price_data(start_date: str = "2020-01-01", end_date: str = "2026-05-07") -> pd.DataFrame:
-    """Loads 1-minute gold price data for the specified date range."""
-    print(f"Loading data from {start_date} to {end_date}...")
+def load_price_data(
+    start_date: str = "2020-01-01",
+    end_date: str = "2026-05-07",
+    *,
+    table_name: str | None = None,
+) -> pd.DataFrame:
+    """Load 1-minute OHLCV from MySQL (default gold_prices; oil uses prices)."""
+    import os
+
+    table = table_name or os.environ.get("V14_PRICE_TABLE", "gold_prices")
+    print(f"Loading {table} from {start_date} to {end_date}...")
     loader = DataLoader()
     df = loader.load_data(
-        table_name='gold_prices',
+        table_name=table,
         start_date=start_date,
-        end_date=end_date
+        end_date=end_date,
     )
     print(f"Data loaded successfully: {len(df)} rows.")
     # Ensure index is datetime
@@ -246,6 +254,9 @@ def prepare_features(df: pd.DataFrame, move_threshold: float, er_threshold: floa
 
     df_1m = df_1m.join(session_features)
 
+    # No lookahead — needed for live/backtest inference when models were trained with this column.
+    if "atr" in df_1m.columns:
+        df_1m["atr_threshold"] = df_1m["atr"] * 1.5
 
     if not for_live_inference:
         # 8. Define Label (Target) based on the next N bars (future_window)
@@ -258,7 +269,6 @@ def prepare_features(df: pd.DataFrame, move_threshold: float, er_threshold: floa
 
         df_1m['future_max_move'] = future_highs - df_1m['close']
         df_1m['future_min_move'] = future_lows - df_1m['close']
-        df_1m['atr_threshold'] = df_1m['atr'] * 1.5
         df_1m['future_er'] = future_er # Keep future_er for analysis
 
         # Define the label before dropping NaNs from feature calculation

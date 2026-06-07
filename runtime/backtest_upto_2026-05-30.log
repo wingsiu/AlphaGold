@@ -1,0 +1,398 @@
+
+============================================================
+  AlphaGold v14 Pattern Backtest (combined router)
+  Period : 2025-06-01 → 2026-05-30
+  Patterns: uptrend_retrace, downtrend_retrace, breakthrough_long, breakthrough_short, reversal_fvg_long, reversal_fvg_short
+  uptrend_retrace: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  downtrend_retrace: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  breakthrough_long: H=15 TP=40.0 SL=20.0  (long, prob≥0.55)
+  breakthrough_short: H=30 TP=40.0 SL=30.0  (short, prob≥0.55)
+  reversal_fvg_long: H=15 TP=20.0 SL=15.0  (long, prob≥0.55)
+  reversal_fvg_short: H=15 TP=40.0 SL=30.0  (short, prob≥0.55)
+  Feature set: current (widest matrix for mixed models)
+  Gates: energetic=False  s1=False (≥0.50)
+  Hybrid: pattern-first → energetic fallback  |  pattern refresh=entry  energetic refresh=global  energetic reverse=True
+  Refresh: entry  upgrade_stop=False
+============================================================
+
+Loading pattern data 2025-02-01 → 2026-05-30…
+Loading data from 2025-02-01 to 2026-05-31...
+Data successfully loaded: 371445 rows.
+Data loaded successfully: 371445 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg,wick, FVG min_gap=0)...
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding pattern features (set=current)…
+Pattern path: 369903 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Bars in test window: 351173
+Pattern-routed bars: 213858 (60.90%)
+  uptrend_retrace     : 38411
+  downtrend_retrace   : 37660
+  breakthrough_long   : 4223
+  breakthrough_short  : 507
+  reversal_fvg_long   : 74136
+  reversal_fvg_short  : 58921
+  Model uptrend_retrace: h15_tp20_sl15
+  Model downtrend_retrace: h15_tp40_sl30
+  Model breakthrough_long: h15_tp40_sl20
+  Model breakthrough_short: h30_tp40_sl30
+  Model reversal_fvg_long: h15_tp20_sl15
+  Model reversal_fvg_short: h15_tp40_sl30
+
+Hybrid mode: pattern models ungated (energetic is fallback only)
+
+Scoring energetic fallback (S1/S2 on energetic bars)…
+Loading data from 2025-06-01 to 2025-06-08...
+Data successfully loaded: 6895 rows.
+Data loaded successfully: 6895 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Skipping 15m Price Action features
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding new directional features...
+Adding moving average features...
+Warning: Only one class found in target_v14. Adding dummy rows to ensure 2 classes.
+Loading data from 2025-06-01 to 2025-06-08...
+Data successfully loaded: 6895 rows.
+Data loaded successfully: 6895 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Skipping 15m Price Action features
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding new directional features...
+Adding moving average features...
+Warning: Only one class found in target_v14. Adding dummy rows to ensure 2 classes.
+  Energetic fallback: 19561 energetic bars, 3944 S1 pass, 3544 entry signals
+
+Pattern entry signals: 3658 (LONG=2993 SHORT=665)
+Energetic fallback signals: 3544 (LONG=1185 SHORT=2359)
+Loading full 1-min bars for exit simulation…
+Loading data from 2025-06-01 to 2026-05-31...
+Data successfully loaded: 352290 rows.
+Data loaded successfully: 352290 rows.
+Time filter: blocking 35 slots from /Users/alpha/AlphaGold/runtime/v14_weak_time_slots.json
+
+Pattern leg (standalone): 381 trades  PnL=+3432.1
+Running energetic fallback leg…
+
+============================================================
+  COMBINED HYBRID BACKTEST  |  2025-06-01 → 2026-05-30
+============================================================
+  Trades   : 717
+  Win rate : 54.0%
+  Net PnL  : +4282.54
+  Avg/trade: +5.97
+  Max DD   : -187.74
+
+Saved -> /Users/alpha/AlphaGold/runtime/v14_pattern_backtest_trades.csv
+
+  By pattern:
+    breakthrough_long   :    5 trades  PnL=+246.8  WR=100%  avg=+49.35
+    breakthrough_short  :    4 trades  PnL=+164.5  WR=75%  avg=+41.13
+    downtrend_retrace   :   49 trades  PnL=+667.3  WR=55%  avg=+13.62
+    energetic           :  336 trades  PnL=+850.5  WR=54%  avg=+2.53
+    reversal_fvg_long   :   73 trades  PnL=+375.8  WR=53%  avg=+5.15
+    reversal_fvg_short  :   24 trades  PnL=+297.1  WR=42%  avg=+12.38
+    uptrend_retrace     :  226 trades  PnL=+1680.6  WR=54%  avg=+7.44
+
+  By source:
+    energetic :  336 trades  PnL=+850.5  WR=54%
+    pattern   :  381 trades  PnL=+3432.1  WR=54%
+
+  LONG total :  416  PnL=+2723.2  WR=55%
+  SHORT total:  301  PnL=+1559.3  WR=52%
+
+────────────────────────────────────────────────────────────
+  LAST 30 TRADES (HKT)
+────────────────────────────────────────────────────────────
+  entry_hkt exit_hkt  dir  entry_price  exit_price    pnl      exit_reason   pattern
+04-07 13:31    14:16 down      4626.67     4645.82 -19.15          timeout energetic
+04-07 22:07    22:23 down      4610.09     4635.09 -25.00        stop_loss energetic
+04-08 06:03    06:04   up      4737.38     4743.75   6.37 pattern_priority energetic
+04-08 06:35    06:42   up      4761.81     4776.08  14.27 pattern_priority energetic
+04-08 08:01    08:13 down      4841.13     4839.87   1.26 pattern_priority energetic
+04-08 09:34    10:02 down      4798.05     4823.05 -25.00        stop_loss energetic
+04-08 21:35    22:08 down      4783.03     4780.74   2.29          timeout energetic
+04-08 23:01    23:31 down      4743.55     4752.83  -9.28          timeout energetic
+04-13 06:08    06:25   up      4678.58     4653.58 -25.00        stop_loss energetic
+04-13 06:26    07:03   up      4650.73     4659.95   9.22          timeout energetic
+04-14 18:42    19:12 down      4758.50     4776.50 -18.00          timeout energetic
+04-20 06:05    06:40   up      4775.44     4783.31   7.87          timeout energetic
+04-20 07:44    08:24 down      4750.77     4763.11 -12.34          timeout energetic
+04-22 04:11    04:41   up      4693.69     4712.20  18.51          timeout energetic
+04-28 19:37    20:07 down      4581.23     4570.39  10.84          timeout energetic
+04-28 22:03    22:36 down      4569.56     4565.24   4.32          timeout energetic
+04-28 22:42    23:12 down      4564.15     4574.68 -10.53          timeout energetic
+04-29 21:41    22:20 down      4518.80     4533.98 -15.18          timeout energetic
+04-30 16:06    16:36   up      4622.79     4614.76  -8.03          timeout energetic
+05-06 16:51    17:21 down      4695.53     4696.04  -0.51          timeout energetic
+05-06 21:16    22:04 down      4687.06     4706.08 -19.02          timeout energetic
+05-15 13:19    14:29 down      4584.39     4575.19   9.20          timeout energetic
+05-15 21:13    22:15 down      4544.05     4545.66  -1.61 pattern_priority energetic
+05-18 09:01    09:02   up      4505.92     4494.00 -11.92 pattern_priority energetic
+05-18 09:21    09:51   up      4496.05     4533.46  37.41       target_hit energetic
+05-19 22:01    22:51 down      4497.84     4492.16   5.68          timeout energetic
+05-20 09:30    10:08 down      4473.30     4481.23  -7.93          timeout energetic
+05-26 19:37    20:12 down      4514.55     4511.50   3.05          timeout energetic
+05-27 21:01    21:11 down      4430.35     4419.88  10.47 pattern_priority energetic
+05-27 21:31    22:01 down      4411.82     4432.81 -20.99          timeout energetic
+Hybrid backtest: pattern-first → energetic fallback + time filter
+  (/Users/alpha/AlphaGold/runtime/v14_weak_time_slots.json)
+
+
+============================================================
+  FULL STATISTICS
+============================================================
+  Trades       : 717  (W:387  L:330)
+  Win Rate     : 54.0%
+  Net PnL      : +4282.5
+  Avg Trade    : +5.97
+  Max Drawdown : -187.7
+
+  By pattern:
+    breakthrough_long   :    5 trades  PnL=+246.8  WR=100%  avg=+49.35
+    breakthrough_short  :    4 trades  PnL=+164.5  WR=75%  avg=+41.13
+    downtrend_retrace   :   49 trades  PnL=+667.3  WR=55%  avg=+13.62
+    energetic           :  336 trades  PnL=+850.5  WR=54%  avg=+2.53
+    reversal_fvg_long   :   73 trades  PnL=+375.8  WR=53%  avg=+5.15
+    reversal_fvg_short  :   24 trades  PnL=+297.1  WR=42%  avg=+12.38
+    uptrend_retrace     :  226 trades  PnL=+1680.6  WR=54%  avg=+7.44
+
+  LONG :  416 trades  PnL=+2723.2  WR=55%  avg=+6.55
+  SHORT:  301 trades  PnL=+1559.3  WR=52%  avg=+5.18
+
+  Exit Breakdown:
+    pattern_priority  :  129  WR= 62.8%  avg=   6.31
+    reverse_signal    :   49  WR= 77.6%  avg=  12.88
+    stop_loss         :  175  WR=  0.0%  avg= -19.06
+    target_hit        :  146  WR=100.0%  avg=  36.47
+    timeout           :  218  WR= 56.0%  avg=   3.89
+
+  Profit Factor   : 1.92
+  Daily Drawdown  : -196.3
+  Avg Day PnL     : 48.7
+  Positive Days   : 55.7%
+  Trades/Day      : 8.1
+  Avg Duration    : 22.0 min
+
+  Streaks:
+    Max Win Streak   : 24
+    Max Loss Streak  : 9
+
+  Risk-Adjusted:
+    Expectancy/Trade   : 5.97
+    Expectancy/Day     : 48.67
+    Recovery Factor    : 22.811
+    Sharpe  (annualized): 6.11
+    Sortino (annualized): 51.38
+
+  Exit Reason Details:
+    Target Hit   : 146 trades  avg=36.47
+    Reverse Sig  : 49 trades  WR=77.6%  avg=12.88
+    Timeout      : 218 trades  WR=56.0%  avg=3.89
+
+  Target Updates:
+    Mean=4.21  Median=2.00  Max=57
+
+============================================================
+  MONTHLY STATISTICS
+============================================================
+  month  trades  total_pnl  avg_trade win_rate
+2025-06       1      13.95  13.950000   100.0%
+2025-10      36     893.40  24.816667    83.3%
+2025-11       5     -45.42  -9.084000    40.0%
+2025-12       5      39.92   7.984000    60.0%
+2026-01      44     366.94   8.339545    50.0%
+2026-02     237    1515.82   6.395865    54.4%
+2026-03     295    1443.46   4.893085    52.9%
+2026-04      73      38.34   0.525205    45.2%
+2026-05      21      16.13   0.768095    52.4%
+
+============================================================
+  YEARLY STATISTICS
+============================================================
+ year  trades  total_pnl  avg_trade win_rate
+ 2025      47     901.85  19.188298    76.6%
+ 2026     670    3380.69   5.045806    52.4%
+
+============================================================
+  RETRAIN CYCLE STATISTICS  (every 14d from WF anchor)
+============================================================
+                      retrain_cycle  trades  total_pnl  avg_trade win_rate
+cycle_12 (2025-06-06 to 2025-06-20)       1      13.95  13.950000   100.0%
+cycle_21 (2025-10-10 to 2025-10-24)      29     936.94  32.308276    93.1%
+cycle_22 (2025-10-24 to 2025-11-07)       7     -43.54  -6.220000    42.9%
+cycle_23 (2025-11-07 to 2025-11-21)       5     -45.42  -9.084000    40.0%
+cycle_24 (2025-11-21 to 2025-12-05)       1      -5.50  -5.500000     0.0%
+cycle_26 (2025-12-19 to 2026-01-02)       4      45.42  11.355000    75.0%
+cycle_27 (2026-01-02 to 2026-01-16)       7      -8.10  -1.157143    28.6%
+cycle_28 (2026-01-16 to 2026-01-30)      37     375.04  10.136216    54.1%
+cycle_29 (2026-01-30 to 2026-02-13)     223    1526.82   6.846726    56.1%
+cycle_30 (2026-02-13 to 2026-02-27)      14     -11.00  -0.785714    28.6%
+cycle_31 (2026-02-27 to 2026-03-13)      85     388.21   4.567176    55.3%
+cycle_32 (2026-03-13 to 2026-03-27)     193    1002.40   5.193782    53.4%
+cycle_33 (2026-03-27 to 2026-04-10)      76     150.26   1.977105    44.7%
+cycle_34 (2026-04-10 to 2026-04-24)       9     -40.49  -4.498889    33.3%
+cycle_35 (2026-04-24 to 2026-05-08)      11     -39.64  -3.603636    45.5%
+cycle_36 (2026-05-08 to 2026-05-22)      11      59.66   5.423636    54.5%
+cycle_37 (2026-05-22 to 2026-05-27)       4     -22.47  -5.617500    50.0%
+
+  Weekday (UTC+2):
+weekday_utc2  trades  total_pnl  avg_trade win_rate_pct
+      Monday     225    1229.84   5.465956        52.4%
+     Tuesday     169     739.30   4.374556        52.1%
+   Wednesday      98     721.49   7.362143        54.1%
+    Thursday     139     987.21   7.102230        57.6%
+      Friday      86     604.70   7.031395        55.8%
+
+  Session Breakdown:
+session  trades  total_pnl  avg_trade  win_rate_pct
+   Asia     440    2922.76   6.642636     54.545455
+     NY     277    1359.78   4.908953     53.068592
+
+============================================================
+  SESSION HEATMAPS
+============================================================
+
+[HKT — Total PnL]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00
+----------------------------------------------------------------------------
+Monday             -   228.4       -       -    94.1       -   196.6   446.7
+Tuesday            -   184.6    14.8    10.5   -30.1    12.0     1.5    71.1
+Wednesday      123.6    36.0    11.1    38.8       -   -10.4    -5.2    58.5
+Thursday       -14.8   139.7    27.4    47.0     2.6   110.4     2.2    31.7
+Friday             -    56.6    72.7    30.3       -     9.2    18.6    40.1
+
+[HKT — Win Rate %]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00
+----------------------------------------------------------------------------
+Monday             -     52%       -       -     62%       -     47%     71%
+Tuesday            -     50%     50%     60%      0%     50%     50%     75%
+Wednesday        71%     50%    100%    100%       -      0%      0%    100%
+Thursday         67%     62%     29%     75%     50%     62%     43%     50%
+Friday             -     46%     80%    100%       -    100%     50%    100%
+
+[HKT — Trade Count]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00
+----------------------------------------------------------------------------
+Monday             -      50       -       -       8       -      17      21
+Tuesday            -      18      10       5       2       6       4       4
+Wednesday          7      14       2       3       -       2       1       1
+Thursday           3      13       7       4       2       8       7       4
+Friday             -      13       5       2       -       1       2       1
+
+[LONDON — Total PnL]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00   16:00
+------------------------------------------------------------------------------------
+Monday         121.6       -    19.0    -3.4   -11.7       -   -45.5       -    26.0
+Tuesday         95.5    13.6    55.4     2.6    87.6    78.1       -    53.9    57.1
+Wednesday       49.1    -0.5    -1.4    70.0    39.3       -    51.5       -    77.5
+Thursday        14.9   148.2       -    57.6   108.9   107.9    65.9       -       -
+Friday          66.1       -       -       -     0.8       -   118.8    73.4   -20.8
+
+[LONDON — Win Rate %]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00   16:00
+------------------------------------------------------------------------------------
+Monday           64%       -     55%      0%     36%       -     42%       -    100%
+Tuesday          62%     60%     67%     42%     67%     62%       -     42%     71%
+Wednesday        60%      0%     50%     50%     57%       -     44%       -     60%
+Thursday         71%     90%       -     67%     44%     64%     50%       -       -
+Friday           57%       -       -       -     67%       -     42%     54%      0%
+
+[LONDON — Trade Count]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00   16:00
+------------------------------------------------------------------------------------
+Monday            11       -      11       1      14       -      19       -       3
+Tuesday            8       5       3      19      15      13       -      26       7
+Wednesday          5       1       2       6       7       -      18       -       5
+Thursday           7      10       -       6       9      14      14       -       -
+Friday             7       -       -       -       3       -      24      13       2
+
+[NY — Total PnL]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00
+----------------------------------------------------------------------------
+Monday         -20.6   -45.5       -       -    19.7       -   103.8    25.4
+Tuesday         49.3    -4.1    21.2    89.8       -       -     2.1    23.4
+Wednesday       46.3    51.5       -    77.5    21.7       -    20.9    46.0
+Thursday        74.0   208.2       -       -       -    44.8   -23.6       -
+Friday           0.1   192.6   -49.6    43.2   -14.8       -    50.5       -
+
+[NY — Win Rate %]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00
+----------------------------------------------------------------------------
+Monday           36%     42%       -       -     56%       -     75%     50%
+Tuesday          60%     33%     38%     78%       -       -     33%     75%
+Wednesday        67%     44%       -     60%    100%       -     50%    100%
+Thursday         46%     61%       -       -       -     75%     33%       -
+Friday           50%     60%     32%     50%      0%       -    100%       -
+
+[NY — Trade Count]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00
+----------------------------------------------------------------------------
+Monday            11      19       -       -       9       -       8       6
+Tuesday           15       3      24       9       -       -       6       4
+Wednesday          6      18       -       5       1       -       6       2
+Thursday          13      18       -       -       -       8       3       -
+Friday             2      15      19       4       1       -       3       -
+
+────────────────────────────────────────────────────────────
+  LAST 30 TRADES (HKT)
+────────────────────────────────────────────────────────────
+  entry_hkt exit_hkt  dir  entry_price  exit_price    pnl      exit_reason   pattern
+04-07 13:31    14:16 down      4626.67     4645.82 -19.15          timeout energetic
+04-07 22:07    22:23 down      4610.09     4635.09 -25.00        stop_loss energetic
+04-08 06:03    06:04   up      4737.38     4743.75   6.37 pattern_priority energetic
+04-08 06:35    06:42   up      4761.81     4776.08  14.27 pattern_priority energetic
+04-08 08:01    08:13 down      4841.13     4839.87   1.26 pattern_priority energetic
+04-08 09:34    10:02 down      4798.05     4823.05 -25.00        stop_loss energetic
+04-08 21:35    22:08 down      4783.03     4780.74   2.29          timeout energetic
+04-08 23:01    23:31 down      4743.55     4752.83  -9.28          timeout energetic
+04-13 06:08    06:25   up      4678.58     4653.58 -25.00        stop_loss energetic
+04-13 06:26    07:03   up      4650.73     4659.95   9.22          timeout energetic
+04-14 18:42    19:12 down      4758.50     4776.50 -18.00          timeout energetic
+04-20 06:05    06:40   up      4775.44     4783.31   7.87          timeout energetic
+04-20 07:44    08:24 down      4750.77     4763.11 -12.34          timeout energetic
+04-22 04:11    04:41   up      4693.69     4712.20  18.51          timeout energetic
+04-28 19:37    20:07 down      4581.23     4570.39  10.84          timeout energetic
+04-28 22:03    22:36 down      4569.56     4565.24   4.32          timeout energetic
+04-28 22:42    23:12 down      4564.15     4574.68 -10.53          timeout energetic
+04-29 21:41    22:20 down      4518.80     4533.98 -15.18          timeout energetic
+04-30 16:06    16:36   up      4622.79     4614.76  -8.03          timeout energetic
+05-06 16:51    17:21 down      4695.53     4696.04  -0.51          timeout energetic
+05-06 21:16    22:04 down      4687.06     4706.08 -19.02          timeout energetic
+05-15 13:19    14:29 down      4584.39     4575.19   9.20          timeout energetic
+05-15 21:13    22:15 down      4544.05     4545.66  -1.61 pattern_priority energetic
+05-18 09:01    09:02   up      4505.92     4494.00 -11.92 pattern_priority energetic
+05-18 09:21    09:51   up      4496.05     4533.46  37.41       target_hit energetic
+05-19 22:01    22:51 down      4497.84     4492.16   5.68          timeout energetic
+05-20 09:30    10:08 down      4473.30     4481.23  -7.93          timeout energetic
+05-26 19:37    20:12 down      4514.55     4511.50   3.05          timeout energetic
+05-27 21:01    21:11 down      4430.35     4419.88  10.47 pattern_priority energetic
+05-27 21:31    22:01 down      4411.82     4432.81 -20.99          timeout energetic
+
+============================================================
+

@@ -244,6 +244,7 @@ def score_energetic_signals(
 ) -> None:
     """Score S1/S2 on energetic bars; set energetic_s1_prob, energetic_s2_prob, energetic_side."""
     from config.v14_config import ENERGETIC_EXECUTION_CONFIG, WF_CONFIG
+    from xgboost_filter_model.pattern_training import fixed_wf_cycle_from_env
 
     wf_dir = PROJECT_ROOT / os.environ.get(
         "V14_MODEL_OUTPUT_DIR",
@@ -265,32 +266,52 @@ def score_energetic_signals(
     df_test["energetic_s2_prob"] = np.nan
     df_test["energetic_side"] = 0
 
-    elapsed_days = max(0, (bt_start_dt - wf_start).days)
-    skip_cycles = elapsed_days // retrain_days
-    cycle = 1 + skip_cycles
-    current_start = wf_start + pd.Timedelta(days=skip_cycles * retrain_days)
+    fixed_cycle = fixed_wf_cycle_from_env()
+    if fixed_cycle:
+        cycle, pin_start = fixed_cycle
+        print(f"  Energetic models pinned: cycle_{cycle} ({pin_start.date()})")
+        cycle_windows = [(cycle, bt_start_dt, end_dt, pin_start.date())]
+    else:
+        elapsed_days = max(0, (bt_start_dt - wf_start).days)
+        skip_cycles = elapsed_days // retrain_days
+        cycle = 1 + skip_cycles
+        current_start = wf_start + pd.Timedelta(days=skip_cycles * retrain_days)
+        cycle_windows = []
+        while current_start < end_dt:
+            current_end = min(current_start + pd.Timedelta(days=retrain_days), end_dt)
+            cycle_windows.append((cycle, current_start, current_end, current_start.date()))
+            current_start = current_end
+            cycle += 1
 
-    while current_start < end_dt:
-        current_end = min(current_start + pd.Timedelta(days=retrain_days), end_dt)
-        chunk = (df_test.index >= current_start) & (df_test.index < current_end)
+    for cycle, win_start, win_end, model_date in cycle_windows:
+        chunk = (df_test.index >= win_start) & (df_test.index < win_end)
         if chunk.any():
-            s1_path = wf_dir / f"filter_v14_cycle_{cycle}_{current_start.date()}.joblib"
-            s2_path = wf_dir / f"directional_v14_cycle_{cycle}_{current_start.date()}.joblib"
+            s1_path = wf_dir / f"filter_v14_cycle_{cycle}_{model_date}.joblib"
+            s2_path = wf_dir / f"directional_v14_cycle_{cycle}_{model_date}.joblib"
             s1 = joblib.load(s1_path) if s1_path.exists() else prod_s1
             s2 = joblib.load(s2_path) if s2_path.exists() else prod_s2
             df_test.loc[chunk, "energetic_s1_prob"] = s1.predict_proba(df_test.loc[chunk, s1_feats])[:, 1]
             s1_pass = chunk & (df_test["energetic_s1_prob"] >= ENERGETIC_EXECUTION_CONFIG["s1_threshold"])
             if s1_pass.any():
                 df_test.loc[s1_pass, "energetic_s2_prob"] = s2.predict_proba(df_test.loc[s1_pass, s2_feats])[:, 1]
-        current_start = current_end
-        cycle += 1
 
     energetic = energetic_bar_mask(df_test)
-    s1_thresh = float(ENERGETIC_EXECUTION_CONFIG["s1_threshold"])
+
+    # Volatility-adaptive S1/S2 thresholds
+    from xgboost_filter_model.adaptive_prob import adaptive_prob_threshold
+
+    s1_base = float(ENERGETIC_EXECUTION_CONFIG["s1_threshold"])
     s2_base = float(ENERGETIC_EXECUTION_CONFIG["s2_threshold"])
-    trend = energetic & (df_test["energetic_s1_prob"] >= s1_thresh)
-    long_sig = trend & (df_test["energetic_s2_prob"] >= s2_base)
-    short_sig = trend & (df_test["energetic_s2_prob"] <= (1.0 - s2_base))
+    if os.environ.get("V14_ADAPTIVE_ENERGETIC", "0") not in ("0", "no", "false"):
+        s1_adaptive = adaptive_prob_threshold(s1_base, df_test)
+        s2_adaptive = adaptive_prob_threshold(s2_base, df_test)
+    else:
+        s1_adaptive = pd.Series(s1_base, index=df_test.index)
+        s2_adaptive = pd.Series(s2_base, index=df_test.index)
+
+    trend = energetic & (df_test["energetic_s1_prob"] >= s1_adaptive)
+    long_sig = trend & (df_test["energetic_s2_prob"] >= s2_adaptive)
+    short_sig = trend & (df_test["energetic_s2_prob"] <= (1.0 - s2_adaptive))
     df_test.loc[long_sig, "energetic_side"] = 1
     df_test.loc[short_sig, "energetic_side"] = -1
 

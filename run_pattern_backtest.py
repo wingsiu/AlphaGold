@@ -242,6 +242,10 @@ def print_full_stats(tdf: pd.DataFrame) -> None:
                 if table:
                     print(f"\n{table}")
 
+    from v14.backtest.trade_display import print_trades_table_hkt
+
+    print_trades_table_hkt(tdf, tail=30)
+
     print(f"\n{'='*60}\n")
 
 
