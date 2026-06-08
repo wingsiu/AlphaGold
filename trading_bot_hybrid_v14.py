@@ -351,7 +351,13 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
         pat_sig: Optional[LiveSignal],
         en_sig: Optional[LiveSignal],
     ) -> bool:
-        """Returns True if poll should stop (close submitted or refresh handled)."""
+        """Returns True if poll should stop (close submitted or refresh handled).
+        
+        Special case for pattern_priority: closes energetic but returns False
+        so the caller can immediately submit the pattern entry in the same poll
+        cycle. This matches the two-pass backtest where pattern entries never
+        leave a gap for energetic fallback.
+        """
         if not self.state.open_deal_id:
             return False
 
@@ -361,9 +367,13 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
         en_side = en_sig.side if en_sig else 0
         sig_side = pat_side if source == "pattern" else en_side
 
+        # pattern_priority: close energetic BUT continue to entry logic below
+        # so the pattern signal is submitted in the same poll cycle.
+        # This mirrors the two-pass backtest busy-mask: no gap between energetic
+        # close and pattern entry.
         if source == "energetic" and pat_sig:
             self._close_position_market("pattern_priority")
-            return True
+            return False
 
         close_on_reverse = (
             HYBRID_CONFIG.get("pattern_close_on_reverse", False)

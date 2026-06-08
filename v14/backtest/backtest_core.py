@@ -376,6 +376,15 @@ def simulate_hybrid_core(
             elif en_sig != 0:
                 if is_blocked_entry(now_ts, weak_period_cells):
                     continue
+                # Block energetic entry when a pattern position is already open.
+                # This mirrors simulate_hybrid_two_pass's busy-mask logic.
+                pattern_open = any(
+                    t["source"] == "pattern"
+                    and pd.Timestamp(t["entry_time"]) <= now_ts <= pd.Timestamp(t["exit_time"])
+                    for t in all_trades
+                )
+                if pattern_open:
+                    continue
                 dynamic_s2 = min(s2_max, s2_base + consecutive_losses * s2_increment)
                 s2_p = row.get("energetic_s2_prob")
                 if reverse_flip_sig is not None and en_sig == reverse_flip_sig:

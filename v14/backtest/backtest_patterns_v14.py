@@ -37,7 +37,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from v14.backtest.backtest_core import simulate_hybrid_two_pass, simulate_v13_core
+from v14.backtest.backtest_core import simulate_hybrid_core, simulate_hybrid_two_pass, simulate_v13_core
 from v14.backtest.trade_display import print_trades_table_hkt
 from config.v14_config import EXECUTION_CONFIG, ENERGETIC_EXECUTION_CONFIG, TIME_FILTER_CONFIG, WF_CONFIG
 from config.v14_patterns import PATTERN_MODEL_DIR, PATTERN_REGISTRY, PRODUCTION_PATTERNS, collect_pa_groups, backtest_feature_set, pattern_prob_override
@@ -326,19 +326,20 @@ if _hybrid["enabled"]:
     en_exec_cfg["close_on_reverse"] = _hybrid["energetic_close_on_reverse"]
     en_exec_cfg["same_dir_refresh"] = _hybrid["energetic_same_dir_refresh"]
     en_exec_cfg["upgrade_stop"] = _hybrid["energetic_upgrade_stop"]
-    pat_sim = sim_df.copy()
-    pat_sim["side_signal"] = pat_sim["pattern_side"]
+
+    # Two-pass architecture (matching run_hybrid_time_filter.py):
+    #   Pass 1: pattern-only sim using pattern config
+    #   Pass 2: energetic fallback only on bars flat + no pattern signal
+    print("Running hybrid two-pass simulation (pattern-first, energetic fallback)…")
+    sim_df["side_signal"] = sim_df["pattern_side"]
     pattern_trades = simulate_v13_core(
-        pat_sim,
-        EXECUTION_CONFIG["tp"],
-        EXECUTION_CONFIG["sl"],
-        EXECUTION_CONFIG["horizon"],
+        sim_df,
+        ENERGETIC_EXECUTION_CONFIG["tp"],
+        ENERGETIC_EXECUTION_CONFIG["sl"],
+        ENERGETIC_EXECUTION_CONFIG["horizon"],
         config=pat_exec_cfg,
         weak_period_cells=weak_cells,
     )
-    pat_pnl = sum(t["pnl"] for t in pattern_trades)
-    print(f"\nPattern leg (standalone): {len(pattern_trades)} trades  PnL={pat_pnl:+.1f}")
-    print("Running energetic fallback leg…")
     all_trades = simulate_hybrid_two_pass(
         sim_df,
         pattern_trades,
