@@ -24,8 +24,9 @@ LONG_TP = 80; LONG_SL = 30
 
 # ===== Short Impulse Config =====
 SI_CHANGE_MAX = -14.0; SI_VOL_MIN = 800
-SI_UK_HOURS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-SI_TP = 90; SI_SL = 60; SI_MAX_B = 60
+SI_NY_HOURS = list(range(3, 13))  # NY 3-12 UTC
+SI_TP = 90; SI_SL = 60; SI_MAX_B = 90
+SI_FC_H = 14; SI_FC_M = 28  # NY 14:28 UTC forced close
 SI_PROB = 0.55  # XGBoost probability threshold
 
 def load(s='2024-01-01', e='2026-06-30'):
@@ -153,7 +154,7 @@ def compute_si_features(df):
                     abs(df['low'] - df['close_ask'].shift())], axis=1).max(axis=1)
     df['ATR'] = tr.rolling(14).mean()
     df['ATR_ratio'] = df['prev_range'] / (df['ATR'] + 0.01)
-    df['uk_hour'] = df.index.hour.isin(SI_UK_HOURS)
+    ny_idx = df.index.tz_convert('America/New_York'); df['ny_hour'] = ny_idx.hour.isin(list(SI_NY_HOURS))
     df['vol_ma_20'] = df['volume'].rolling(20, min_periods=5).mean()
     df['vol_ratio_20'] = df['prev_volume'] / (df['vol_ma_20'] + 0.01)
     df['ret_1m'] = df['close_ask'].pct_change()
@@ -196,15 +197,19 @@ def compute_si_features(df):
 def find_si_signals(df):
     mask = ((df['prev_change'] < SI_CHANGE_MAX) & (df['prev2_change'] < 10.0) &
             (df['prev2_change'] > -14.0) & (df['prev_lower_wick'] < 35.0) &
-            (df['prev_volume'] > SI_VOL_MIN) & df['uk_hour'] &
+            (df['prev_volume'] > SI_VOL_MIN) & df['ny_hour'] &
             (df['up_count3_15min'] != -3) & (df['dist_day_high'] < 180.0))
     return mask
 
 def sim_si_short(ei, ep, df, tp=SI_TP, sl=SI_SL):
     stop = ep + sl; target = ep - tp
     horizon = min(SI_MAX_B, len(df) - ei - 1)
+    nyz = df.index.tz_convert('America/New_York')
     for i in range(1, horizon + 1):
         b = df.iloc[ei + i]
+        bh = nyz[ei + i] 
+        if bh.hour > SI_FC_H or (bh.hour == SI_FC_H and bh.minute >= SI_FC_M): 
+            return df.iloc[ei + i]["close_ask"], i, "ny_close"
         if b['high'] >= stop: return stop, i, 'sl'
         if b['low'] <= target: return target, i, 'tp'
     return df.iloc[ei + horizon]['close_ask'], horizon, 'timeout'
