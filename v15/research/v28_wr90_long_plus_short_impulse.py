@@ -66,6 +66,7 @@ def find_long_signals(d):
     return sigs
 
 def sim_long_with_advance(d15, sigs):
+    """WR90 Long with advance target. New same-direction signal while in trade = advance TP/SL."""
     pnls = []; results = []
     in_trade = False; ct = 0; cs = 0; ep = 0; ei = 0; bh = 0
     reached = False; wc = 0; sig_idx = 0
@@ -76,60 +77,10 @@ def sim_long_with_advance(d15, sigs):
             ei = si; bh = 0; reached = False; wc = 0
             results.append({'entry_time': d15.index[si], 'entry_price': ep, 'direction': 'LONG', 'signal_type': 'WR90'})
             sig_idx += 1; continue
-        if si - ei > LONG_MAX_B:
-            px = d15.iloc[ei + LONG_MAX_B]['close_bid']; pnls.append(px - ep)
-            results[-1]['exit_time'] = d15.index[ei + LONG_MAX_B]; results[-1]['exit_price'] = px
-            results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'timeout'
-            in_trade = False; continue
-        exit_at_si = False
-        for j in range(ei + bh + 1, si + 1):
-            b = d15.iloc[j]
-            post = (b['ny_h'] > NY_FC_H) or (b['ny_h'] == NY_FC_H and b['ny_m'] >= NY_FC_M)
-            if post:
-                px = b['close_bid']; pnls.append(px - ep)
-                in_trade = False
-                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = px
-                results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'ny_close'
-                if j == si: exit_at_si = True
-                break
-            if b['high'] >= ct:
-                pnls.append(LONG_TP); in_trade = False
-                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = b['close_bid']
-                results[-1]['pnl'] = LONG_TP; results[-1]['reason'] = 'tp'
-                if j == si: exit_at_si = True
-                break
-            if b['low'] <= cs:
-                pnls.append(-LONG_SL); in_trade = False
-                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = b['close_bid']
-                results[-1]['pnl'] = -LONG_SL; results[-1]['reason'] = 'sl'
-                if j == si: exit_at_si = True
-                break
-            if b['wr'] >= LONG_RECOVERY: reached = True
-            if b['wr'] < LONG_WEAK: wc += 1
-            else: wc = 0
-            if reached and post:
-                px = b['close_bid']; pnls.append(px - ep); in_trade = False
-                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = px
-                results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'ride_end'
-                if j == si: exit_at_si = True
-                break
-            if not reached and wc >= LONG_WT:
-                px = b['close_bid']; pnls.append(px - ep); in_trade = False
-                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = px
-                results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'weak'
-                if j == si: exit_at_si = True
-                break
-        bh = si - ei
-        if not in_trade:
-            if exit_at_si:
-                # Exit and signal triggered at the exact same bar — skip this double-trade signal.
-                sig_idx += 1; continue
-            # Exit happened on an earlier bar (j < si). Enter new trade at the next signal (si).
-            in_trade = True; ep = d15.iloc[si]['close_ask']; ct = ep + LONG_TP; cs = ep - LONG_SL
-            ei = si; bh = 0; reached = False; wc = 0
-            results.append({'entry_time': d15.index[si], 'entry_price': ep, 'direction': 'LONG', 'signal_type': 'WR90'})
-            sig_idx += 1; continue
+        # New signal while trade open — advance target (same direction)
         ne = d15.iloc[si]['close_ask']; ct = ne + LONG_TP; cs = min(cs, ne - LONG_SL)
+        # Update results tracking
+        results[-1]['tp_advanced'] = True
         ei = si; bh = 0; reached = False; wc = 0; sig_idx += 1
     if in_trade:
         last = min(ei + LONG_MAX_B, len(d15) - 1)
@@ -137,6 +88,28 @@ def sim_long_with_advance(d15, sigs):
         results[-1]['exit_time'] = d15.index[last]; results[-1]['exit_price'] = px
         results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'timeout'
     return pnls, results
+
+def sim_long_exit_check(d15, ei, ep, ct, cs, bh, reached, wc):
+    """Check bar-by-bar exit for WR90 long within a single 15m interval."""
+    for j in range(ei + bh + 1, len(d15)):
+        b = d15.iloc[j]
+        post = (b['ny_h'] > NY_FC_H) or (b['ny_h'] == NY_FC_H and b['ny_m'] >= NY_FC_M)
+        if post:
+            return j, b['close_bid'], 'ny_close'
+        if b['high'] >= ct:
+            return j, b['close_bid'], 'tp'
+        if b['low'] <= cs:
+            return j, b['close_bid'], 'sl'
+        if b['wr'] >= LONG_RECOVERY: reached = True
+        if b['wr'] < LONG_WEAK: wc += 1
+        else: wc = 0
+        if reached and post:
+            return j, b['close_bid'], 'ride_end'
+        if not reached and wc >= LONG_WT:
+            return j, b['close_bid'], 'weak'
+        if j - ei >= LONG_MAX_B:
+            return j, b['close_bid'], 'timeout'
+    return len(d15) - 1, d15.iloc[-1]['close_bid'], 'timeout'
 
 # ===== Short Impulse Functions (1m) =====
 
@@ -325,9 +298,159 @@ for i, r in enumerate(si_records):
 ss = stats(si_filtered_pnls)
 print(f'  SI XGB≥{SI_PROB}: {ss["t"]}t, {ss["pnl"]:+.0f}pts, WR={ss["wr"]:.0f}%, PF={ss["pf"]:.2f}')
 
-# ---- Combined ----
-all_pnls = pnls_long + si_filtered_pnls
-sc = stats(all_pnls)
+# ---- Combined Simulation with Overlap Prevention ----
+# Rule: same-direction signal while in trade = advance target
+# Rule: opposite-direction signal = close current, open new
+def simulate_combined(d15, long_sigs, d1m, si_filtered_records):
+    """Unified simulation: WR90 long signals at 15m, SI signals at 1m with overlap rules."""
+    pnls = []; results = []
+    in_trade = False; ct = 0; cs = 0; ep = 0; ei = 0; side = 0
+
+    # Build chronologically ordered event list
+    si_events = []
+    for r in si_filtered_records:
+        idx_1m = d1m.index.get_loc(r['entry_idx'])
+        si_events.append({'type': 'SI', 'idx_1m': idx_1m, 'record': r})
+    long_events = []
+    for s in long_sigs:
+        si_15 = s['idx']; bar_time = d15.index[si_15]
+        idx_1m = d1m.index.searchsorted(bar_time, side='left')
+        if idx_1m >= len(d1m): idx_1m = len(d1m) - 1
+        long_events.append({'type': 'WR90', 'idx_1m': idx_1m, 'idx_15m': si_15})
+
+    all_events = si_events + long_events
+    all_events.sort(key=lambda x: x['idx_1m'])
+
+    # Track exit index to check bar-by-bar for TP/SL between events
+    last_check_15m = 0  # last 15m bar we checked for long exit
+    last_check_1m = 0   # last 1m bar we checked for short exit
+
+    def check_long_exit(from_15m, to_15m):
+        """Check long exit between 15m bars [from_15m, to_15m)."""
+        nonlocal in_trade, side, ct, cs, ep, ei
+        for j in range(from_15m, min(to_15m + 1, len(d15))):
+            if not in_trade or side != 1: return
+            b = d15.iloc[j]
+            post = (b['ny_h'] > NY_FC_H) or (b['ny_h'] == NY_FC_H and b['ny_m'] >= NY_FC_M)
+            px = b['close_bid']
+            if post:
+                pnls.append(px - ep); in_trade = False; side = 0
+                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = px
+                results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'ny_close'
+                return
+            if b['high'] >= ct:
+                pnls.append(LONG_TP); in_trade = False; side = 0
+                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = ct
+                results[-1]['pnl'] = LONG_TP; results[-1]['reason'] = 'tp'
+                return
+            if b['low'] <= cs:
+                pnls.append(-LONG_SL); in_trade = False; side = 0
+                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = cs
+                results[-1]['pnl'] = -LONG_SL; results[-1]['reason'] = 'sl'
+                return
+        last_check_15m_global = to_15m
+
+    def check_short_exit(from_1m, to_1m):
+        """Check short exit between 1m bars [from_1m, to_1m)."""
+        nonlocal in_trade, side, ct, cs, ep, ei
+        for j in range(from_1m, min(to_1m + 1, len(d1m))):
+            if not in_trade or side != -1: return
+            b = d1m.iloc[j]
+            nyj = d1m.index[j].tz_convert('America/New_York')
+            post = (nyj.hour > SI_FC_H) or (nyj.hour == SI_FC_H and nyj.minute >= SI_FC_M)
+            if post:
+                px = b['close_ask']; pnls.append(ep - px); in_trade = False; side = 0
+                results[-1]['exit_time'] = d1m.index[j]; results[-1]['exit_price'] = px
+                results[-1]['pnl'] = ep - px; results[-1]['reason'] = 'ny_close'
+                return
+            if b['high'] >= cs:
+                pnls.append(-SI_SL); in_trade = False; side = 0
+                results[-1]['exit_time'] = d1m.index[j]; results[-1]['exit_price'] = cs
+                results[-1]['pnl'] = -SI_SL; results[-1]['reason'] = 'sl'
+                return
+            if b['low'] <= ct:
+                pnls.append(SI_TP); in_trade = False; side = 0
+                results[-1]['exit_time'] = d1m.index[j]; results[-1]['exit_price'] = ct
+                results[-1]['pnl'] = SI_TP; results[-1]['reason'] = 'tp'
+                return
+
+    for ev in all_events:
+        si = ev['idx_1m']
+        if ev['type'] == 'WR90':
+            si_15 = ev['idx_15m']
+            # Check bar-by-bar exit on existing trade before processing new signal
+            if in_trade and side == 1 and si_15 > 0:
+                check_long_exit(last_check_15m, si_15)
+            elif in_trade and side == -1:
+                # Short trade active, check 1m exit up to event
+                check_short_exit(last_check_1m, si)
+
+            if not in_trade:
+                in_trade = True; side = 1
+                ep = d15.iloc[si_15]['close_ask']; ct = ep + LONG_TP; cs = ep - LONG_SL
+                ei = si_15; last_check_15m = si_15 + 1
+                results.append({'entry_time': d15.index[si_15], 'entry_price': ep,
+                                'direction': 'LONG', 'signal_type': 'WR90'})
+            elif side == 1:
+                ne = d15.iloc[si_15]['close_ask']; ct = ne + LONG_TP; cs = min(cs, ne - LONG_SL)
+                last_check_15m = si_15 + 1
+                results[-1]['tp_advanced'] = True
+            elif side == -1 and in_trade:
+                # Close short at 1m price
+                ex_1m = d1m.iloc[si]['close_ask']
+                pnls.append(ep - ex_1m)
+                results[-1]['exit_time'] = d1m.index[si]; results[-1]['exit_price'] = ex_1m
+                results[-1]['pnl'] = ep - ex_1m; results[-1]['reason'] = 'reverse'
+                side = 1; ep = d15.iloc[si_15]['close_ask']; ct = ep + LONG_TP; cs = ep - LONG_SL
+                ei = si_15; last_check_15m = si_15 + 1; last_check_1m = si + 1
+                results.append({'entry_time': d15.index[si_15], 'entry_price': ep,
+                                'direction': 'LONG', 'signal_type': 'WR90'})
+        else:
+            r = ev['record']; idx_raw = d1m.index.get_loc(r['entry_idx'])
+            # Check bar-by-bar exit before new signal
+            if in_trade and side == -1:
+                check_short_exit(last_check_1m, idx_raw)
+            elif in_trade and side == 1:
+                # Map idx_raw to 15m bar for exit check
+                si_15_from_1m = idx_raw // 15 + 1
+                check_long_exit(last_check_15m, min(si_15_from_1m, len(d15) - 1))
+
+            if not in_trade:
+                in_trade = True; side = -1
+                ep = r['entry_price']; ct = ep - SI_TP; cs = ep + SI_SL; ei = idx_raw
+                last_check_1m = idx_raw + 1
+                results.append({'entry_time': r['entry_idx'], 'entry_price': ep,
+                                'direction': 'SHORT', 'signal_type': 'SI'})
+            elif side == -1:
+                ep = r['entry_price']; ct = ep - SI_TP; cs = min(cs, ep + SI_SL)
+                last_check_1m = idx_raw + 1
+                results[-1]['tp_advanced'] = True
+            elif side == 1 and in_trade:
+                ex_1m = d1m.iloc[idx_raw]['close_bid']
+                pnls.append(ex_1m - ep)
+                results[-1]['exit_time'] = r['entry_idx']; results[-1]['exit_price'] = ex_1m
+                results[-1]['pnl'] = ex_1m - ep; results[-1]['reason'] = 'reverse'
+                side = -1; ep = r['entry_price']; ct = ep - SI_TP; cs = ep + SI_SL; ei = idx_raw
+                last_check_1m = idx_raw + 1
+                results.append({'entry_time': r['entry_idx'], 'entry_price': ep,
+                                'direction': 'SHORT', 'signal_type': 'SI'})
+
+    if in_trade:
+        if side == 1:
+            last_bar = min(ei + LONG_MAX_B, len(d15) - 1)
+            px = d15.iloc[last_bar]['close_bid']; pnls.append(px - ep)
+            results[-1]['exit_time'] = d15.index[last_bar]; results[-1]['exit_price'] = px
+            results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'timeout'
+        else:
+            last_bar = min(ei + SI_MAX_B, len(d1m) - 1)
+            px = d1m.iloc[last_bar]['close_ask']; pnls.append(ep - px)
+            results[-1]['exit_time'] = d1m.index[last_bar]; results[-1]['exit_price'] = px
+            results[-1]['pnl'] = ep - px; results[-1]['reason'] = 'timeout'
+    return pnls, results
+
+combined_pnls, combined_results = simulate_combined(d15, long_sigs, d1m_si, si_filtered_records)
+sc = stats(combined_pnls)
+all_pnls = combined_pnls
 print(f'\n{"=" * 80}')
 print(f'  COMBINED PORTFOLIO')
 print(f'  {"=" * 50}')

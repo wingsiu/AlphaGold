@@ -174,11 +174,15 @@ def main():
         pick = preds >= MIN_PRED
         pnls = []; reasons = {'sl':0,'tp':0,'timeout':0}
         
+        last_exit_idx = -1  # prevent overlapping entries
         for j in np.where(pick)[0]:
             entry_idx = df.index.get_loc(test_indices[j])
+            if entry_idx <= last_exit_idx:
+                continue  # skip — previous trade still open
             entry_price = df.iloc[entry_idx]['close_ask']
             tp = dynamic_tp(preds[j])
             exit_price, bars, reason = simulate_exit(entry_idx, entry_price, df, tp=tp, sl=SL, max_bars=MAX_BARS)
+            last_exit_idx = entry_idx + bars
             pnl = exit_price - entry_price
             pnls.append(pnl); reasons[reason] += 1
             all_trades.append({'month': str(m_start.date())[:7], 'pnl': pnl, 'pred': preds[j], 'tp': tp, 'reason': reason})

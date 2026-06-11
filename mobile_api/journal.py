@@ -155,6 +155,7 @@ class SignalJournal:
                     action TEXT NOT NULL DEFAULT 'score',
                     detail TEXT,
                     open_source TEXT,
+                    features_json TEXT,
                     created_at TEXT NOT NULL
                 );
                 CREATE INDEX IF NOT EXISTS idx_signals_bar ON signals(bar_time);
@@ -204,14 +205,16 @@ class SignalJournal:
         action: str = "score",
         detail: str | None = None,
         open_source: str | None = None,
+        features_json: str | None = None,
     ) -> None:
         with self._conn() as conn:
             conn.execute(
                 """
                 INSERT INTO signals (
                     bar_time, pattern_name, pattern_side, pattern_prob,
-                    energetic_side, energetic_prob, action, detail, open_source, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    energetic_side, energetic_prob, action, detail, open_source,
+                    features_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     bar_time,
@@ -223,8 +226,16 @@ class SignalJournal:
                     action,
                     detail,
                     open_source,
+                    features_json,
                     _utc_now_iso(),
                 ),
+            )
+
+    def record_bar_feature(self, bar_time: str, features_json: str) -> None:
+        with self._conn() as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO bar_features (bar_time, features_json, created_at) VALUES (?, ?, ?)",
+                (bar_time, features_json, _utc_now_iso()),
             )
 
     def open_trade(self, row: dict[str, Any]) -> None:

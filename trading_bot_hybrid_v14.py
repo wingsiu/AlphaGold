@@ -14,6 +14,7 @@ Usage:
 """
 from __future__ import annotations
 
+import atexit
 import json
 import logging
 import os
@@ -120,6 +121,7 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
         self.min_prediction_bars = 400
         self.last_ts = None
         self.last_predicted_bar_ts = None
+        self._last_submitted_bar_ts: Optional[pd.Timestamp] = None
         self.cached_df = pd.DataFrame()
         self._warmup_cache()
         self._feature_df: pd.DataFrame | None = None
@@ -352,11 +354,12 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
         en_sig: Optional[LiveSignal],
     ) -> bool:
         """Returns True if poll should stop (close submitted or refresh handled).
-        
-        Special case for pattern_priority: closes energetic but returns False
-        so the caller can immediately submit the pattern entry in the same poll
-        cycle. This matches the two-pass backtest where pattern entries never
-        leave a gap for energetic fallback.
+
+        Special case for pattern_priority: closes energetic position and returns
+        True, blocking new entry this cycle. The next poll (5s later) will
+        reconcile the close via _sync_trade_results and submit the pattern
+        signal once the state is confirmed flat. This sequencing prevents the
+        double-trade bug (two simultaneous IG positions).
         """
         if not self.state.open_deal_id:
             return False
@@ -367,13 +370,26 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
         en_side = en_sig.side if en_sig else 0
         sig_side = pat_side if source == "pattern" else en_side
 
-        # pattern_priority: close energetic BUT continue to entry logic below
-        # so the pattern signal is submitted in the same poll cycle.
-        # This mirrors the two-pass backtest busy-mask: no gap between energetic
-        # close and pattern entry.
+        # pattern_priority: close energetic position to make way for pattern.
+        # Return True (block new entry this cycle) so _sync_trade_results on
+        # the next poll (5s later) reconciles the close PnL before the pattern
+        # signal is submitted.  This prevents the double-trade bug where
+        # _submit_signal overwrote open_deal_id while the old IG position was
+        # still closing, leaving two live positions at the broker.
         if source == "energetic" and pat_sig:
-            self._close_position_market("pattern_priority")
-            return False
+            closed_ok = self._close_position_market("pattern_priority")
+            if closed_ok:
+                self.logger.info(
+                    "Energetic position closed for pattern_priority — "
+                    "pattern entry will fire on next poll (5s)"
+                )
+            else:
+                self.logger.error(
+                    "CRITICAL: Failed to close energetic position for "
+                    "pattern_priority — BLOCKING pattern entry to prevent "
+                    "double trade"
+                )
+            return True
 
         close_on_reverse = (
             HYBRID_CONFIG.get("pattern_close_on_reverse", False)
@@ -393,6 +409,19 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
 
     def _sync_trade_results(self):
         if not self.state.open_deal_id:
+            # Boot-time safety: if state has no open_deal_id but IG does,
+            # log and reconcile to prevent double trade later.
+            try:
+                open_pos = fetch_open_positions(self.service)
+                if open_pos:
+                    ids = [p.get("position", {}).get("dealId") for p in open_pos]
+                    self.logger.warning(
+                        f"Startup reconciliation: state has no open_deal_id "
+                        f"but IG reports {len(open_pos)} position(s) deal_ids={ids}. "
+                        "State may be stale. Polling IG until positions close."
+                    )
+            except Exception:
+                pass
             return
         try:
             open_pos = fetch_open_positions(self.service)
@@ -557,6 +586,43 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
             return False
 
     def _submit_signal(self, sig: LiveSignal, latest_ts: pd.Timestamp, entry_price: float) -> None:
+        # --- Capture features for backtest comparison ---
+        try:
+            if self._feature_df is not None and latest_ts in self._feature_df.index:
+                row = self._feature_df.loc[latest_ts]
+                features_json = json.dumps(row.to_dict(), default=str)
+            else:
+                features_json = None
+        except Exception:
+            features_json = None
+
+        # --- CRITICAL: Prevent double-trade: same bar already submitted ---
+        bar_ts = pd.Timestamp(latest_ts).tz_convert("UTC")
+        if self._last_submitted_bar_ts and bar_ts <= self._last_submitted_bar_ts:
+            self.logger.error(
+                f"CRITICAL: _submit_signal BLOCKED — already submitted for bar "
+                f"{bar_ts} (last submitted: {self._last_submitted_bar_ts}). "
+                "This prevents a double trade on the same bar."
+            )
+            return
+
+        # --- CRITICAL: Prevent double-trade by verifying IG is truly flat ---
+        try:
+            open_positions = fetch_open_positions(self.service)
+            if open_positions:
+                deal_ids = [p.get("position", {}).get("dealId", "?") for p in open_positions]
+                self.logger.error(
+                    f"CRITICAL: _submit_signal BLOCKED — IG has {len(open_positions)} "
+                    f"open position(s) deal_ids={deal_ids}. "
+                    f"State open_deal_id={self.state.open_deal_id}. "
+                    "This prevents a double trade. Will not submit until IG is flat."
+                )
+                return
+        except Exception as e:
+            self.logger.error(f"_submit_signal: fetch_open_positions failed: {e} — BLOCKING entry for safety")
+            return
+        # -----------------------------------------------------------------
+
         bar_iso = pd.Timestamp(latest_ts).tz_convert("UTC").isoformat()
         if is_blocked_entry(latest_ts, self.weak_period_cells):
             self.logger.info(f"Signal blocked by time filter at {latest_ts}")
@@ -569,6 +635,7 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
                 energetic_prob=sig.probability if sig.source == "energetic" else None,
                 action="blocked_time_filter",
                 open_source=self.state.open_position_source,
+                features_json=features_json,
             )
             return
         side_str = "buy" if sig.side == 1 else "sell"
@@ -589,6 +656,7 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
         )
         exec_res = self.broker.submit_order(request)
         if exec_res.submitted:
+            self._last_submitted_bar_ts = bar_ts
             deal_id = exec_res.deal_id
             self.state.open_deal_id = deal_id
             signal_ts = pd.Timestamp(latest_ts).tz_convert("UTC")
@@ -635,43 +703,44 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
                     action="entry",
                     detail=f"deal_id={deal_id}",
                     open_source=sig.source,
+                    features_json=features_json,
                 )
             except Exception as je:
                 self.logger.error(f"Journal entry failed: {je}")
         else:
             self.logger.error(f"Order failed: {exec_res.reason}")
 
-    def poll(self, store_to_db: bool = False):
+    # =====================================================================
+    # 5‑second routine — trading + prediction ONLY
+    # =====================================================================
+
+    def poll_trade(self) -> None:
+        """5‑sec routine: fetch IG prices, score signals, manage & submit trades."""
         now = datetime.now(UTC)
         now_pd = pd.Timestamp(now)
 
-        if not store_to_db:
-            current_label = trading_day_label(trading_day_start_utc(now))
-            last_recon_str = self.state.last_reconciliation_day
-            if last_recon_str and current_label > last_recon_str:
-                recon_cmd = [
-                    sys.executable,
-                    str(PROJECT_ROOT / "v14" / "tools" / "daily_reconciliation.py"),
-                    last_recon_str,
-                ]
-                try:
-                    subprocess.Popen(recon_cmd)
-                except Exception as e:
-                    self.logger.error(f"Reconciliation trigger failed: {e}")
-            if self.state.last_reconciliation_day != current_label:
-                self.state.last_reconciliation_day = current_label
-                self._save_state()
-
-        if store_to_db:
+        # --- daily reconciliation trigger ---
+        current_label = trading_day_label(trading_day_start_utc(now))
+        last_recon_str = self.state.last_reconciliation_day
+        if last_recon_str and current_label > last_recon_str:
+            recon_cmd = [
+                sys.executable,
+                str(PROJECT_ROOT / "v14" / "tools" / "daily_reconciliation.py"),
+                last_recon_str,
+            ]
             try:
-                fetch_and_store_prices_from_latest(self.service, Price.Gold)
+                subprocess.Popen(recon_cmd)
             except Exception as e:
-                self.logger.error(f"DB store failed: {e}")
-            return
+                self.logger.error(f"Reconciliation trigger failed: {e}")
+        if self.state.last_reconciliation_day != current_label:
+            self.state.last_reconciliation_day = current_label
+            self._save_state()
 
+        # --- sync open positions ---
         self._sync_trade_results()
         self._check_horizon_timeout()
 
+        # --- fetch recent IG prices ---
         try:
             prices = fetch_prices(
                 self.service, Price.Gold,
@@ -733,6 +802,16 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
             pat_sig, en_sig = self.scorer.score_bar(
                 feat_df, latest_ts, consecutive_losses=self.state.consecutive_losses
             )
+
+            # Log ALL bar features to bar_features table
+            try:
+                row = feat_df.loc[latest_ts]
+                self.journal.record_bar_feature(
+                    pd.Timestamp(latest_ts).tz_convert("UTC").isoformat(),
+                    json.dumps(row.to_dict(), default=str),
+                )
+            except Exception:
+                pass
         except Exception as e:
             self.logger.error(f"Score failed at {latest_ts}: {e}")
             try:
@@ -787,18 +866,33 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
 
         self._submit_signal(entry_sig, latest_ts, close_price)
 
+    # =====================================================================
+    # 30‑second routine — IG → MySQL ONLY (no trading, no prediction)
+    # =====================================================================
+
+    def poll_db(self) -> None:
+        """30‑sec routine: fetch latest IG prices & store to MySQL.  No trading."""
+        try:
+            fetch_and_store_prices_from_latest(self.service, Price.Gold)
+        except Exception as e:
+            self.logger.error(f"DB store failed: {e}")
+
+    # =====================================================================
+    # Main loop
+    # =====================================================================
+
     def run(self):
-        self.logger.info("Hybrid bot execution loop started.")
+        self.logger.info("Hybrid bot execution loop started  (5s=trade  30s=db-only).")
         while True:
             try:
                 self._maybe_weekend_retrain()
                 now = datetime.now(UTC)
                 sec = now.second
                 if sec == 5:
-                    self.poll(store_to_db=False)
+                    self.poll_trade()
                     time.sleep(1.2)
                 elif sec == 30:
-                    self.poll(store_to_db=True)
+                    self.poll_db()
                     time.sleep(1.2)
                 else:
                     time.sleep(0.5)
@@ -808,4 +902,22 @@ class AlphaGoldHybridV14Bot(AlphaGoldV14Bot):
 
 
 if __name__ == "__main__":
+    # --- PID file lock: prevent duplicate instances (checked before __init__) ---
+    pid_file = PROJECT_ROOT / "runtime" / "trading_bot_hybrid_v14.pid"
+    if pid_file.exists():
+        try:
+            old_pid = int(pid_file.read_text().strip())
+            try:
+                os.kill(old_pid, 0)  # signal 0 = check if process exists
+                print(f"ERROR: Another instance is already running (PID {old_pid}). Exiting.", file=sys.stderr)
+                sys.exit(1)
+            except OSError:
+                print(f"WARNING: Stale PID file found (PID {old_pid} no longer running), removing.", file=sys.stderr)
+                pid_file.unlink()
+        except (ValueError, Exception):
+            pid_file.unlink()
+
+    pid_file.write_text(str(os.getpid()))
+    atexit.register(lambda: pid_file.unlink() if pid_file.exists() else None)
+
     AlphaGoldHybridV14Bot().run()
