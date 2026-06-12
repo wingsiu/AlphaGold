@@ -33,7 +33,6 @@ from xgboost_filter_model.energetic_gate import (
     apply_pattern_gates,
     hybrid_config,
     pattern_gate_config,
-    score_energetic_signals,
 )
 from xgboost_filter_model.pattern_router import assign_patterns
 from xgboost_filter_model.pattern_training import (
@@ -50,8 +49,8 @@ from xgboost_filter_model.pattern_training import (
 )
 from xgboost_filter_model.time_slot_filter import load_weak_filter, resolve_v14_time_filter_path
 from xgboost_filter_model.train_filter_1min import load_price_data
-from xgboost_filter_model.train_filter_v14 import prepare_data_v14
-from xgboost_filter_model.train_stage2_v14_directional import prepare_directional_data_v14
+
+from v15.backtest.prepare_v15 import prepare_v15_data, score_energetic_signals_v15
 
 
 # ── Date helpers ──────────────────────────────────────────────────────────
@@ -108,15 +107,12 @@ def main():
     bt_start_date = bt_start.split("T")[0] if "T" in bt_start else bt_start
 
     print(f"Loading data {load_start} → {bt_end}…")
-    df = prepare_data_v14(
+    df = prepare_v15_data(
         start_date=load_start,
         end_date=load_end,
-        energetic_filter=False,
-        for_live_inference=True,
         pa_groups=collect_pa_groups(list(active_patterns.keys())),
         pattern_feature_set=backtest_feature_set(),
     )
-    df = prepare_directional_data_v14(df)
     feats = feature_columns(df)
 
     df_test = df[df.index >= bt_start_dt].copy()
@@ -235,8 +231,8 @@ def main():
     df_test["pattern_side"] = df_test["side_signal"].astype(int)
 
     if _hybrid["enabled"]:
-        print("\nScoring energetic fallback (S1/S2 on energetic bars)…")
-        score_energetic_signals(df_test, bt_start_dt, end_dt)
+        print("\nScoring v15 energetic fallback (S1/S2, deterministic gate, no HMM)…")
+        score_energetic_signals_v15(df_test, bt_start_dt, end_dt)
     else:
         df_test["energetic_side"] = 0
 
