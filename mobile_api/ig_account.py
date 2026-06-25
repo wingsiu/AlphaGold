@@ -62,8 +62,39 @@ def warm_ig_cache() -> None:
     refresh_ig_account_background()
 
 
+def _read_bot_account_bridge() -> dict[str, Any] | None:
+    """Read live account from the bot's bridge file (zero extra IG calls)."""
+    from pathlib import Path
+
+    bridge_path = Path(__file__).resolve().parent.parent / "runtime" / "live_account.json"
+    if not bridge_path.exists():
+        return None
+    try:
+        import json
+        data = json.loads(bridge_path.read_text(encoding="utf-8"))
+        return data
+    except Exception:
+        return None
+
+
 def get_ig_account_summary(*, refresh: bool = False) -> dict[str, Any]:
     """Return cached IG account; refresh in background if stale (fast for /status)."""
+    # Prefer bot bridge (always fresh, zero IG calls)
+    bridge = _read_bot_account_bridge()
+    if bridge and bridge.get("balance") is not None:
+        bridge["cached"] = True
+        try:
+            from datetime import datetime, timezone
+            fetched = bridge.get("fetched_at_utc")
+            if fetched:
+                age = (datetime.now(timezone.utc) - datetime.fromisoformat(fetched)).total_seconds()
+                bridge["age_seconds"] = int(age)
+            else:
+                bridge["age_seconds"] = 0
+        except Exception:
+            bridge["age_seconds"] = 0
+        return bridge
+
     now = time.time()
     with _LOCK:
         cached = dict(_CACHE) if _CACHE else {}

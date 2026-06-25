@@ -65,7 +65,42 @@ def warm_gold_price_cache() -> None:
     refresh_gold_price_background()
 
 
+def _read_bot_bridge() -> dict[str, Any] | None:
+    """Read live price from the bot's bridge file (zero extra IG calls)."""
+    from pathlib import Path
+
+    bridge_path = Path(__file__).resolve().parent.parent / "runtime" / "live_price.json"
+    if not bridge_path.exists():
+        return None
+    try:
+        import json
+
+        data = json.loads(bridge_path.read_text(encoding="utf-8"))
+        return data
+    except Exception:
+        return None
+
+
 def get_gold_price_summary(*, refresh: bool = False) -> dict[str, Any]:
+    # Prefer bot bridge (always fresh, zero IG calls)
+    bridge = _read_bot_bridge()
+    if bridge and bridge.get("close"):
+        now = time.time()
+        bridge["cached"] = True
+        bridge["market_status"] = "TRADEABLE"
+        try:
+            from datetime import datetime, timezone
+
+            fetched = bridge.get("fetched_at_utc")
+            if fetched:
+                age = (datetime.now(timezone.utc) - datetime.fromisoformat(fetched)).total_seconds()
+                bridge["age_seconds"] = int(age)
+            else:
+                bridge["age_seconds"] = 0
+        except Exception:
+            bridge["age_seconds"] = 0
+        return bridge
+
     now = time.time()
     with _LOCK:
         cached = dict(_CACHE) if _CACHE else {}
@@ -84,9 +119,16 @@ def get_gold_price_summary(*, refresh: bool = False) -> dict[str, Any]:
         refresh_gold_price_background()
         return cached
 
-    refresh_gold_price_background()
-    if cached:
-        cached["cached"] = True
-        cached["stale"] = True
-        return cached
-    return {"status": "loading"}
+    # Cold cache with explicit refresh requested, or completely empty cache.
+    # Do a synchronous fetch so callers never get {"status": "loading"}.
+    try:
+        payload = _fetch_and_cache()
+        payload["cached"] = True
+        payload["age_seconds"] = 0
+        return payload
+    except Exception as exc:
+        if cached:
+            cached["cached"] = True
+            cached["stale"] = True
+            return cached
+        return {"status": "error", "error": str(exc)}

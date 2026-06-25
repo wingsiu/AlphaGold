@@ -116,7 +116,7 @@ def _env_bool(name: str, default: bool) -> bool:
 
 
 def pattern_gate_config() -> dict:
-    from config.v14_config import EXECUTION_CONFIG, PATTERN_GATE_CONFIG
+    from config.hybrid_config import EXECUTION_CONFIG, PATTERN_GATE_CONFIG
 
     cfg = dict(PATTERN_GATE_CONFIG)
     cfg["energetic_filter"] = _env_bool(
@@ -136,7 +136,7 @@ def pattern_gate_config() -> dict:
 
 def energetic_bar_mask(df: pd.DataFrame) -> pd.Series:
     """bar_move + volume + HMM trend-regime gate (same as v14 S1 training path)."""
-    from config.v14_config import FILTER_CONFIG
+    from config.hybrid_config import FILTER_CONFIG
     from xgboost_filter_model.hmm_regime import get_hmm_model_path
 
     if "bar_move" not in df.columns:
@@ -177,7 +177,7 @@ def score_s1_probabilities(
     end_dt: pd.Timestamp,
 ) -> None:
     """Walk-forward S1 scoring in-place on df_test['s1_prob']."""
-    from config.v14_config import WF_CONFIG
+    from config.hybrid_config import WF_CONFIG
 
     wf_dir = PROJECT_ROOT / os.environ.get(
         "V14_MODEL_OUTPUT_DIR",
@@ -214,7 +214,7 @@ def score_s1_probabilities(
 
 
 def hybrid_config() -> dict:
-    from config.v14_config import ENERGETIC_EXECUTION_CONFIG, HYBRID_CONFIG
+    from config.hybrid_config import ENERGETIC_EXECUTION_CONFIG, HYBRID_CONFIG
 
     cfg = dict(HYBRID_CONFIG)
     cfg["enabled"] = _env_bool("V14_HYBRID", bool(cfg.get("enabled", False)))
@@ -243,7 +243,7 @@ def score_energetic_signals(
     end_dt: pd.Timestamp,
 ) -> None:
     """Score S1/S2 on energetic bars; set energetic_s1_prob, energetic_s2_prob, energetic_side."""
-    from config.v14_config import ENERGETIC_EXECUTION_CONFIG, WF_CONFIG
+    from config.hybrid_config import ENERGETIC_EXECUTION_CONFIG, WF_CONFIG
     from xgboost_filter_model.pattern_training import fixed_wf_cycle_from_env
 
     wf_dir = PROJECT_ROOT / os.environ.get(
@@ -328,7 +328,7 @@ def apply_pattern_gates(df_test: pd.DataFrame, bt_start_dt: pd.Timestamp, end_dt
     mask = pd.Series(True, index=df_test.index)
 
     if gate["energetic_filter"]:
-        from config.v14_config import FILTER_CONFIG
+        from config.hybrid_config import FILTER_CONFIG
 
         energetic = energetic_bar_mask(df_test)
         print(

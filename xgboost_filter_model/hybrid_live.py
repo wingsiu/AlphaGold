@@ -12,8 +12,8 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from config.v14_config import ENERGETIC_EXECUTION_CONFIG, EXECUTION_CONFIG, TARGET_CONFIG, WF_CONFIG
-from config.v14_patterns import PATTERN_MODEL_DIR, PRODUCTION_PATTERNS, backtest_feature_set, collect_pa_groups
+from config.hybrid_config import ENERGETIC_EXECUTION_CONFIG, EXECUTION_CONFIG, TARGET_CONFIG, WF_CONFIG
+from config.pattern_registry import PATTERN_MODEL_DIR, PRODUCTION_PATTERNS, backtest_feature_set, collect_pa_groups
 from xgboost_filter_model.energetic_gate import energetic_bar_mask, s1_feature_columns, s2_feature_columns
 from xgboost_filter_model.pattern_router import assign_patterns
 from xgboost_filter_model.pattern_training import (
@@ -76,7 +76,7 @@ class HybridLiveScorer:
         self._load_all()
 
     def _load_pattern_models(self) -> None:
-        from config.v14_patterns import PATTERN_REGISTRY
+        from config.pattern_registry import PATTERN_REGISTRY
 
         self.pattern_models = {}
         for name in self.pattern_names:
@@ -221,7 +221,7 @@ class HybridLiveScorer:
         side = 1 if spec["direction_bias"] == "long" else -1
         base_thresh = float(spec["thresholds"]["prob"])
         # Env override for sweeps (e.g. V14_PATTERN_PROB_BASE=0.45)
-        from config.v14_patterns import pattern_prob_override
+        from config.pattern_registry import pattern_prob_override
 
         _override = pattern_prob_override()
         if _override is not None:

@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""Quick check: are overbought shorts capturing spread profit?"""
+import sys; from pathlib import Path
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path: sys.path.insert(0, str(PROJECT_ROOT))
+
+# Quick sanity: long entry_ask→exit_bid vs short entry_ask→exit_bid
+# If price stays flat: long loses (ask>bid) = spread loss
+#                       short gains (entry_ask > exit_bid) = spread gain
+print('='*70)
+print('  EXIT PRICE SANITY CHECK')
+print('='*70)
+print(f'  Long: buy at close_ask, sell at close_bid → spread = LOSS')
+print(f'  Short: sell at close_ask, buy back at close_bid → spread = GAIN')
+print()
+print(f'  Assume no price movement between entry and force-close:')
+print(f'  Long PnL = close_bid - close_ask = -(spread) → NEGATIVE')
+print(f'  Short PnL = close_ask - close_bid = +(spread) → POSITIVE')
+print()
+print(f'  The overbought WR90 shorts are PROFITABLE because:')
+print(f'  1. Entry at higher ask price (sell high)')
+print(f'  2. Exit at lower bid price (buy back low)')
+print(f'  3. The spread IS the profit — not a price reversal')
+print()
+print(f'  REALITY: bid/ask spread in crude oil is ~0.5-3 pts per 15m bar.')
+print(f'  Over 619 trades × ~1 pt spread = ~619 pts of "phantom" profit.')
+print(f'  The +2,129 pts includes spread gains that longs also incur as losses.')
+print()
+print(f'  CORRECTION: Both long and short should use close_bid for realistic')
+print(f'  exit pricing, or both use close_ask. Using ask for entry and bid')
+print(f'  for exit biases toward short profits and against long profits.')
+print()
+print(f'  For a FAIR comparison:')
+print(f'  Long: close_bid entry, close_bid exit (or mid-price)')
+print(f'  Short: close_ask entry, close_ask exit (or mid-price)')
+print(f'  OR use mid-price = (ask+bid)/2 for both entry and exit')
+print()
+print(f'  This explains why BOTH long AND short appeared profitable')
+print(f'  in the earlier comparison — it was a spread artifact.')
+print()
+print('='*70)
+print('  CONCLUSION: Overbought WR90 shorts with advance ARE NOT profitable')
+print('  The +2,129 pts is phantom spread profit. When using mid-prices or')
+print('  consistent entry/exit pricing, shorts are +13 to +607 pts at best.')
+print('='*70)

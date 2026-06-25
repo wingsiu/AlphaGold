@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from training.rebuild_directional_pnl_from_trades import rebuild_directional_pnl
 
-tdf = pd.read_csv("runtime/v14_pattern_backtest_trades.csv")
+tdf = pd.read_csv("runtime/v15_backtest_trades.csv")
 wins = int((tdf["pnl"] > 0).sum())
 net_pnl = float(tdf["pnl"].sum())
 wr = wins / len(tdf) * 100
@@ -48,7 +48,7 @@ for reason, grp in tdf.groupby("exit_reason"):
     print(f"    {reason:18s}: {len(grp):4d}  WR={wr_r:5.1f}%  avg={grp['pnl'].mean():7.2f}")
 
 # Rebuild full stats
-stats = rebuild_directional_pnl("runtime/v14_pattern_backtest_trades.csv")
+stats = rebuild_directional_pnl("runtime/v15_backtest_trades.csv")
 all_stats = stats.get("all", {})
 gross_win = float(all_stats.get("gross_profit") or 0.0)
 gross_loss = abs(float(all_stats.get("gross_loss") or 0.0))

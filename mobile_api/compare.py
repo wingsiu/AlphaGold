@@ -1,4 +1,4 @@
-"""Compare live journal trades vs hybrid backtest for the current trading day."""
+"""Compare live journal trades vs v15 hybrid backtest for the current trading day."""
 
 from __future__ import annotations
 
@@ -107,11 +107,8 @@ def _backtest_summary_for_day(
     day_start: datetime, *, refresh: bool = False
 ) -> tuple[dict[str, Any], str | None]:
     note: str | None = None
-    if refresh:
-        run_backtest_for_day(day_start, refresh=True)
-        _write_day_snap_from_csv(day_start)
-        note = "Backtest refreshed for this trading day."
 
+    # Check CSV + snapshot first
     bt_summary = _summary_from_backtest_csv(_backtest_csv_path(), day_start)
     if bt_summary["trade_count"] > 0:
         return bt_summary, note
@@ -120,12 +117,19 @@ def _backtest_summary_for_day(
     if snap.exists():
         snap_summary = _summary_from_backtest_csv(snap, day_start)
         if snap_summary["trade_count"] > 0:
-            if note is None:
-                note = "Using saved day snapshot."
             return snap_summary, note
 
-    if note is None:
-        note = "No backtest trades in this window — tap Refresh BT."
+    # No data for this trading day — auto-refresh once
+    note = "Backtest refreshed for this trading day."
+    run_backtest_for_day(day_start, refresh=True)
+    _write_day_snap_from_csv(day_start)
+
+    bt_summary = _summary_from_backtest_csv(_backtest_csv_path(), day_start)
+    if bt_summary["trade_count"] > 0:
+        return bt_summary, note
+
+    # Still no data after refresh — the day may not have started yet
+    note = "No backtest trades in this window — trading day may not have started."
     return bt_summary, note
 
 
@@ -142,8 +146,16 @@ def _backtest_csv_path() -> Path:
     return journal_bt_path()
 
 
+def _backtest_python() -> str:
+    """Prefer project venv — mobile API may run under launchd with system Python."""
+    venv_py = PROJECT_ROOT / ".venv" / "bin" / "python3"
+    if venv_py.is_file():
+        return str(venv_py)
+    return sys.executable
+
+
 def run_backtest_for_day(day_start: datetime, *, refresh: bool = False) -> Path:
-    """Run hybrid backtest for trading day (22:00 UTC cutoff) → day snapshot CSV."""
+    """Run v15 hybrid backtest for trading day (22:00 UTC cutoff) → day snapshot CSV."""
     snap = _snap_path(day_start)
     if snap.exists() and not refresh:
         age_h = (datetime.now(timezone.utc).timestamp() - snap.stat().st_mtime) / 3600.0
@@ -156,18 +168,25 @@ def run_backtest_for_day(day_start: datetime, *, refresh: bool = False) -> Path:
     env["V14_HYBRID"] = "1"
     env.setdefault("V14_FVG_MIN_GAP", "0")
     env["PYTHONPATH"] = str(PROJECT_ROOT)
+    log_path = PROJECT_ROOT / "runtime" / "mobile" / "backtest_refresh.log"
 
-    subprocess.run(
-        [
-            sys.executable,
-            str(PROJECT_ROOT / "run_hybrid_backtest.py"),
-            start_str,
-            end_str,
-        ],
-        cwd=PROJECT_ROOT,
-        env=env,
-        check=False,
-    )
+    with open(log_path, "a", encoding="utf-8") as log_f:
+        log_f.write(f"\n--- refresh {start_str} → {end_str} ---\n")
+        log_f.flush()
+        subprocess.run(
+            [
+                _backtest_python(),
+                str(PROJECT_ROOT / "v15" / "backtest" / "backtest_v15.py"),
+                start_str,
+                end_str,
+            ],
+            cwd=PROJECT_ROOT,
+            env=env,
+            stdin=subprocess.DEVNULL,
+            stdout=log_f,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
     return _write_day_snap_from_csv(day_start)
 
 
@@ -209,7 +228,7 @@ def compare_today(*, refresh_backtest: bool = False) -> dict:
         backtest_note = "No trades yet today — live and backtest both flat."
     elif live_summary["trade_count"] > 0 and bt_summary["trade_count"] == 0:
         parity = (
-            " Hybrid backtest had 0 entry signals for this window (live/backtest parity gap)."
+            " v15 backtest had 0 entry signals for this window (live/backtest parity gap)."
         )
         if backtest_note is None or "Refresh BT" not in backtest_note:
             backtest_note = (

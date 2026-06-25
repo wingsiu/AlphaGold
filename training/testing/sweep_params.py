@@ -21,7 +21,7 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 IMAGE_TREND_ML = PROJECT_ROOT / "training" / "image_trend_ml.py"
 MODEL_IN = PROJECT_ROOT / "runtime" / "bot_assets" / "backtest_model_best_base_weak_nostate.joblib"
 WEAK_FILTER = PROJECT_ROOT / "runtime" / "bot_assets" / "weak-filter.json"

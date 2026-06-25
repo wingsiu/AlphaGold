@@ -10,7 +10,7 @@ Bot 2 — Energetic S1/S2 fallback:
   - Uses ENERGETIC_EXECUTION_CONFIG (reverse exit, global refresh).
 
 Time filter (v10 weak slots) applies to BOTH legs when enabled in
-config/v14_config.py (default ON → runtime/v14_weak_time_slots.json).
+config/v14_config.py (default ON → runtime/hybrid_weak_time_slots.json).
 
 Usage:
   .venv/bin/python3 run_hybrid_backtest.py
@@ -22,7 +22,7 @@ Disable time filter:
 Rebuild weak slots from hybrid baseline then re-run filtered:
   .venv/bin/python3 run_hybrid_time_filter.py 2025-06-01 2026-05-23
 
-Trades CSV: runtime/v14_pattern_backtest_trades.csv
+Trades CSV: runtime/v15_backtest_trades.csv
 """
 from __future__ import annotations
 
@@ -44,7 +44,11 @@ import pandas as pd  # noqa: E402
 
 def main() -> None:
     argv = sys.argv[1:]
-    cmd = [sys.executable, str(PROJECT_ROOT / "v14" / "backtest" / "backtest_patterns_v14.py"), *argv]
+    cmd = [
+        sys.executable,
+        str(PROJECT_ROOT / "v15" / "backtest" / "backtest_v15.py"),
+        *argv,
+    ]
     filter_path = resolve_v14_time_filter_path(PROJECT_ROOT)
     if filter_path:
         print(f"Hybrid backtest: pattern-first → energetic fallback + time filter\n  ({filter_path})\n")

@@ -15,7 +15,7 @@ import argparse
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
@@ -28,7 +28,7 @@ from oil.patterns import PATTERN_REGISTRY, collect_pa_groups, enrich_pattern_fea
 
 apply_oil_registry()
 
-from config.v14_patterns import PATTERN_MODEL_DIR  # patched → oil dir
+from config.pattern_registry import PATTERN_MODEL_DIR  # patched → oil dir
 from xgboost_filter_model.pattern_router import pattern_mask
 from xgboost_filter_model.pattern_training import (
     add_pattern_entry_target,

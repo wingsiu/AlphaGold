@@ -1,10 +1,10 @@
-"""Point shared v14 imports at the oil pattern registry before training/backtest."""
+"""Point shared pattern imports at the oil pattern registry before training/backtest."""
 
 from __future__ import annotations
 
 import os
 
-import config.v14_patterns as gold_patterns
+import config.pattern_registry as gold_patterns
 import oil.patterns as oil_patterns
 import xgboost_filter_model.pattern_router as pattern_router
 import xgboost_filter_model.pattern_training as pattern_training

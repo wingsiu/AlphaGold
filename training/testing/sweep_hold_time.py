@@ -29,10 +29,10 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from training.rebuild_directional_pnl_from_trades import rebuild_directional_pnl
 
-PROJECT_ROOT   = Path(__file__).resolve().parents[2]
+PROJECT_ROOT   = Path(__file__).resolve().parents[1]
 IMAGE_TREND_ML = PROJECT_ROOT / "training" / "image_trend_ml.py"
 MODEL_IN       = PROJECT_ROOT / "runtime" / "bot_assets" / "backtest_model_best_base_weak_nostate.joblib"
 RESULTS_DIR    = Path(__file__).parent / "results"

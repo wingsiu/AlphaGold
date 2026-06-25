@@ -320,28 +320,45 @@ def fetch_and_store_prices_from_latest(
     instrument: Price,
     end_time: Optional[datetime] = None,
 ) -> dict[str, Any]:
-    """Backfill minute data from the latest MySQL timestamp up to the requested end time."""
+    """Backfill minute data from the latest MySQL timestamp up to the requested end time.
+
+    Chunks large gaps into 14-day segments to avoid IG's 20,000-point-per-request limit.
+    """
     end_dt = _ensure_utc_datetime(end_time)
     latest_before = fetch_last_date(instrument)
     request_start = latest_before if latest_before is not None else end_dt - timedelta(days=5)
-    prices = fetch_prices(service, instrument, start_time=request_start, end_time=end_dt)
-    written = insert_prices(prices, instrument)
+
+    MAX_CHUNK_DAYS = 14  # ~20,160 minutes, under IG's 20K limit
+    all_prices = []
+    chunk_start = request_start
+    while chunk_start < end_dt:
+        chunk_end = min(chunk_start + timedelta(days=MAX_CHUNK_DAYS), end_dt)
+        try:
+            prices = fetch_prices(service, instrument, start_time=chunk_start, end_time=chunk_end)
+            if prices:
+                all_prices.extend(prices)
+        except Exception:
+            # If a chunk fails (e.g. market closed), skip forward
+            pass
+        chunk_start = chunk_end
+
+    written = insert_prices(all_prices, instrument)
     latest_before_ms = None if latest_before is None else _utc_epoch_ms(latest_before)
     inserted_rows = len(
         {
             int(price.get('timestamp'))
-            for price in prices
+            for price in all_prices
             if price.get('timestamp') is not None and (latest_before_ms is None or int(price.get('timestamp')) > latest_before_ms)
         }
     )
-    period_start, period_end = _price_rows_period(prices)
+    period_start, period_end = _price_rows_period(all_prices)
     return {
         'instrument': instrument.name.lower(),
         'table_name': instrument.db_name,
         'latest_db_before_utc': _iso_utc(latest_before),
         'requested_start_utc': _iso_utc(request_start),
         'requested_end_utc': _iso_utc(end_dt),
-        'fetched_rows': len(prices),
+        'fetched_rows': len(all_prices),
         'written_rows': int(written),
         'inserted_rows': int(inserted_rows),
         'fetched_period_start_utc': _iso_utc(period_start),
@@ -940,10 +957,12 @@ if __name__ == "__main__":
         gold_summary = fetch_and_store_prices_from_latest(ig_service, Price.Gold)
         print("gold sync summary:\n", pd.DataFrame([gold_summary]))
 
+        aud_summary = fetch_and_store_prices_from_latest(ig_service, Price.AUD)
+        print("aud sync summary:\n", pd.DataFrame([aud_summary]))
+
         latest_gold_snapshot = fetch_and_store_market_snapshot(ig_service, Price.Gold)
         print("latest gold snapshot stored as existing-schema row:\n", pd.DataFrame([latest_gold_snapshot]))
 
-        print("Data fetch and insertion completed using the existing MySQL tables/schema.")
+        print("Data fetch and insertion completed (Oil + Gold + AUD/USD).")
     except Exception as e:
         print(f"Error: {e}")
-

@@ -13,7 +13,7 @@ import subprocess, sys, json, time
 from pathlib import Path
 from datetime import timezone, timedelta
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from training.rebuild_directional_pnl_from_trades import rebuild_directional_pnl

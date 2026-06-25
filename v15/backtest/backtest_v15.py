@@ -25,10 +25,10 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 
-from v14.backtest.backtest_core import simulate_hybrid_two_pass, simulate_v13_core
-from v14.backtest.trade_display import print_trades_table_hkt
-from config.v14_config import EXECUTION_CONFIG, ENERGETIC_EXECUTION_CONFIG, TIME_FILTER_CONFIG, WF_CONFIG
-from config.v14_patterns import PATTERN_MODEL_DIR, PATTERN_REGISTRY, PRODUCTION_PATTERNS, collect_pa_groups, backtest_feature_set, pattern_prob_override
+from backtest.core import simulate_hybrid_two_pass, simulate_v13_core
+from backtest.trade_display import print_trades_table_hkt
+from config.hybrid_config import EXECUTION_CONFIG, ENERGETIC_EXECUTION_CONFIG, TIME_FILTER_CONFIG, WF_CONFIG
+from config.pattern_registry import PATTERN_MODEL_DIR, PATTERN_REGISTRY, PRODUCTION_PATTERNS, collect_pa_groups, backtest_feature_set, pattern_prob_override
 from xgboost_filter_model.energetic_gate import (
     apply_pattern_gates,
     hybrid_config,
@@ -50,7 +50,8 @@ from xgboost_filter_model.pattern_training import (
 from xgboost_filter_model.time_slot_filter import load_weak_filter, resolve_v14_time_filter_path
 from xgboost_filter_model.train_filter_1min import load_price_data
 
-from v15.backtest.prepare_v15 import prepare_v15_data, score_energetic_signals_v15
+from xgboost_filter_model.train_filter_v14 import prepare_data_v14
+from v15.backtest.prepare_v15 import score_energetic_signals_v15
 
 
 # ── Date helpers ──────────────────────────────────────────────────────────
@@ -107,12 +108,16 @@ def main():
     bt_start_date = bt_start.split("T")[0] if "T" in bt_start else bt_start
 
     print(f"Loading data {load_start} → {bt_end}…")
-    df = prepare_v15_data(
+    df = prepare_data_v14(
         start_date=load_start,
         end_date=load_end,
+        energetic_filter=False,
+        for_live_inference=True,
         pa_groups=collect_pa_groups(list(active_patterns.keys())),
         pattern_feature_set=backtest_feature_set(),
     )
+    from xgboost_filter_model.train_stage2_v14_directional import prepare_directional_data_v14
+    df = prepare_directional_data_v14(df)
     feats = feature_columns(df)
 
     df_test = df[df.index >= bt_start_dt].copy()

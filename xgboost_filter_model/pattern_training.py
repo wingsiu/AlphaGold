@@ -10,8 +10,8 @@ from pathlib import Path
 import pandas as pd
 import xgboost as xgb
 
-from config.v14_config import MODEL_CONFIG, WF_CONFIG
-from config.v14_patterns import EXCLUDE_COLS, PATTERN_MODEL_DIR, PATTERN_REGISTRY, PROJECT_ROOT
+from config.hybrid_config import MODEL_CONFIG, WF_CONFIG
+from config.pattern_registry import EXCLUDE_COLS, PATTERN_MODEL_DIR, PATTERN_REGISTRY, PROJECT_ROOT
 
 
 def feature_columns(df: pd.DataFrame) -> list[str]:

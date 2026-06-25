@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Run combined 6-pattern backtest + full stats report.
+Run combined 6-pattern backtest + full stats report (v15).
 
 Usage (from project root):
   .venv/bin/python3 run_pattern_backtest.py
@@ -8,11 +8,14 @@ Usage (from project root):
   .venv/bin/python3 run_pattern_backtest.py 90
   .venv/bin/python3 run_pattern_backtest.py 2025-06-01 2026-05-23 breakthrough_short
 
-Default patterns: PRODUCTION_PATTERNS (6) from config/v14_patterns.py.
-Time filter: ON by default (runtime/v14_weak_time_slots.json). Disable: V14_NO_TIME_FILTER=1
+Runs v15/backtest/backtest_v15.py (deterministic energetic gate — matches live v15 bot).
+Legacy v14 backtest archived under archive/v14_legacy/.
+
+Default patterns: PRODUCTION_PATTERNS from config/v14_patterns.py.
+Time filter: ON by default (runtime/hybrid_weak_time_slots.json). Disable: V14_NO_TIME_FILTER=1
 Hybrid (pattern-first + energetic fallback):
   .venv/bin/python3 run_hybrid_backtest.py
-Trades CSV: runtime/v14_pattern_backtest_trades.csv
+Trades CSV: runtime/v15_backtest_trades.csv
 """
 from __future__ import annotations
 
@@ -24,12 +27,19 @@ import numpy as np
 import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-TRADES_CSV = PROJECT_ROOT / "runtime" / "v14_pattern_backtest_trades.csv"
+TRADES_CSV = PROJECT_ROOT / "runtime" / "v15_backtest_trades.csv"
 
 
 def run_backtest(argv: list[str]) -> None:
-    cmd = [sys.executable, str(PROJECT_ROOT / "v14" / "backtest" / "backtest_patterns_v14.py"), *argv]
-    subprocess.run(cmd, cwd=PROJECT_ROOT, check=True)
+    import os
+
+    env = {**os.environ, "PYTHONPATH": str(PROJECT_ROOT), "V14_HYBRID": "1"}
+    cmd = [
+        sys.executable,
+        str(PROJECT_ROOT / "v15" / "backtest" / "backtest_v15.py"),
+        *argv,
+    ]
+    subprocess.run(cmd, cwd=PROJECT_ROOT, env=env, check=True)
 
 
 def print_full_stats(tdf: pd.DataFrame) -> None:
@@ -174,7 +184,7 @@ def print_full_stats(tdf: pd.DataFrame) -> None:
     print(f"{'='*60}")
     print(yearly.to_string(index=False))
 
-    from config.v14_config import WF_CONFIG
+    from config.hybrid_config import WF_CONFIG
     from xgboost_filter_model.pattern_training import iter_wf_cycles, wf_anchor_ts
 
     cdf = tdf.copy()
@@ -242,7 +252,7 @@ def print_full_stats(tdf: pd.DataFrame) -> None:
                 if table:
                     print(f"\n{table}")
 
-    from v14.backtest.trade_display import print_trades_table_hkt
+    from backtest.trade_display import print_trades_table_hkt
 
     print_trades_table_hkt(tdf, tail=30)
 

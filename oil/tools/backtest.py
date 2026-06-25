@@ -16,7 +16,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
@@ -48,7 +48,7 @@ def main() -> None:
 
     cmd = [
         sys.executable,
-        str(ROOT / "v14" / "backtest" / "backtest_patterns_v14.py"),
+        str(ROOT / "oil" / "backtest" / "pattern_backtest.py"),
         bt_start,
         bt_end,
         *patterns,

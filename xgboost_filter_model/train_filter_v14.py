@@ -40,7 +40,7 @@ def build_target(df: pd.DataFrame, horizon: int, tp: float, sl: float) -> pd.Dat
     df['future_er'] = net_move / (path_length + 1e-9)
     
     return df
-from config.v14_config import FILTER_CONFIG, TARGET_CONFIG, MODEL_CONFIG, WF_CONFIG
+from config.hybrid_config import FILTER_CONFIG, TARGET_CONFIG, MODEL_CONFIG, WF_CONFIG
 from xgboost_filter_model.pattern_training import (
     iter_wf_train_targets,
     wf_train_mode,
@@ -255,7 +255,7 @@ def prepare_data_v14(
         df["bar_move"] = (df["close"] - df["open"]).abs()
 
     if not energetic_filter:
-        from config.v14_patterns import pattern_feature_set as _resolve_pfs
+        from config.pattern_registry import pattern_feature_set as _resolve_pfs
 
         pfs = pattern_feature_set if pattern_feature_set is not None else _resolve_pfs()
         print(f"Adding pattern features (set={pfs})…")

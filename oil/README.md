@@ -76,4 +76,4 @@ If levels look wrong (e.g. not ~$60–80 WTI), fix IG epic / table before trusti
 2. `oil_uptrend_retrace`  
 3. FVG / breakthrough variants after retrace works  
 
-Do **not** reuse `runtime/v14_weak_time_slots.json` (gold-specific). Build a new weak-slot file from oil baseline trades if you add a time filter later.
+Do **not** reuse `runtime/hybrid_weak_time_slots.json` (gold-specific). Build a new weak-slot file from oil baseline trades if you add a time filter later.

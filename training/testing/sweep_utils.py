@@ -9,7 +9,7 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from training.rebuild_directional_pnl_from_trades import rebuild_directional_pnl
 
 WEAK_MIN_TRADES   = 3

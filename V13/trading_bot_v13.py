@@ -545,7 +545,7 @@ class AlphaGoldV13Bot:
                 prev_day_str = last_recon_day.strftime('%Y-%m-%d')
 
                 # Determine additional reports
-                recon_cmd = [sys.executable, str(PROJECT_ROOT / "v14" / "tools" / "daily_reconciliation.py"), prev_day_str]
+                recon_cmd = [sys.executable, str(PROJECT_ROOT / "tools" / "daily_reconciliation.py"), prev_day_str]
 
                 # 1. Weekly: If yesterday was Friday (weekday 4)
                 if last_recon_day.weekday() == 4:

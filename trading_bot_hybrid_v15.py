@@ -33,7 +33,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from brokers.ig_live import IGLiveBrokerAdapter
-from config.v14_config import (
+from config.hybrid_config import (
     ENERGETIC_EXECUTION_CONFIG,
     EXECUTION_CONFIG,
     HYBRID_CONFIG,
@@ -48,7 +48,7 @@ from ig_scripts.ig_data_api import (
     fetch_open_positions,
     fetch_prices,
 )
-from trading_bot_v14 import AlphaGoldV14Bot, BotState
+from trading_bot_base import AlphaGoldBaseBot, BotState
 from v15.hybrid_live import V15HybridLiveScorer, LiveSignal
 from xgboost_filter_model.time_slot_filter import is_blocked_entry, load_weak_filter, resolve_v14_time_filter_path
 from mobile_api.journal import SignalJournal, trading_day_label, trading_day_start_utc
@@ -75,7 +75,7 @@ class HybridBotState(BotState):
         return cls(**{k: v for k, v in data.items() if k in known})
 
 
-class AlphaGoldHybridV15Bot(AlphaGoldV14Bot):
+class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
     """v15 Pattern + energetic fallback live bot — deterministic gate, no HMM."""
 
     def __init__(self):
@@ -181,7 +181,7 @@ class AlphaGoldHybridV15Bot(AlphaGoldV14Bot):
             wf_end = date.today().strftime("%Y-%m-%d")
             cmd = [
                 sys.executable,
-                str(PROJECT_ROOT / "v14" / "tools" / "retrain_hybrid_wf.py"),
+                str(PROJECT_ROOT / "tools" / "retrain_hybrid_wf.py"),
                 "2025-06-01",
                 wf_end,
             ]
@@ -236,7 +236,7 @@ class AlphaGoldHybridV15Bot(AlphaGoldV14Bot):
 
     # =====================================================================
     # (All position management, signal submission, and polling logic is
-    #  identical to v14 — inherited from AlphaGoldV14Bot / copied from
+    #  identical to v14 — inherited from AlphaGoldBaseBot / copied from
     #  trading_bot_hybrid_v14.py.  The only v15 change is the scorer.)
     # =====================================================================
 
@@ -646,7 +646,7 @@ class AlphaGoldHybridV15Bot(AlphaGoldV14Bot):
         if last_recon_str and current_label > last_recon_str:
             recon_cmd = [
                 sys.executable,
-                str(PROJECT_ROOT / "v14" / "tools" / "daily_reconciliation.py"),
+                str(PROJECT_ROOT / "tools" / "daily_reconciliation.py"),
                 last_recon_str,
             ]
             try:
@@ -742,10 +742,13 @@ class AlphaGoldHybridV15Bot(AlphaGoldV14Bot):
         self._submit_signal(entry_sig, latest_ts, close_price)
 
     def poll_db(self) -> None:
-        try:
-            fetch_and_store_prices_from_latest(self.service, Price.Gold)
-        except Exception as e:
-            self.logger.error(f"DB store failed: {e}")
+        import time as _t
+        for inst in [Price.Gold, Price.Oil, Price.AUD]:
+            try:
+                fetch_and_store_prices_from_latest(self.service, inst)
+            except Exception as e:
+                self.logger.error(f"DB store failed for {inst.name}: {e}")
+            _t.sleep(2)
 
     def run(self):
         self.logger.info("v15 Hybrid bot execution loop started (5s=trade  30s=db-only).")

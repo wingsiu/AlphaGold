@@ -4,7 +4,7 @@
 
 ```
 Mac Mini
-├── trading_bot_hybrid_v14.py   → trades + signals → runtime/mobile/alphagold.db
+├── trading_bot_hybrid_v15.py   → trades + signals → runtime/mobile/alphagold.db
 └── mobile_api/server.py        → REST API :8765 for iPhone / Watch
 
 iPhone / Watch app  →  http://<mac-mini-ip>:8765/api/v1/...
@@ -35,21 +35,21 @@ One-shot install (API + hybrid bot + **health watchdog**):
 
 ```bash
 cd ~/AlphaGold
-./v14/scripts/install_launch_services.sh
+./scripts/install_launch_services.sh
 ```
 
 **API at boot without login** (optional; needs sudo — do not also load the mobile-api LaunchAgent):
 
 ```bash
-./v14/scripts/install_launch_services.sh --boot-api
+./scripts/install_launch_services.sh --boot-api
 ```
 
 Manual install (same as before):
 
 ```bash
-chmod +x v14/scripts/run_mobile_api.sh v14/scripts/run_hybrid_bot.sh v14/scripts/alphagold_watchdog.sh
+chmod +x scripts/run_mobile_api.sh scripts/run_hybrid_bot.sh scripts/alphagold_watchdog.sh
 mkdir -p ~/Library/LaunchAgents
-cp v14/scripts/com.alphagold.*.plist ~/Library/LaunchAgents/
+cp scripts/com.alphagold.*.plist ~/Library/LaunchAgents/
 
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.alphagold.mobile-api.plist
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.alphagold.hybrid-bot.plist
@@ -77,11 +77,11 @@ iPhone URLs: home `http://192.168.0.4:8765` or `http://192.168.0.57:8765`, away 
 Diagnostics:
 
 ```bash
-./v14/scripts/check_remote_access.sh
-./v14/scripts/check_remote_desktop.sh   # VNC port 5900; hang / CPU notes
+./scripts/check_remote_access.sh
+./scripts/check_remote_desktop.sh   # VNC port 5900; hang / CPU notes
 ```
 
-Remote Desktop freezes while connected: see `v14/docs/remote_desktop.md`.
+Remote Desktop freezes while connected: see `docs/ops/remote_desktop.md`.
 
 Stop a manually started bot before loading the hybrid launchd agent (only one instance).
 

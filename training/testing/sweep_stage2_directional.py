@@ -24,12 +24,12 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from training.testing.sweep_utils import (
     fmt_sec, generate_weak_filter, parse_report, print_progress, print_top,
 )
 
-PROJECT_ROOT   = Path(__file__).resolve().parents[2]
+PROJECT_ROOT   = Path(__file__).resolve().parents[1]
 IMAGE_TREND_ML = PROJECT_ROOT / "training" / "image_trend_ml.py"
 MODEL_IN       = PROJECT_ROOT / "runtime" / "bot_assets" / "backtest_model_best_base_weak_nostate.joblib"
 RESULTS_DIR    = Path(__file__).parent / "results"

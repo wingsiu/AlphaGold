@@ -82,9 +82,29 @@ def _build_session_heatmaps(x: pd.DataFrame) -> dict:
     return result
 
 
+def normalize_trades_pdf(pdf: pd.DataFrame) -> pd.DataFrame:
+    """Accept gold or oil trade CSV column names."""
+    pdf = pdf.copy()
+    if "entry_time" not in pdf.columns and "entry" in pdf.columns:
+        pdf["entry_time"] = pd.to_datetime(pdf["entry"], utc=True)
+    else:
+        pdf["entry_time"] = pd.to_datetime(pdf["entry_time"], utc=True)
+    if "exit_time" not in pdf.columns and "exit" in pdf.columns:
+        pdf["exit_time"] = pd.to_datetime(pdf["exit"], utc=True)
+    elif "exit_time" in pdf.columns:
+        pdf["exit_time"] = pd.to_datetime(pdf["exit_time"], utc=True)
+    if "exit_reason" not in pdf.columns and "reason" in pdf.columns:
+        pdf["exit_reason"] = pdf["reason"]
+    if "side" in pdf.columns:
+        side_num = pd.to_numeric(pdf["side"], errors="coerce")
+        if side_num.notna().any():
+            pdf.loc[side_num.notna(), "side"] = side_num.map({1: "up", -1: "down"})
+    return pdf
+
+
 def rebuild_directional_pnl(trades_csv: Path | str) -> dict:
     """Load a trades CSV and return the same report dict as directional_pnl_report."""
-    pdf = pd.read_csv(trades_csv)
+    pdf = normalize_trades_pdf(pd.read_csv(trades_csv))
     if pdf.empty:
         return _empty_report()
 

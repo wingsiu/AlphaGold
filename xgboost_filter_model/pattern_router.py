@@ -6,7 +6,7 @@ import os
 
 import pandas as pd
 
-from config.v14_patterns import PATTERN_REGISTRY
+from config.pattern_registry import PATTERN_REGISTRY
 
 
 _OPS = {

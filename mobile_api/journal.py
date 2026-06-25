@@ -50,7 +50,7 @@ def trading_day_for_timestamp(ts: datetime | str) -> datetime:
 
 
 def _backtest_csv_path() -> Path:
-    return PROJECT_ROOT / "runtime" / "v14_pattern_backtest_trades.csv"
+    return PROJECT_ROOT / "runtime" / "v15_backtest_trades.csv"
 
 
 def _load_backtest_df():
@@ -80,6 +80,13 @@ def _backtest_row_to_trade(row, idx: int) -> dict[str, Any]:
     exit_time = row.get("exit_time")
     entry_ts = pd.Timestamp(entry_time) if pd.notna(entry_time) else None
     signal_ts = (entry_ts - pd.Timedelta(minutes=1)) if entry_ts is not None else None
+    raw_pnl = float(row["pnl"]) if pd.notna(row.get("pnl")) else None
+    # Scale backtest PnL to match live bot size (ENERGETIC_EXECUTION_CONFIG.size)
+    try:
+        from config.hybrid_config import ENERGETIC_EXECUTION_CONFIG
+        bt_size = float(ENERGETIC_EXECUTION_CONFIG.get("size", 3.0))
+    except Exception:
+        bt_size = 3.0
     return {
         "id": -(idx + 1),
         "deal_id": f"bt-{idx}",
@@ -91,7 +98,7 @@ def _backtest_row_to_trade(row, idx: int) -> dict[str, Any]:
         "exit_time": pd.Timestamp(exit_time).isoformat() if pd.notna(exit_time) else None,
         "entry_price": float(row["entry_price"]) if pd.notna(row.get("entry_price")) else None,
         "exit_price": float(row["exit_price"]) if pd.notna(row.get("exit_price")) else None,
-        "pnl": float(row["pnl"]) if pd.notna(row.get("pnl")) else None,
+        "pnl": round(raw_pnl * bt_size, 2) if raw_pnl is not None else None,
         "exit_reason": row.get("exit_reason"),
         "status": "closed",
     }
@@ -170,6 +177,8 @@ class SignalJournal:
                     entry_time TEXT,
                     exit_time TEXT,
                     entry_price REAL,
+                    backtest_entry_price REAL,
+                    real_entry_price REAL,
                     exit_price REAL,
                     pnl REAL,
                     exit_reason TEXT,
@@ -238,7 +247,20 @@ class SignalJournal:
                 (bar_time, features_json, _utc_now_iso()),
             )
 
+    def _migrate_trades_table(self) -> None:
+        """Add new columns if missing from old schema."""
+        migrations = {
+            "backtest_entry_price": "ALTER TABLE trades ADD COLUMN backtest_entry_price REAL",
+            "real_entry_price": "ALTER TABLE trades ADD COLUMN real_entry_price REAL",
+        }
+        with self._conn() as conn:
+            existing = {row[1] for row in conn.execute("PRAGMA table_info(trades)").fetchall()}
+            for col, sql in migrations.items():
+                if col not in existing:
+                    conn.execute(sql)
+
     def open_trade(self, row: dict[str, Any]) -> None:
+        self._migrate_trades_table()
         now = _utc_now_iso()
         meta = {k: v for k, v in row.items() if k not in {
             "deal_id", "source", "pattern_name", "side", "signal_time", "entry_time",
@@ -257,9 +279,13 @@ class SignalJournal:
                 """
                 INSERT INTO trades (
                     deal_id, source, pattern_name, side, entry_time, entry_price,
+                    backtest_entry_price, real_entry_price,
                     tp, sl, horizon, probability, status, meta_json, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?)
                 ON CONFLICT(deal_id) DO UPDATE SET
+                    entry_price=excluded.entry_price,
+                    backtest_entry_price=excluded.backtest_entry_price,
+                    real_entry_price=excluded.real_entry_price,
                     updated_at=excluded.updated_at,
                     meta_json=excluded.meta_json
                 """,
@@ -270,6 +296,8 @@ class SignalJournal:
                     row.get("side"),
                     row.get("entry_time"),
                     row.get("entry_price"),
+                    row.get("backtest_entry_price"),
+                    row.get("real_entry_price"),
                     row.get("tp"),
                     row.get("sl"),
                     row.get("horizon"),
@@ -308,6 +336,23 @@ class SignalJournal:
                 meta = json.loads(out["meta_json"])
                 if meta.get("signal_time") and not out.get("signal_time"):
                     out["signal_time"] = meta["signal_time"]
+                if meta.get("horizon_deadline") and not out.get("horizon_deadline"):
+                    out["horizon_deadline"] = meta["horizon_deadline"]
+                if meta.get("real_entry_price") is not None and out.get("real_entry_price") is None:
+                    out["real_entry_price"] = meta["real_entry_price"]
+                if meta.get("backtest_entry_price") is not None and out.get("backtest_entry_price") is None:
+                    out["backtest_entry_price"] = meta["backtest_entry_price"]
+            except Exception:
+                pass
+        # Add gold price to recent signal rows
+        if out.get("entry_time"):
+            try:
+                from pathlib import Path
+                import json as _json
+                bp = Path(__file__).resolve().parent.parent / "runtime" / "live_price.json"
+                if bp.exists():
+                    price = _json.loads(bp.read_text(encoding="utf-8"))
+                    out["gold_price"] = price.get("close")
             except Exception:
                 pass
         return out
@@ -476,7 +521,7 @@ class SignalJournal:
         bar_time = self._minute_key(minute_ts)
         if not rows:
             sid = -(zlib.crc32(bar_time.encode()) % 1_000_000_000)
-            return {
+            result = {
                 "id": sid,
                 "bar_time": bar_time,
                 "pattern_name": None,
@@ -489,6 +534,8 @@ class SignalJournal:
                 "open_source": None,
                 "created_at": bar_time,
             }
+            self._enrich_signal_row(result)
+            return result
 
         score_row = next((r for r in rows if r.get("action") == "score"), None)
         pred_row = score_row or rows[-1]
@@ -509,7 +556,20 @@ class SignalJournal:
                 merged["detail"] = action_row["detail"]
             if action_row.get("open_source"):
                 merged["open_source"] = action_row["open_source"]
+        self._enrich_signal_row(merged)
         return merged
+
+    def _enrich_signal_row(self, row: dict[str, Any]) -> None:
+        """Add live gold price to a signal row (mutates in place)."""
+        try:
+            from pathlib import Path
+            import json as _json
+            bp = Path(__file__).resolve().parent.parent / "runtime" / "live_price.json"
+            if bp.exists():
+                price = _json.loads(bp.read_text(encoding="utf-8"))
+                row["gold_price"] = price.get("close")
+        except Exception:
+            pass
 
     def _build_minute_grid(
         self,
@@ -607,7 +667,7 @@ class SignalJournal:
         if entry_price is None or side == 0 or (not entry_time and not signal_time):
             return None
         try:
-            from config.v14_config import ENERGETIC_EXECUTION_CONFIG
+            from config.hybrid_config import ENERGETIC_EXECUTION_CONFIG
             from xgboost_filter_model.train_filter import load_price_data
 
             size = float(ENERGETIC_EXECUTION_CONFIG.get("size", 2.0))

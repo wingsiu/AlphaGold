@@ -507,13 +507,27 @@ struct SignalMinuteRow: View {
         if isTradeAction {
             EmptyView()
         } else if hasRoutedPattern || showEnergeticLine {
-            Text("No signal")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            HStack(spacing: 8) {
+                Text("No signal")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if let gold = signal.gold_price {
+                    Text("Gold: \(String(format: "%.2f", gold))")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+            }
         } else {
-            Text("No signal")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+            HStack(spacing: 8) {
+                Text("No signal")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                if let gold = signal.gold_price {
+                    Text("Gold: \(String(format: "%.2f", gold))")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+            }
         }
     }
 
@@ -789,6 +803,9 @@ struct TradeDetailRow: View {
             if let exit = trade.exit_time {
                 tradeLine("Exit", time: exit, price: trade.exit_price)
             }
+            if let deadline = trade.horizon_deadline {
+                tradeLine("End", time: deadline, price: nil, labelColor: .orange)
+            }
             if let reason = trade.exit_reason, !reason.isEmpty {
                 Text(reason)
                     .font(.caption2)
@@ -809,11 +826,11 @@ struct TradeDetailRow: View {
     }
 
     @ViewBuilder
-    private func tradeLine(_ label: String, time: String, price: Double?) -> some View {
+    private func tradeLine(_ label: String, time: String, price: Double?, labelColor: Color = .secondary) -> some View {
         HStack(spacing: 6) {
             Text(label)
                 .font(.caption2.bold())
-                .foregroundStyle(.secondary)
+                .foregroundStyle(labelColor)
                 .frame(width: 34, alignment: .leading)
             Text(formatTradeTime(time))
                 .font(.caption)

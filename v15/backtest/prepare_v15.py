@@ -12,7 +12,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from config.v14_config import ENERGETIC_EXECUTION_CONFIG, WF_CONFIG
+from config.hybrid_config import ENERGETIC_EXECUTION_CONFIG, WF_CONFIG
 from xgboost_filter_model.train_filter_v14 import prepare_data_v14
 from xgboost_filter_model.train_stage2_v14_directional import prepare_directional_data_v14
 from xgboost_filter_model.energetic_gate import (
@@ -25,7 +25,7 @@ from xgboost_filter_model.adaptive_prob import adaptive_prob_threshold
 from v15.energetic_gate import energetic_bar_mask_v15
 from v15.features import add_v15_energetic_features
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+from _paths import PROJECT_ROOT
 
 
 def prepare_v15_data(

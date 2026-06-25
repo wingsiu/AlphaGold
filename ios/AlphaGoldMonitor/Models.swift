@@ -12,6 +12,7 @@ struct SignalRow: Codable, Identifiable {
     var detail: String?
     var open_source: String?
     var created_at: String
+    var gold_price: Double?
 }
 
 struct TradeRow: Codable, Identifiable {
@@ -27,6 +28,8 @@ struct TradeRow: Codable, Identifiable {
     var pnl: Double?
     var exit_reason: String?
     var status: String
+    var horizon_deadline: String?
+    var gold_price: Double?
 }
 
 struct TradeSummary: Codable {

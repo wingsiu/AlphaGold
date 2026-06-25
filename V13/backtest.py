@@ -592,6 +592,6 @@ print(f"\n  Trades saved → {out_path}")
 # ── Reusable simulation core ────────────────────────────────────────────────────
 # Moved to `backtest_core.py` so importers (daily_reconciliation, sweeps) don't
 # trigger the full backtest script body (which parses sys.argv at module load).
-from v14.backtest.backtest_core import simulate_v13_core  # noqa: E402,F401
+from backtest.core import simulate_v13_core  # noqa: E402,F401
 
 

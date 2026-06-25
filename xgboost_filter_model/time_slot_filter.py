@@ -165,20 +165,22 @@ def is_blocked_entry(ts: pd.Timestamp, weak_cells: list[dict] | None) -> bool:
     return any(matches_weak_cell(ts, cell) for cell in weak_cells)
 
 
-def resolve_v14_time_filter_path(project_root: Path | str | None = None) -> str | None:
-    """
-    Resolve v14 weak-slot JSON path from env / config.
-
-    Returns None when filtering is off (V14_NO_TIME_FILTER=1 and config disabled).
-    """
+def resolve_weak_time_filter_path(project_root: Path | str | None = None) -> str | None:
+    """Resolve hybrid weak-slot JSON path from env / config."""
     import os
 
-    from config.v14_config import TIME_FILTER_CONFIG
+    from config.hybrid_config import TIME_FILTER_CONFIG
 
-    if os.environ.get("V14_NO_TIME_FILTER", "").strip().lower() in ("1", "true", "yes", "on"):
+    no_filter = os.environ.get("AG_NO_TIME_FILTER", "") or os.environ.get(
+        "V14_NO_TIME_FILTER", ""
+    )
+    if no_filter.strip().lower() in ("1", "true", "yes", "on"):
         return None
 
-    env_path = os.environ.get("V14_TIME_FILTER_JSON", "").strip()
+    env_path = (
+        os.environ.get("AG_TIME_FILTER_JSON", "").strip()
+        or os.environ.get("V14_TIME_FILTER_JSON", "").strip()
+    )
     if env_path:
         return env_path
 
@@ -186,7 +188,18 @@ def resolve_v14_time_filter_path(project_root: Path | str | None = None) -> str 
         return None
 
     root = Path(project_root) if project_root is not None else Path(__file__).resolve().parent.parent
-    return str(root / TIME_FILTER_CONFIG.get("weak_slots_json", "runtime/v14_weak_time_slots.json"))
+    default = root / TIME_FILTER_CONFIG.get(
+        "weak_slots_json", "runtime/hybrid_weak_time_slots.json"
+    )
+    if default.exists():
+        return str(default)
+    legacy = root / "runtime" / "v14_weak_time_slots.json"
+    return str(legacy) if legacy.exists() else str(default)
+
+
+def resolve_v14_time_filter_path(project_root: Path | str | None = None) -> str | None:
+    """Deprecated alias — use resolve_weak_time_filter_path."""
+    return resolve_weak_time_filter_path(project_root)
 
 
 def print_blocked_cells(cells: list[dict]) -> None:

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.alphagold.mobile-api</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/alpha/AlphaGold/scripts/run_mobile_api.sh</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/alpha/AlphaGold</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/Users/alpha/AlphaGold/runtime/launchd_mobile_api.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/alpha/AlphaGold/runtime/launchd_mobile_api.err</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin</string>
+        <key>PYTHONPATH</key>
+        <string>/Users/alpha/AlphaGold</string>
+        <key>IG_SKIP_KEYRING</key>
+        <string>1</string>
+    </dict>
+</dict>
+</plist>

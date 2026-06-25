@@ -2,13 +2,13 @@
 """Combined Backtest: WR90 Long + Short Impulse
 =================================================
 WR90 Long (15m): WR<-80, CumVol≥15k, EpBars≥3, NY 03-12, TP=80/SL=30, advance target
-Short Impulse (1m): prev_change<-14, vol>800, UK 7-16, TP=90/SL=60, XGBoost prob≥0.55
+Short Impulse (1m): prev_change<-14, vol>800, NY 3-12, TP=90/SL=60, XGBoost prob≥0.55
 
 Both are proven independently. This tests combined portfolio performance.
 """
 
 import sys; from pathlib import Path
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path: sys.path.insert(0, str(PROJECT_ROOT))
 import numpy as np; import pandas as pd
 from data.data_loader import DataLoader
@@ -20,12 +20,12 @@ LONG_MAX_B = 60; LONG_EP_MIN = 3
 LONG_ENTRY = -80; LONG_CV = 15000
 LONG_RECOVERY = -20; LONG_WEAK = -50
 LONG_WT = 12
-LONG_TP = 80; LONG_SL = 30
+LONG_TP = 60; LONG_SL = 20
 
 # ===== Short Impulse Config =====
 SI_CHANGE_MAX = -14.0; SI_VOL_MIN = 800
 SI_NY_HOURS = list(range(3, 13))  # NY 3-12 UTC
-SI_TP = 90; SI_SL = 60; SI_MAX_B = 90
+SI_TP = 120; SI_SL = 80; SI_MAX_B = 90
 SI_FC_H = 14; SI_FC_M = 28  # NY 14:28 UTC forced close
 SI_PROB = 0.55  # XGBoost probability threshold
 
@@ -66,50 +66,120 @@ def find_long_signals(d):
     return sigs
 
 def sim_long_with_advance(d15, sigs):
-    """WR90 Long with advance target. New same-direction signal while in trade = advance TP/SL."""
+    """WR90 Long with advance target + bar-by-bar exit checks.
+    
+    New same-direction signal while in trade = advance TP/SL upward.
+    Bar-by-bar exit checks happen AFTER each advance.
+    Exit + signal at same bar = skip signal (double-trade prevention).
+    Exit on an earlier bar = legitimately enter new trade at this signal.
+    """
     pnls = []; results = []
     in_trade = False; ct = 0; cs = 0; ep = 0; ei = 0; bh = 0
     reached = False; wc = 0; sig_idx = 0
     while sig_idx < len(sigs):
         si = sigs[sig_idx]['idx']
         if not in_trade:
+            # No active trade — enter a new one
             in_trade = True; ep = d15.iloc[si]['close_ask']; ct = ep + LONG_TP; cs = ep - LONG_SL
             ei = si; bh = 0; reached = False; wc = 0
             results.append({'entry_time': d15.index[si], 'entry_price': ep, 'direction': 'LONG', 'signal_type': 'WR90'})
             sig_idx += 1; continue
-        # New signal while trade open — advance target (same direction)
-        ne = d15.iloc[si]['close_ask']; ct = ne + LONG_TP; cs = min(cs, ne - LONG_SL)
-        # Update results tracking
+        # Bar-by-bar exit check from last processed bar up to
+        # the new signal bar (OR up to the 60th bar max)
+        end_bar = min(si, ei + LONG_MAX_B)
+        exit_at_si = False
+        for j in range(ei + bh + 1, end_bar + 1):
+            b = d15.iloc[j]
+            post = (b['ny_h'] > NY_FC_H) or (b['ny_h'] == NY_FC_H and b['ny_m'] >= NY_FC_M)
+            if post:
+                px = b['close_bid']; pnls.append(px - ep)
+                in_trade = False
+                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = px
+                results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'ny_close'
+                if j == si: exit_at_si = True
+                break
+            if b['high'] >= ct:
+                pnls.append(LONG_TP); in_trade = False
+                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = b['close_bid']
+                results[-1]['pnl'] = LONG_TP; results[-1]['reason'] = 'tp'
+                if j == si: exit_at_si = True
+                break
+            if b['low'] <= cs:
+                pnls.append(-LONG_SL); in_trade = False
+                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = b['close_bid']
+                results[-1]['pnl'] = -LONG_SL; results[-1]['reason'] = 'sl'
+                if j == si: exit_at_si = True
+                break
+            if b['wr'] >= LONG_RECOVERY: reached = True
+            if b['wr'] < LONG_WEAK: wc += 1
+            else: wc = 0
+            if reached and post:
+                px = b['close_bid']; pnls.append(px - ep); in_trade = False
+                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = px
+                results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'ride_end'
+                if j == si: exit_at_si = True
+                break
+            if not reached and wc >= LONG_WT:
+                px = b['close_bid']; pnls.append(px - ep); in_trade = False
+                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = px
+                results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'weak'
+                if j == si: exit_at_si = True
+                break
+        bh = si - ei
+        if not in_trade:
+            if exit_at_si:
+                # Exit and signal triggered at the exact same bar — skip this double-trade signal.
+                sig_idx += 1; continue
+            # Exit happened on an earlier bar (j < si). Enter new trade at the signal.
+            in_trade = True; ep = d15.iloc[si]['close_ask']; ct = ep + LONG_TP; cs = ep - LONG_SL
+            ei = si; bh = 0; reached = False; wc = 0
+            results.append({'entry_time': d15.index[si], 'entry_price': ep, 'direction': 'LONG', 'signal_type': 'WR90'})
+            sig_idx += 1; continue
+        # Still in trade — advance target with this signal (same-direction)
+        # For longs: ratchet SL upward (max), TP upward (recalc from new price)
+        ne = d15.iloc[si]['close_ask']; ct = ne + LONG_TP; cs = max(cs, ne - LONG_SL)
         results[-1]['tp_advanced'] = True
         ei = si; bh = 0; reached = False; wc = 0; sig_idx += 1
+    # Final cleanup: bar-by-bar check remaining bars (after last signal)
     if in_trade:
-        last = min(ei + LONG_MAX_B, len(d15) - 1)
-        px = d15.iloc[last]['close_bid']; pnls.append(px - ep)
-        results[-1]['exit_time'] = d15.index[last]; results[-1]['exit_price'] = px
-        results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'timeout'
+        end_bar = min(ei + LONG_MAX_B, len(d15) - 1)
+        found_exit = False
+        for j in range(ei + bh + 1, end_bar + 1):
+            b = d15.iloc[j]
+            post = (b['ny_h'] > NY_FC_H) or (b['ny_h'] == NY_FC_H and b['ny_m'] >= NY_FC_M)
+            if post:
+                px = b['close_bid']; pnls.append(px - ep)
+                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = px
+                results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'ny_close'
+                found_exit = True; break
+            if b['high'] >= ct:
+                pnls.append(LONG_TP); found_exit = True
+                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = b['close_bid']
+                results[-1]['pnl'] = LONG_TP; results[-1]['reason'] = 'tp'
+                break
+            if b['low'] <= cs:
+                pnls.append(-LONG_SL); found_exit = True
+                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = b['close_bid']
+                results[-1]['pnl'] = -LONG_SL; results[-1]['reason'] = 'sl'
+                break
+            if b['wr'] >= LONG_RECOVERY: reached = True
+            if b['wr'] < LONG_WEAK: wc += 1
+            else: wc = 0
+            if reached and post:
+                px = b['close_bid']; pnls.append(px - ep); found_exit = True
+                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = px
+                results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'ride_end'
+                break
+            if not reached and wc >= LONG_WT:
+                px = b['close_bid']; pnls.append(px - ep); found_exit = True
+                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = px
+                results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'weak'
+                break
+        if not found_exit:
+            px = d15.iloc[end_bar]['close_bid']; pnls.append(px - ep)
+            results[-1]['exit_time'] = d15.index[end_bar]; results[-1]['exit_price'] = px
+            results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'timeout'
     return pnls, results
-
-def sim_long_exit_check(d15, ei, ep, ct, cs, bh, reached, wc):
-    """Check bar-by-bar exit for WR90 long within a single 15m interval."""
-    for j in range(ei + bh + 1, len(d15)):
-        b = d15.iloc[j]
-        post = (b['ny_h'] > NY_FC_H) or (b['ny_h'] == NY_FC_H and b['ny_m'] >= NY_FC_M)
-        if post:
-            return j, b['close_bid'], 'ny_close'
-        if b['high'] >= ct:
-            return j, b['close_bid'], 'tp'
-        if b['low'] <= cs:
-            return j, b['close_bid'], 'sl'
-        if b['wr'] >= LONG_RECOVERY: reached = True
-        if b['wr'] < LONG_WEAK: wc += 1
-        else: wc = 0
-        if reached and post:
-            return j, b['close_bid'], 'ride_end'
-        if not reached and wc >= LONG_WT:
-            return j, b['close_bid'], 'weak'
-        if j - ei >= LONG_MAX_B:
-            return j, b['close_bid'], 'timeout'
-    return len(d15) - 1, d15.iloc[-1]['close_bid'], 'timeout'
 
 # ===== Short Impulse Functions (1m) =====
 
@@ -252,7 +322,7 @@ def stats(pnls):
 print('=' * 80)
 print('  COMBINED BACKTEST: WR90 Long + Short Impulse')
 print(f'  WR90: WR<{LONG_ENTRY}, CV≥{LONG_CV}, EpB≥{LONG_EP_MIN}, TP={LONG_TP}/SL={LONG_SL}, advance')
-print(f'  SI:   change<{SI_CHANGE_MAX}, vol>{SI_VOL_MIN}, UK 7-16, TP={SI_TP}/SL={SI_SL}, XGB≥{SI_PROB}')
+print(f'  SI:   change<{SI_CHANGE_MAX}, vol>{SI_VOL_MIN}, NY 3-12, TP={SI_TP}/SL={SI_SL}, XGB≥{SI_PROB}')
 print('=' * 80)
 
 d1m = load(); d15 = build_15m(d1m)
@@ -272,16 +342,66 @@ si_mask = find_si_signals(d1m_si)
 si_indices = d1m_si.index[si_mask].tolist()
 print(f'\nShort Impulse raw signals: {len(si_indices)}')
 
-si_records = []
-for sig_idx in si_indices:
+# ---- Short Impulse: WITHOUT advance target (skip overlaps) ----
+si_records_no_adv = []
+si_sig_order = sorted(si_indices)
+in_si_trade = False; si_exit_bar = -1
+for sig_idx in si_sig_order:
     ei = d1m_si.index.get_loc(sig_idx)
     if ei + SI_MAX_B >= len(d1m_si): continue
-    ep = d1m_si.iloc[ei]['close_bid']  # short entry at bid
+    if in_si_trade and ei <= si_exit_bar:
+        continue
+    ep = d1m_si.iloc[ei]['close_bid']
     ex, bars, reason = sim_si_short(ei, ep, d1m_si)
-    pnl = ep - ex  # PnL = entry - exit (short)
-    si_records.append({'entry_idx': sig_idx, 'entry_price': ep,
+    pnl = ep - ex
+    si_records_no_adv.append({'entry_idx': sig_idx, 'entry_price': ep,
                         'exit_price': ex, 'pnl': pnl, 'reason': reason,
-                        'orig_idx': len(si_records), 'bars': bars})
+                        'orig_idx': len(si_records_no_adv), 'bars': bars})
+    in_si_trade = True; si_exit_bar = ei + bars
+
+# ---- Short Impulse: WITH advance target ----
+# Same-direction signal while trade open = advance TP lower, tighten SL lower
+si_records_adv = []
+in_si_trade = False; si_ct = 0; si_cs = 0; si_ep = 0; si_ei = 0; si_last_check = 0
+for sig_idx in si_sig_order:
+    ei = d1m_si.index.get_loc(sig_idx)
+    if ei + SI_MAX_B >= len(d1m_si): continue
+    if in_si_trade:
+        # Bar-by-bar exit check from last check up to this signal
+        exited = False
+        if ei > si_last_check:
+            ex, bars, reason = sim_si_short(si_ei, si_ep, d1m_si, tp=abs(si_ep - si_ct), sl=abs(si_cs - si_ep))
+            ex_i = si_ei + bars
+            if ex_i <= ei:
+                # Trade exited before this signal
+                pnl = si_ep - ex
+                si_records_adv.append({'entry_idx': d1m_si.index[si_ei], 'entry_price': si_ep,
+                                 'exit_price': ex, 'pnl': pnl, 'reason': reason,
+                                 'orig_idx': len(si_records_adv), 'bars': bars, 'advanced': True})
+                in_si_trade = False; exited = True
+        if not exited:
+            # Still in trade — advance target with this signal
+            ne = d1m_si.iloc[ei]['close_bid']
+            si_ct = ne - SI_TP  # advance TP lower
+            si_cs = min(si_cs, ne + SI_SL)  # tighten stop lower
+            si_ei = ei; si_last_check = ei + 1
+            continue
+    # Enter new trade
+    si_ep = d1m_si.iloc[ei]['close_bid']
+    si_ct = si_ep - SI_TP; si_cs = si_ep + SI_SL
+    si_ei = ei; si_last_check = ei + 1; in_si_trade = True
+    ex, bars, reason = sim_si_short(ei, si_ep, d1m_si)
+    pnl = si_ep - ex
+    si_records_adv.append({'entry_idx': sig_idx, 'entry_price': si_ep,
+                     'exit_price': ex, 'pnl': pnl, 'reason': reason,
+                     'orig_idx': len(si_records_adv), 'bars': bars})
+    in_si_trade = True if reason == 'timeout' else False  # reset for next
+    if not in_si_trade: si_exit_bar = ei + bars
+
+# Use NO-advance records for the main run (for comparison, we'll compute both)
+si_records = si_records_no_adv
+# Save adv records for comparison later
+si_records_adv_saved = si_records_adv
 
 # ---- Short Impulse XGBoost WF ----
 print('Training SI XGBoost WF filter...')
@@ -298,159 +418,9 @@ for i, r in enumerate(si_records):
 ss = stats(si_filtered_pnls)
 print(f'  SI XGB≥{SI_PROB}: {ss["t"]}t, {ss["pnl"]:+.0f}pts, WR={ss["wr"]:.0f}%, PF={ss["pf"]:.2f}')
 
-# ---- Combined Simulation with Overlap Prevention ----
-# Rule: same-direction signal while in trade = advance target
-# Rule: opposite-direction signal = close current, open new
-def simulate_combined(d15, long_sigs, d1m, si_filtered_records):
-    """Unified simulation: WR90 long signals at 15m, SI signals at 1m with overlap rules."""
-    pnls = []; results = []
-    in_trade = False; ct = 0; cs = 0; ep = 0; ei = 0; side = 0
-
-    # Build chronologically ordered event list
-    si_events = []
-    for r in si_filtered_records:
-        idx_1m = d1m.index.get_loc(r['entry_idx'])
-        si_events.append({'type': 'SI', 'idx_1m': idx_1m, 'record': r})
-    long_events = []
-    for s in long_sigs:
-        si_15 = s['idx']; bar_time = d15.index[si_15]
-        idx_1m = d1m.index.searchsorted(bar_time, side='left')
-        if idx_1m >= len(d1m): idx_1m = len(d1m) - 1
-        long_events.append({'type': 'WR90', 'idx_1m': idx_1m, 'idx_15m': si_15})
-
-    all_events = si_events + long_events
-    all_events.sort(key=lambda x: x['idx_1m'])
-
-    # Track exit index to check bar-by-bar for TP/SL between events
-    last_check_15m = 0  # last 15m bar we checked for long exit
-    last_check_1m = 0   # last 1m bar we checked for short exit
-
-    def check_long_exit(from_15m, to_15m):
-        """Check long exit between 15m bars [from_15m, to_15m)."""
-        nonlocal in_trade, side, ct, cs, ep, ei
-        for j in range(from_15m, min(to_15m + 1, len(d15))):
-            if not in_trade or side != 1: return
-            b = d15.iloc[j]
-            post = (b['ny_h'] > NY_FC_H) or (b['ny_h'] == NY_FC_H and b['ny_m'] >= NY_FC_M)
-            px = b['close_bid']
-            if post:
-                pnls.append(px - ep); in_trade = False; side = 0
-                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = px
-                results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'ny_close'
-                return
-            if b['high'] >= ct:
-                pnls.append(LONG_TP); in_trade = False; side = 0
-                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = ct
-                results[-1]['pnl'] = LONG_TP; results[-1]['reason'] = 'tp'
-                return
-            if b['low'] <= cs:
-                pnls.append(-LONG_SL); in_trade = False; side = 0
-                results[-1]['exit_time'] = d15.index[j]; results[-1]['exit_price'] = cs
-                results[-1]['pnl'] = -LONG_SL; results[-1]['reason'] = 'sl'
-                return
-        last_check_15m_global = to_15m
-
-    def check_short_exit(from_1m, to_1m):
-        """Check short exit between 1m bars [from_1m, to_1m)."""
-        nonlocal in_trade, side, ct, cs, ep, ei
-        for j in range(from_1m, min(to_1m + 1, len(d1m))):
-            if not in_trade or side != -1: return
-            b = d1m.iloc[j]
-            nyj = d1m.index[j].tz_convert('America/New_York')
-            post = (nyj.hour > SI_FC_H) or (nyj.hour == SI_FC_H and nyj.minute >= SI_FC_M)
-            if post:
-                px = b['close_ask']; pnls.append(ep - px); in_trade = False; side = 0
-                results[-1]['exit_time'] = d1m.index[j]; results[-1]['exit_price'] = px
-                results[-1]['pnl'] = ep - px; results[-1]['reason'] = 'ny_close'
-                return
-            if b['high'] >= cs:
-                pnls.append(-SI_SL); in_trade = False; side = 0
-                results[-1]['exit_time'] = d1m.index[j]; results[-1]['exit_price'] = cs
-                results[-1]['pnl'] = -SI_SL; results[-1]['reason'] = 'sl'
-                return
-            if b['low'] <= ct:
-                pnls.append(SI_TP); in_trade = False; side = 0
-                results[-1]['exit_time'] = d1m.index[j]; results[-1]['exit_price'] = ct
-                results[-1]['pnl'] = SI_TP; results[-1]['reason'] = 'tp'
-                return
-
-    for ev in all_events:
-        si = ev['idx_1m']
-        if ev['type'] == 'WR90':
-            si_15 = ev['idx_15m']
-            # Check bar-by-bar exit on existing trade before processing new signal
-            if in_trade and side == 1 and si_15 > 0:
-                check_long_exit(last_check_15m, si_15)
-            elif in_trade and side == -1:
-                # Short trade active, check 1m exit up to event
-                check_short_exit(last_check_1m, si)
-
-            if not in_trade:
-                in_trade = True; side = 1
-                ep = d15.iloc[si_15]['close_ask']; ct = ep + LONG_TP; cs = ep - LONG_SL
-                ei = si_15; last_check_15m = si_15 + 1
-                results.append({'entry_time': d15.index[si_15], 'entry_price': ep,
-                                'direction': 'LONG', 'signal_type': 'WR90'})
-            elif side == 1:
-                ne = d15.iloc[si_15]['close_ask']; ct = ne + LONG_TP; cs = min(cs, ne - LONG_SL)
-                last_check_15m = si_15 + 1
-                results[-1]['tp_advanced'] = True
-            elif side == -1 and in_trade:
-                # Close short at 1m price
-                ex_1m = d1m.iloc[si]['close_ask']
-                pnls.append(ep - ex_1m)
-                results[-1]['exit_time'] = d1m.index[si]; results[-1]['exit_price'] = ex_1m
-                results[-1]['pnl'] = ep - ex_1m; results[-1]['reason'] = 'reverse'
-                side = 1; ep = d15.iloc[si_15]['close_ask']; ct = ep + LONG_TP; cs = ep - LONG_SL
-                ei = si_15; last_check_15m = si_15 + 1; last_check_1m = si + 1
-                results.append({'entry_time': d15.index[si_15], 'entry_price': ep,
-                                'direction': 'LONG', 'signal_type': 'WR90'})
-        else:
-            r = ev['record']; idx_raw = d1m.index.get_loc(r['entry_idx'])
-            # Check bar-by-bar exit before new signal
-            if in_trade and side == -1:
-                check_short_exit(last_check_1m, idx_raw)
-            elif in_trade and side == 1:
-                # Map idx_raw to 15m bar for exit check
-                si_15_from_1m = idx_raw // 15 + 1
-                check_long_exit(last_check_15m, min(si_15_from_1m, len(d15) - 1))
-
-            if not in_trade:
-                in_trade = True; side = -1
-                ep = r['entry_price']; ct = ep - SI_TP; cs = ep + SI_SL; ei = idx_raw
-                last_check_1m = idx_raw + 1
-                results.append({'entry_time': r['entry_idx'], 'entry_price': ep,
-                                'direction': 'SHORT', 'signal_type': 'SI'})
-            elif side == -1:
-                ep = r['entry_price']; ct = ep - SI_TP; cs = min(cs, ep + SI_SL)
-                last_check_1m = idx_raw + 1
-                results[-1]['tp_advanced'] = True
-            elif side == 1 and in_trade:
-                ex_1m = d1m.iloc[idx_raw]['close_bid']
-                pnls.append(ex_1m - ep)
-                results[-1]['exit_time'] = r['entry_idx']; results[-1]['exit_price'] = ex_1m
-                results[-1]['pnl'] = ex_1m - ep; results[-1]['reason'] = 'reverse'
-                side = -1; ep = r['entry_price']; ct = ep - SI_TP; cs = ep + SI_SL; ei = idx_raw
-                last_check_1m = idx_raw + 1
-                results.append({'entry_time': r['entry_idx'], 'entry_price': ep,
-                                'direction': 'SHORT', 'signal_type': 'SI'})
-
-    if in_trade:
-        if side == 1:
-            last_bar = min(ei + LONG_MAX_B, len(d15) - 1)
-            px = d15.iloc[last_bar]['close_bid']; pnls.append(px - ep)
-            results[-1]['exit_time'] = d15.index[last_bar]; results[-1]['exit_price'] = px
-            results[-1]['pnl'] = px - ep; results[-1]['reason'] = 'timeout'
-        else:
-            last_bar = min(ei + SI_MAX_B, len(d1m) - 1)
-            px = d1m.iloc[last_bar]['close_ask']; pnls.append(ep - px)
-            results[-1]['exit_time'] = d1m.index[last_bar]; results[-1]['exit_price'] = px
-            results[-1]['pnl'] = ep - px; results[-1]['reason'] = 'timeout'
-    return pnls, results
-
-combined_pnls, combined_results = simulate_combined(d15, long_sigs, d1m_si, si_filtered_records)
-sc = stats(combined_pnls)
-all_pnls = combined_pnls
+# ---- Combined ----
+all_pnls = pnls_long + si_filtered_pnls
+sc = stats(all_pnls)
 print(f'\n{"=" * 80}')
 print(f'  COMBINED PORTFOLIO')
 print(f'  {"=" * 50}')
@@ -505,9 +475,11 @@ from training.rebuild_directional_pnl_from_trades import rebuild_directional_pnl
 # Build trade CSV
 trade_rows = []
 for r in long_results:
-    dur = (r['exit_time'] - r['entry_time']).total_seconds() / 60 if 'exit_time' in r else 0
+    et = r.get('exit_time')
+    dur = (r['exit_time'] - r['entry_time']).total_seconds() / 60 if 'exit_time' in r and r['exit_time'] else 0
     trade_rows.append({
         'entry_time': str(r['entry_time']),
+        'exit_time': str(et) if et else '',
         'pnl': r['pnl'], 'side': 1, 'pattern': 'wr90_long',
         'source': 'oil', 'exit_reason': r.get('reason', 'unknown'),
         'duration_min': dur
@@ -515,7 +487,6 @@ for r in long_results:
 for r in si_filtered_records:
     r_time = r['entry_idx']
     dur = r.get('bars', 0)
-    # Compute exit_time from entry + bars
     et = pd.to_datetime(r_time) + pd.Timedelta(minutes=int(dur)) if dur else pd.to_datetime(r_time)
     trade_rows.append({
         'entry_time': str(r_time), 'exit_time': str(et),
@@ -528,7 +499,6 @@ csv_path = 'runtime/oil_combined_backtest_trades.csv'
 tdf.to_csv(csv_path, index=False)
 
 # Full stats
-import numpy as np
 all_stats = rebuild_directional_pnl(csv_path).get('all', {})
 
 # Core
@@ -619,6 +589,42 @@ cum_m = 0.0
 for m in ms:
     s = monthly.loc[m]; cum_m += s['sum']
     print(f'    {m:>8s}  {int(s["count"]):>3d}  {s["sum"]:+10.1f}  {s["wr"]:>5.0f}%  {cum_m:+10.1f}')
+
+# ---- COMPARISON: SI No-Advance vs With-Advance ----
+print(f'\n{"=" * 72}')
+print(f'  COMPARISON: Short Impulse — No Advance vs With Advance')
+print(f'{"=" * 72}')
+
+# Train XGBoost on ADV records too and filter
+print(f'\nTraining SI XGBoost for ADVANCE variant ({len(si_records_adv)} records)...')
+si_probas_adv = train_si_xgb(d1m_si, si_records_adv)
+if not isinstance(si_probas_adv, np.ndarray):
+    # scalar fallback returned (too few records)
+    si_probas_adv = np.full(len(si_records_adv), 0.5)
+
+si_adv_filtered_pnls = []
+for i, r in enumerate(si_records_adv):
+    if i < len(si_probas_adv) and si_probas_adv[i] >= SI_PROB:
+        si_adv_filtered_pnls.append(r['pnl'])
+
+sv_adv = stats(si_adv_filtered_pnls)
+
+print(f'  {"Metric":>20s} {"No-Advance":>15s} {"Advance":>15s} {"Delta":>12s}')
+print(f'  {"-" * 20} {"-" * 15} {"-" * 15} {"-" * 12}')
+print(f'  {"Trades":>20s} {ss["t"]:>15d} {sv_adv["t"]:>15d} {sv_adv["t"]-ss["t"]:>+12d}')
+print(f'  {"PnL (pts)":>20s} {ss["pnl"]:>+15.0f} {sv_adv["pnl"]:>+15.0f} {sv_adv["pnl"]-ss["pnl"]:>+12.0f}')
+print(f'  {"Win Rate":>20s} {ss["wr"]:>14.1f}% {sv_adv["wr"]:>14.1f}% {sv_adv["wr"]-ss["wr"]:>+11.1f}%')
+print(f'  {"Profit Factor":>20s} {ss["pf"]:>14.2f}  {sv_adv["pf"]:>14.2f}  {sv_adv["pf"]-ss["pf"]:>+11.2f}')
+
+# Combined with advance SI
+combined_adv_pnls = pnls_long + si_adv_filtered_pnls
+sc_adv = stats(combined_adv_pnls)
+print(f'\n  {"    COMBINED (Long+Short)":>20s}')
+print(f'  {"-" * 20} {"-" * 15} {"-" * 15} {"-" * 12}')
+print(f'  {"Total Trades":>20s} {sc["t"]:>15d} {sc_adv["t"]:>15d} {sc_adv["t"]-sc["t"]:>+12d}')
+print(f'  {"Total PnL":>20s} {sc["pnl"]:>+15.0f} {sc_adv["pnl"]:>+15.0f} {sc_adv["pnl"]-sc["pnl"]:>+12.0f}')
+print(f'  {"Total WR":>20s} {sc["wr"]:>14.1f}% {sc_adv["wr"]:>14.1f}% {sc_adv["wr"]-sc["wr"]:>+11.1f}%')
+print(f'  {"Total PF":>20s} {sc["pf"]:>14.2f}  {sc_adv["pf"]:>14.2f}  {sc_adv["pf"]-sc["pf"]:>+11.2f}')
 
 print(f'\n  Trade CSV: {csv_path}')
 print('\nDONE.')

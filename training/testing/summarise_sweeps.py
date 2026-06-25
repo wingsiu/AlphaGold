@@ -17,7 +17,7 @@ import csv
 import sys
 from pathlib import Path
 
-RES = Path(__file__).resolve().parents[2] / "training" / "testing" / "results"
+RES = Path(__file__).resolve().parents[1] / "training" / "testing" / "results"
 
 
 def _best_file(files: list[Path]) -> Path:

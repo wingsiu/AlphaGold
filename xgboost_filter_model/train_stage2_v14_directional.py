@@ -15,7 +15,7 @@ from xgboost_filter_model.train_filter_v14 import prepare_data_v14
 from xgboost_filter_model.train_directional_model_v2 import add_directional_features
 from xgboost_filter_model.train_directional_model_v3 import add_ma_features
 from xgboost_filter_model.train_directional_model_v9 import add_momentum_features
-from config.v14_config import MODEL_CONFIG, WF_CONFIG
+from config.hybrid_config import MODEL_CONFIG, WF_CONFIG
 from xgboost_filter_model.pattern_training import (
     iter_wf_train_targets,
     wf_train_mode,

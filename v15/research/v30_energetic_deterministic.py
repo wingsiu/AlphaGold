@@ -28,14 +28,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 os.environ.setdefault("V14_HYBRID", "1")
 os.environ.setdefault("V14_FVG_MIN_GAP", "0")
 
-from config.v14_config import WF_CONFIG
-from config.v14_patterns import PRODUCTION_PATTERNS, backtest_feature_set, collect_pa_groups
+from config.hybrid_config import WF_CONFIG
+from config.pattern_registry import PRODUCTION_PATTERNS, backtest_feature_set, collect_pa_groups
 from xgboost_filter_model.energetic_gate import energetic_bar_mask as hmm_mask
 from xgboost_filter_model.train_filter_v14 import prepare_data_v14
 from xgboost_filter_model.train_stage2_v14_directional import prepare_directional_data_v14
