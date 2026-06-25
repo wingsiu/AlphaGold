@@ -474,6 +474,9 @@ def _request_with_reauth(
     version: str = "2",
     timeout: int = 30,
 ) -> dict[str, Any]:
+    from ig_scripts.ig_request_gate import acquire_ig_request_slot
+
+    acquire_ig_request_slot()
     service.refresh_tokens_if_needed()
     url = f"{service.base_url.rstrip('/')}/{path.lstrip('/')}"
 
@@ -799,6 +802,27 @@ def _fetch_recent_activities(service: IGService, *, lookback_hours: int = 72) ->
         except Exception:
             pass
 
+    # Calendar-day fallback: IG lookback windows sometimes omit same-day closes.
+    day_start = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
+    day_from = day_start.strftime("%Y-%m-%dT%H:%M:%S")
+    if day_from < from_str:
+        try:
+            response = _request_with_reauth(
+                service,
+                "GET",
+                "/history/activity",
+                params={"from": day_from, "to": to_str, "detailed": "true", "pageSize": 500},
+                version="3",
+            )
+            body = dict(response.get("body") or {})
+            activities = body.get("activities")
+            if isinstance(activities, list):
+                for row in activities:
+                    if isinstance(row, dict) and row not in rows:
+                        rows.append(row)
+        except Exception:
+            pass
+
     return rows
 
 
@@ -857,18 +881,14 @@ def get_closed_trade_by_deal_id(service: IGService, deal_id: str, *, lookback_ho
             if status in {"CLOSED", "DELETED"}:
                 return True
             desc = str(item.get("description") or "").lower()
+            if "amended" in desc or "edited" in desc:
+                return False
             return "closed" in desc
 
-        def _is_open(item: dict[str, Any]) -> bool:
-            desc = str(item.get("description") or "").lower()
-            return "opened" in desc or "open" in desc
-
         closes = [r for r in matched_activities if _is_close(r)]
-        pool = closes if closes else [r for r in matched_activities if not _is_open(r)]
-        if not pool:
-            pool = matched_activities
-        pool.sort(key=_row_dt, reverse=True)
-        close_activity = pool[0]
+        if closes:
+            closes.sort(key=_row_dt, reverse=True)
+            close_activity = closes[0]
         details = close_activity.get("details") if isinstance(close_activity.get("details"), dict) else {}
         close_ref = str((details or {}).get("dealReference") or close_activity.get("dealReference") or "").strip() or None
         close_deal = str(close_activity.get("dealId") or "").strip() or None

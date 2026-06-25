@@ -45,16 +45,23 @@ journal = SignalJournal()
 
 @app.on_event("startup")
 def _startup_warm_caches() -> None:
+    """Warm caches only when bot bridge files are missing (avoid IG rate limits)."""
+    from mobile_api.market_price import _read_bot_bridge as _gold_bridge
+
+    bridge_missing = not (
+        (PROJECT_ROOT / "runtime" / "live_price.json").exists()
+        and _gold_bridge()
+    )
+    if not bridge_missing:
+        return
     import threading
     import time
 
-    from mobile_api.ig_account import warm_ig_cache
     from mobile_api.market_price import warm_gold_price_cache
 
     def _run() -> None:
-        warm_ig_cache()
-        time.sleep(3)
         warm_gold_price_cache()
+        time.sleep(3)
 
     threading.Thread(target=_run, daemon=True).start()
 
@@ -99,7 +106,7 @@ def signals(minutes: int = Query(default=30, ge=1, le=240)):
 
 @app.get("/api/v1/trades/today", dependencies=[Depends(verify_api_key)])
 def trades_today():
-    view = journal.resolve_trades_view()
+    view = journal.resolve_trades_view(hybrid_state=_load_hybrid_state())
     return {
         "summary": view["summary"],
         "trades": view["trades"],

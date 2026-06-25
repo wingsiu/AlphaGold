@@ -17,6 +17,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pandas as pd
+
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
@@ -26,11 +28,14 @@ TRADES_CSV = PROJECT_ROOT / "runtime" / "v15_backtest_trades.csv"
 BASELINE_TRADES_CSV = PROJECT_ROOT / "runtime" / "hybrid_trades_baseline.csv"
 FILTER_JSON = PROJECT_ROOT / "runtime" / "hybrid_weak_time_slots.json"
 
-from config.hybrid_config import TIME_FILTER_CONFIG
+from config.hybrid_config import TIME_FILTER_CONFIG, WF_CONFIG
 from xgboost_filter_model.time_slot_filter import (
     find_bad_slots,
     print_blocked_cells,
+    publish_current_weak_filter,
     save_weak_filter,
+    save_weak_filter_cycle,
+    weak_filter_bt_end_before_cycle,
 )
 
 MIN_TRADES = int(TIME_FILTER_CONFIG.get("min_trades", 3))
@@ -58,13 +63,21 @@ def parse_summary(stdout: str) -> tuple[int, float, float]:
     return trades, wr, pnl
 
 
-def run_hybrid(date_args: list[str], *, use_filter: bool) -> tuple[int, float, float]:
+def run_hybrid(
+    date_args: list[str],
+    *,
+    use_filter: bool,
+    per_cycle_filter: bool = True,
+) -> tuple[int, float, float]:
     env = os.environ.copy()
     env["V14_HYBRID"] = "1"
     env.setdefault("V14_FVG_MIN_GAP", "0")
     if use_filter:
         env.pop("V14_NO_TIME_FILTER", None)
-        env["V14_TIME_FILTER_JSON"] = str(FILTER_JSON)
+        if per_cycle_filter:
+            env.pop("V14_TIME_FILTER_JSON", None)
+        else:
+            env["V14_TIME_FILTER_JSON"] = str(FILTER_JSON)
     else:
         env["V14_NO_TIME_FILTER"] = "1"
         env.pop("V14_TIME_FILTER_JSON", None)
@@ -81,6 +94,41 @@ def run_hybrid(date_args: list[str], *, use_filter: bool) -> tuple[int, float, f
     return parse_summary(r.stdout)
 
 
+def build_weak_filter_for_cycle(
+    cycle: int,
+    cycle_start: pd.Timestamp,
+    *,
+    bt_start: str | None = None,
+    require_low_win_rate: bool | None = None,
+) -> list[dict]:
+    """
+    Unfiltered hybrid backtest through completed history before cycle_start,
+    then derive weak cells for that WF cycle.
+    """
+    bt_start = bt_start or str(WF_CONFIG["wf_start"]).split("T")[0]
+    bt_end = weak_filter_bt_end_before_cycle(cycle_start)
+    date_args = [bt_start, bt_end]
+    print(
+        f"  cycle_{cycle} ({cycle_start.date()}): unfiltered backtest "
+        f"{bt_start} → {bt_end}"
+    )
+    run_hybrid(date_args, use_filter=False)
+    if not TRADES_CSV.exists():
+        raise FileNotFoundError(f"Missing {TRADES_CSV}")
+    baseline = BASELINE_TRADES_CSV.with_name(
+        f"hybrid_trades_baseline_cycle_{cycle}_{cycle_start.date()}.csv"
+    )
+    shutil.copy(TRADES_CSV, baseline)
+    return find_bad_slots(
+        baseline,
+        min_trades=MIN_TRADES,
+        min_trades_exclusive=MIN_TRADES_EXCLUSIVE,
+        max_total_pnl=MAX_TOTAL_PNL,
+        max_win_rate=MAX_WIN_RATE,
+        require_low_win_rate=REQUIRE_WR if require_low_win_rate is None else require_low_win_rate,
+    )
+
+
 def main() -> None:
     date_args = [a for a in sys.argv[1:] if not a.startswith("-")]
     sweep_wr = "--no-wr" in sys.argv
@@ -92,29 +140,30 @@ def main() -> None:
     print("Hybrid v10-style time filter (combined pattern + energetic heatmaps)")
     print(f"Weak-cell rule: {rule}\n")
 
-    print("Pass 1: hybrid baseline (no time filter)...")
-    t1, wr1, pnl1 = run_hybrid(date_args, use_filter=False)
-    print(f"  Baseline: trades={t1}  WR={wr1:.1f}%  PnL={pnl1:+.1f}\n")
+    from xgboost_filter_model.pattern_training import wf_cycle_at, wf_incremental_train_target
 
-    if not TRADES_CSV.exists():
-        print(f"ERROR: missing {TRADES_CSV}")
-        sys.exit(1)
-    shutil.copy(TRADES_CSV, BASELINE_TRADES_CSV)
+    pending = wf_incremental_train_target()
+    if pending:
+        cycle, cycle_start = pending
+    else:
+        cycle_start, cycle = wf_cycle_at(pd.Timestamp.now(tz="UTC"))
 
-    cells = find_bad_slots(
-        BASELINE_TRADES_CSV,
-        min_trades=MIN_TRADES,
-        min_trades_exclusive=MIN_TRADES_EXCLUSIVE,
-        max_total_pnl=MAX_TOTAL_PNL,
-        max_win_rate=MAX_WIN_RATE,
-        require_low_win_rate=require_wr,
-    )
+    print(f"Building weak filter for cycle_{cycle} (starts {cycle_start.date()})")
+    cells = build_weak_filter_for_cycle(cycle, cycle_start, require_low_win_rate=require_wr)
+    cycle_path = save_weak_filter_cycle(cells, cycle, cycle_start.date())
+    publish_current_weak_filter(cycle_path)
     save_weak_filter(cells, FILTER_JSON)
     print(f"Blocked slots ({len(cells)}):")
     print_blocked_cells(cells)
 
-    print("\nPass 2: hybrid with time filter (both legs)...")
-    t2, wr2, pnl2 = run_hybrid(date_args, use_filter=True)
+    verify_args = date_args if len(date_args) >= 2 else [
+        str(WF_CONFIG["wf_start"]).split("T")[0],
+        pd.Timestamp.now(tz="UTC").strftime("%Y-%m-%d"),
+    ]
+    print("\nPass 2: hybrid with per-cycle time filters (verification)...")
+    t1, wr1, pnl1 = run_hybrid(verify_args, use_filter=False)
+    t2, wr2, pnl2 = run_hybrid(verify_args, use_filter=True, per_cycle_filter=True)
+    print(f"  Baseline: trades={t1}  WR={wr1:.1f}%  PnL={pnl1:+.1f}")
     print(f"  Filtered: trades={t2}  WR={wr2:.1f}%  PnL={pnl2:+.1f}")
     print(f"  Delta PnL: {pnl2 - pnl1:+.1f}")
 
@@ -123,7 +172,7 @@ def main() -> None:
         f.write("pass,trades,win_rate,net_pnl,blocked_cells\n")
         f.write(f"baseline,{t1},{wr1},{pnl1},0\n")
         f.write(f"filtered,{t2},{wr2},{pnl2},{len(cells)}\n")
-    print(f"\nSaved {out} and {FILTER_JSON}")
+    print(f"\nSaved {out}, {cycle_path}, and {FILTER_JSON}")
 
 
 if __name__ == "__main__":

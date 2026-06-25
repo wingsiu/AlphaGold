@@ -24,12 +24,19 @@ struct TradeRow: Codable, Identifiable {
     var entry_time: String?
     var exit_time: String?
     var entry_price: Double?
+    var display_entry_price: Double?
+    var real_entry_price: Double?
     var exit_price: Double?
     var pnl: Double?
+    var pnl_confirmed: Bool?
     var exit_reason: String?
     var status: String
     var horizon_deadline: String?
     var gold_price: Double?
+
+    var effectiveEntryPrice: Double? {
+        display_entry_price ?? real_entry_price ?? entry_price
+    }
 }
 
 struct TradeSummary: Codable {
@@ -40,6 +47,7 @@ struct TradeSummary: Codable {
     var win_rate: Double
     var closed_pnl: Double?
     var unrealized_pnl: Double?
+    var pending_pnl_count: Int?
     var trades: [TradeRow]?
 }
 
@@ -143,6 +151,7 @@ struct OpenPosition: Codable {
     var open_tp: Double?
     var open_sl: Double?
     var open_horizon: Int?
+    var open_horizon_deadline: String?
     var consecutive_losses: Int?
     var last_pnl: Double?
 
@@ -153,5 +162,17 @@ struct OpenPosition: Codable {
     var sideLabel: String {
         guard let s = open_side, s != 0 else { return "FLAT" }
         return s > 0 ? "LONG" : "SHORT"
+    }
+
+    /// ISO UTC horizon end from bot state, or entry + horizon minutes when deadline missing.
+    var expectedHorizonEndISO: String? {
+        if let d = open_horizon_deadline, !d.isEmpty { return d }
+        guard let entry = open_entry_time, let mins = open_horizon, mins > 0 else { return nil }
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        guard let start = f.date(from: entry) ?? ISO8601DateFormatter().date(from: entry) else {
+            return nil
+        }
+        return ISO8601DateFormatter().string(from: start.addingTimeInterval(TimeInterval(mins * 60)))
     }
 }

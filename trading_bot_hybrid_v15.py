@@ -24,7 +24,7 @@ import time
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import pandas as pd
 
@@ -50,10 +50,19 @@ from ig_scripts.ig_data_api import (
 )
 from trading_bot_base import AlphaGoldBaseBot, BotState
 from v15.hybrid_live import V15HybridLiveScorer, LiveSignal
-from xgboost_filter_model.time_slot_filter import is_blocked_entry, load_weak_filter, resolve_v14_time_filter_path
+from xgboost_filter_model.pattern_training import wf_cycle_at
+from xgboost_filter_model.time_slot_filter import (
+    is_blocked_entry,
+    load_weak_filter_for_current_cycle,
+)
 from mobile_api.journal import SignalJournal, trading_day_label, trading_day_start_utc
 
 UTC = timezone.utc
+MINUTE_FETCH_START_SEC = 5    # :05–:07 gold IG fetch → cache
+MINUTE_TRADE_START_SEC = 5    # :05–:07 gold score / orders (after fetch)
+MINUTE_SYNC_START_SEC = 10    # :10–:11 gold position sync
+MINUTE_DB_START_SEC = 32      # :32–:37 store gold/oil/aud bars to DB
+GOLD_CACHE_PATH = PROJECT_ROOT / "runtime" / "gold_1m_cache.pkl"
 
 
 @dataclass
@@ -109,12 +118,9 @@ class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
         )
 
         self.weak_period_cells: list[dict] = []
-        wf_path = resolve_v14_time_filter_path(PROJECT_ROOT)
-        if wf_path and Path(wf_path).exists():
-            self.weak_period_cells = load_weak_filter(wf_path)
-            self.logger.info(
-                f"Time slot filter ON: {len(self.weak_period_cells)} blocked cells"
-            )
+        self._weak_filter_cycle: int | None = None
+        self._weak_filter_path: str | None = None
+        self._load_weak_filter()
 
         self.scorer = V15HybridLiveScorer(self.logger)
         self._load_models()
@@ -128,6 +134,29 @@ class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
         self._feature_df: pd.DataFrame | None = None
         self._feature_df_end: pd.Timestamp | None = None
         self.journal = SignalJournal()
+        self._last_fetch_minute: str | None = None
+        self._last_trade_minute: str | None = None
+        self._last_sync_minute: str | None = None
+        self._last_db_minute: str | None = None
+        self._restore_price_cache_from_disk()
+
+    def _load_weak_filter(self) -> None:
+        cells, cycle, cycle_start, path = load_weak_filter_for_current_cycle(PROJECT_ROOT)
+        self.weak_period_cells = cells
+        self._weak_filter_cycle = cycle
+        self._weak_filter_path = str(path) if path else None
+        if cells:
+            src = path.name if path else "unknown"
+            self.logger.info(
+                f"Time slot filter ON: {len(cells)} blocked cells "
+                f"(cycle_{cycle} {cycle_start.date()} from {src})"
+            )
+
+    def _maybe_reload_weak_filter(self) -> None:
+        _, cycle = wf_cycle_at(pd.Timestamp.now(tz=UTC))
+        if cycle != self._weak_filter_cycle:
+            self.logger.info(f"WF cycle changed → reloading time filter (cycle_{cycle})")
+            self._load_weak_filter()
 
     def _init_logger(self):
         log = logging.getLogger("AlphaGoldHybridV15")
@@ -194,8 +223,9 @@ class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
             if res.returncode != 0:
                 self.logger.error(f"retrain_hybrid_wf failed: {res.stderr[-2000:]}")
                 return
-            self.logger.info("Hybrid retraining complete — hot-reloading scorer…")
+            self.logger.info("Hybrid retraining complete — hot-reloading scorer + time filter…")
             self._load_models()
+            self._load_weak_filter()
             self.state.last_retrain_date = now.date().isoformat()
             self.state.last_trained_wf_cycle = cycle_num
             self._save_state()
@@ -233,6 +263,71 @@ class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
         self.state.entry_tp = None
         self.state.entry_horizon = None
         self.state.open_horizon_deadline = None
+
+    def _append_close_bridge(
+        self,
+        deal_id: str,
+        *,
+        reason: str,
+        exit_time: str | None = None,
+        exit_price: float | None = None,
+        pnl: float | None = None,
+    ) -> None:
+        bridge_path = PROJECT_ROOT / "runtime" / "live_trade_closes.json"
+        bridge_path.parent.mkdir(parents=True, exist_ok=True)
+        rows: list[dict[str, Any]] = []
+        if bridge_path.exists():
+            try:
+                loaded = json.loads(bridge_path.read_text(encoding="utf-8"))
+                if isinstance(loaded, list):
+                    rows = loaded
+            except Exception:
+                rows = []
+        rows.append(
+            {
+                "deal_id": deal_id,
+                "exit_reason": reason,
+                "exit_time": exit_time,
+                "exit_price": exit_price,
+                "pnl": pnl,
+                "written_at_utc": datetime.now(UTC).isoformat(),
+            }
+        )
+        bridge_path.write_text(json.dumps(rows[-50:], indent=2), encoding="utf-8")
+
+    def _record_journal_close(
+        self,
+        deal_id: str,
+        reason: str,
+        result: dict[str, Any] | None = None,
+    ) -> None:
+        exit_price: float | None = None
+        exit_time: str | None = None
+        if result:
+            raw_price = result.get("close_level")
+            if raw_price is not None:
+                exit_price = float(raw_price)
+            confirm = result.get("confirm") or {}
+            exit_time = confirm.get("date") or result.get("close_time")
+        try:
+            self.journal.close_trade(
+                deal_id,
+                exit_time=exit_time,
+                exit_price=exit_price,
+                pnl=None,
+                exit_reason=reason,
+            )
+        except Exception as je:
+            self.logger.error(f"Journal close failed: {je}")
+        try:
+            self._append_close_bridge(
+                deal_id,
+                reason=reason,
+                exit_time=exit_time,
+                exit_price=exit_price,
+            )
+        except Exception as be:
+            self.logger.error(f"Close bridge write failed: {be}")
 
     # =====================================================================
     # (All position management, signal submission, and polling logic is
@@ -398,6 +493,13 @@ class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
                             pnl=float(pnl),
                             exit_reason=closed.get("reason") or "broker_close",
                         )
+                        self._append_close_bridge(
+                            self.state.open_deal_id,
+                            reason=str(closed.get("reason") or "broker_close"),
+                            exit_time=closed.get("exit_time"),
+                            exit_price=closed.get("exit_price"),
+                            pnl=float(pnl),
+                        )
                     except Exception as je:
                         self.logger.error(f"Journal close failed: {je}")
                     self.state.last_pnl = pnl
@@ -455,9 +557,10 @@ class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
                 f"HORIZON TIMEOUT source={self.state.open_position_source} "
                 f"elapsed={elapsed_min:.1f}m"
             )
-            self.broker.close_position(
+            result = self.broker.close_position(
                 deal_id=self.state.open_deal_id, direction=close_dir, size=size
             )
+            self._record_journal_close(self.state.open_deal_id, "horizon_timeout", result)
         except Exception as e:
             self.logger.error(f"Horizon timeout error: {e}")
 
@@ -513,19 +616,21 @@ class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
         return self._feature_df
 
     def _close_position_market(self, reason: str) -> bool:
-        if not self.state.open_deal_id:
+        deal_id = self.state.open_deal_id
+        if not deal_id:
             return False
         try:
-            pos_wrap = self.broker.get_position_by_deal_id(self.state.open_deal_id)
+            pos_wrap = self.broker.get_position_by_deal_id(deal_id)
             if not pos_wrap:
                 return False
             pos = pos_wrap.get("position", {})
             direction = str(pos.get("direction", "")).upper()
             size = float(pos.get("size") or ENERGETIC_EXECUTION_CONFIG.get("size", 1.0))
             close_dir = "SELL" if direction == "BUY" else "BUY"
-            self.broker.close_position(
-                deal_id=self.state.open_deal_id, direction=close_dir, size=size
+            result = self.broker.close_position(
+                deal_id=deal_id, direction=close_dir, size=size
             )
+            self._record_journal_close(deal_id, reason, result)
             return True
         except Exception as e:
             self.logger.error(f"Close position failed: {e}")
@@ -574,6 +679,7 @@ class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
                 action="blocked_time_filter",
                 open_source=self.state.open_position_source,
                 features_json=features_json,
+                bar_close=float(entry_price),
             )
             return
 
@@ -617,10 +723,22 @@ class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
             self._save_state()
             self.logger.info(f"Order submitted deal_id={deal_id} source={sig.source}")
             try:
+                real_entry_price: float | None = None
+                try:
+                    pos_wrap = self.broker.get_position_by_deal_id(deal_id)
+                    if pos_wrap:
+                        level = pos_wrap.get("position", {}).get("level")
+                        if level is not None:
+                            real_entry_price = float(level)
+                except Exception:
+                    pass
                 self.journal.open_trade({
                     "deal_id": deal_id, "source": sig.source, "pattern_name": sig.pattern_name,
                     "side": sig.side, "signal_time": signal_ts.isoformat(),
-                    "entry_time": entry_bar_ts.isoformat(), "entry_price": float(entry_price),
+                    "entry_time": entry_bar_ts.isoformat(),
+                    "entry_price": float(entry_price),
+                    "backtest_entry_price": float(entry_price),
+                    "real_entry_price": real_entry_price,
                     "tp": sig.tp, "sl": sig.sl, "horizon": sig.horizon,
                     "probability": sig.probability,
                     "horizon_deadline": self.state.open_horizon_deadline,
@@ -632,15 +750,139 @@ class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
                     energetic_prob=sig.probability, action="entry",
                     detail=f"deal_id={deal_id}", open_source=sig.source,
                     features_json=features_json,
+                    bar_close=float(entry_price),
                 )
             except Exception as je:
                 self.logger.error(f"Journal entry failed: {je}")
         else:
             self.logger.error(f"Order failed: {exec_res.reason}")
 
-    def poll_trade(self) -> None:
+    def _write_live_price_bridge(self, df: pd.DataFrame) -> None:
+        if df.empty:
+            return
+        try:
+            row = df.iloc[-1]
+            ts = pd.Timestamp(df.index[-1]).tz_convert("UTC")
+            close = float(row["close"])
+            spread = float(ENERGETIC_EXECUTION_CONFIG.get("spread_default", 0.25))
+            payload = {
+                "close": close,
+                "bid": round(close - spread / 2, 2),
+                "offer": round(close + spread / 2, 2),
+                "updated_at_utc": ts.strftime("%Y-%m-%d %H:%M:%S+00:00"),
+                "fetched_at_utc": datetime.now(UTC).isoformat(),
+                "source": "bot_bridge",
+            }
+            bridge = PROJECT_ROOT / "runtime" / "live_price.json"
+            bridge.parent.mkdir(parents=True, exist_ok=True)
+            bridge.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        except Exception as e:
+            self.logger.error(f"Price bridge write failed: {e}")
+
+    def _maybe_write_account_bridge(self) -> None:
+        if datetime.now(UTC).minute % 5 != 0:
+            return
+        try:
+            from ig_scripts.ig_data_api import fetch_primary_account_summary
+
+            os.environ["IG_REQUEST_CONSUMER"] = "bot_sync"
+            summary = fetch_primary_account_summary(self.service)
+            payload = {
+                **summary,
+                "fetched_at_utc": datetime.now(UTC).isoformat(),
+                "source": "bot_bridge",
+            }
+            bridge = PROJECT_ROOT / "runtime" / "live_account.json"
+            bridge.parent.mkdir(parents=True, exist_ok=True)
+            bridge.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        except Exception as e:
+            self.logger.error(f"Account bridge write failed: {e}")
+
+    def _prices_to_df(self, prices: list[dict]) -> pd.DataFrame:
+        new_df = pd.DataFrame(prices)
+        new_df.index = pd.to_datetime(new_df["timestamp"], unit="ms", utc=True)
+        return new_df.rename(
+            columns={
+                "openPrice": "open",
+                "highPrice": "high",
+                "lowPrice": "low",
+                "closePrice": "close",
+                "lastTradedVolume": "volume",
+            }
+        ).sort_index()
+
+    def _merge_into_cache(self, new_df: pd.DataFrame) -> int:
+        if new_df.empty:
+            return 0
+        before = len(self.cached_df)
+        self.cached_df = pd.concat([self.cached_df, new_df])
+        self.cached_df = self.cached_df[~self.cached_df.index.duplicated(keep="last")].sort_index()
+        max_ts = self.cached_df.index.max()
+        cutoff = max_ts - pd.Timedelta(days=self.feature_warmup_days)
+        self.cached_df = self.cached_df[self.cached_df.index >= cutoff]
+        added = len(self.cached_df) - before
+        if added > 0:
+            self._feature_df = None
+            self._feature_df_end = None
+        return max(added, 0)
+
+    def _save_price_cache(self) -> None:
+        if self.cached_df.empty:
+            return
+        try:
+            GOLD_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+            self.cached_df.to_pickle(GOLD_CACHE_PATH)
+        except Exception as e:
+            self.logger.error(f"Price cache save failed: {e}")
+
+    def _restore_price_cache_from_disk(self) -> None:
+        if not GOLD_CACHE_PATH.exists():
+            return
+        try:
+            disk_df = pd.read_pickle(GOLD_CACHE_PATH)
+            if disk_df.empty:
+                return
+            if disk_df.index.tz is None:
+                disk_df.index = disk_df.index.tz_localize("UTC")
+            else:
+                disk_df.index = disk_df.index.tz_convert("UTC")
+            added = self._merge_into_cache(disk_df)
+            if added > 0:
+                latest = self.cached_df.index.max()
+                self.logger.info(
+                    f"Restored {added} bar(s) from disk cache (latest={latest})"
+                )
+        except Exception as e:
+            self.logger.warning(f"Disk cache restore failed: {e}")
+
+    def poll_fetch(self) -> None:
+        """Fetch latest gold 1m bars from IG every minute and update cache."""
+        os.environ["IG_REQUEST_CONSUMER"] = "bot_fetch"
         now = datetime.now(UTC)
-        now_pd = pd.Timestamp(now)
+        try:
+            prices = fetch_prices(
+                self.service,
+                Price.Gold,
+                start_time=now - pd.Timedelta(minutes=5),
+                end_time=now,
+            )
+            if not prices:
+                self.logger.warning("IG fetch returned no gold bars")
+                return
+            added = self._merge_into_cache(self._prices_to_df(prices))
+            self._write_live_price_bridge(self.cached_df)
+            self._save_price_cache()
+            latest = self.cached_df.index.max()
+            self.logger.info(
+                f"Cache fetch: +{added} bar(s), total={len(self.cached_df)}, latest={latest}"
+            )
+        except Exception as e:
+            self.logger.error(f"Cache fetch failed: {e}")
+
+    def poll_sync(self) -> None:
+        """Gold position sync / horizon close — IG window :10–:11."""
+        os.environ["IG_REQUEST_CONSUMER"] = "bot_sync"
+        now = datetime.now(UTC)
         current_label = trading_day_label(trading_day_start_utc(now))
         last_recon_str = self.state.last_reconciliation_day
         if last_recon_str and current_label > last_recon_str:
@@ -658,29 +900,15 @@ class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
             self._save_state()
         self._sync_trade_results()
         self._check_horizon_timeout()
-        try:
-            prices = fetch_prices(
-                self.service, Price.Gold,
-                start_time=now - pd.Timedelta(minutes=5),
-                end_time=now,
-            )
-            if not prices:
-                return
-            new_df = pd.DataFrame(prices)
-            new_df.index = pd.to_datetime(new_df["timestamp"], unit="ms", utc=True)
-            new_df = new_df.rename(
-                columns={
-                    "openPrice": "open", "highPrice": "high", "lowPrice": "low",
-                    "closePrice": "close", "lastTradedVolume": "volume",
-                }
-            ).sort_index()
-            self.cached_df = pd.concat([self.cached_df, new_df])
-            self.cached_df = self.cached_df[~self.cached_df.index.duplicated(keep="last")].sort_index()
-            max_ts = self.cached_df.index.max()
-            cutoff = max_ts - pd.Timedelta(days=self.feature_warmup_days)
-            self.cached_df = self.cached_df[self.cached_df.index >= cutoff]
-        except Exception as e:
-            self.logger.error(f"Fetch failed: {e}")
+        self._maybe_write_account_bridge()
+
+    def poll_trade(self) -> None:
+        """Score bars and submit entries — uses cache; IG orders in :05–:07 window."""
+        os.environ["IG_REQUEST_CONSUMER"] = "bot_trade"
+        self._maybe_reload_weak_filter()
+        now = datetime.now(UTC)
+        if self.cached_df.empty:
+            self.logger.warning("Trade tick skipped — price cache empty")
             return
         current_minute_floor = pd.Timestamp(now).floor("1min")
         df = self.cached_df[self.cached_df.index < current_minute_floor].copy()
@@ -717,6 +945,7 @@ class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
             return
         self.last_predicted_bar_ts = raw_latest_ts
         routed = snap.routed_pattern
+        close_price = float(df.loc[latest_ts, "close"])
         self.logger.info(
             f"[{latest_ts}] pattern={routed or '—'} prob={snap.pattern_prob or '—'} "
             f"en={en_sig.side if en_sig else 0} "
@@ -730,10 +959,10 @@ class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
                 energetic_side=snap.energetic_side,
                 energetic_prob=snap.energetic_prob,
                 action="score", open_source=self.state.open_position_source,
+                bar_close=close_price,
             )
         except Exception as je:
             self.logger.error(f"Journal score failed: {je}")
-        close_price = float(df.loc[latest_ts, "close"])
         if self._manage_open_position(latest_ts, close_price, pat_sig, en_sig):
             return
         entry_sig = pat_sig if pat_sig else en_sig
@@ -742,6 +971,7 @@ class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
         self._submit_signal(entry_sig, latest_ts, close_price)
 
     def poll_db(self) -> None:
+        os.environ["IG_REQUEST_CONSUMER"] = "bot_db"
         import time as _t
         for inst in [Price.Gold, Price.Oil, Price.AUD]:
             try:
@@ -751,20 +981,31 @@ class AlphaGoldHybridV15Bot(AlphaGoldBaseBot):
             _t.sleep(2)
 
     def run(self):
-        self.logger.info("v15 Hybrid bot execution loop started (5s=trade  30s=db-only).")
+        self.logger.info(
+            "v15 Hybrid bot loop: fetch+trade @ :%02d–:07, sync @ :%02d–:11, DB @ :%02d+",
+            MINUTE_FETCH_START_SEC,
+            MINUTE_SYNC_START_SEC,
+            MINUTE_DB_START_SEC,
+        )
         while True:
             try:
                 self._maybe_weekend_retrain()
                 now = datetime.now(UTC)
+                minute_key = now.strftime("%Y-%m-%dT%H:%M")
                 sec = now.second
-                if sec == 5:
+                if sec >= MINUTE_FETCH_START_SEC and minute_key != self._last_fetch_minute:
+                    self._last_fetch_minute = minute_key
+                    self.poll_fetch()
+                if sec >= MINUTE_TRADE_START_SEC and minute_key != self._last_trade_minute:
+                    self._last_trade_minute = minute_key
                     self.poll_trade()
-                    time.sleep(1.2)
-                elif sec == 30:
+                if sec >= MINUTE_SYNC_START_SEC and minute_key != self._last_sync_minute:
+                    self._last_sync_minute = minute_key
+                    self.poll_sync()
+                if sec >= MINUTE_DB_START_SEC and minute_key != self._last_db_minute:
+                    self._last_db_minute = minute_key
                     self.poll_db()
-                    time.sleep(1.2)
-                else:
-                    time.sleep(0.5)
+                time.sleep(0.25)
             except Exception as e:
                 self.logger.error(f"Error in main loop: {e}")
                 time.sleep(1)

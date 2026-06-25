@@ -207,7 +207,6 @@ def _fmt_hkt_window(day_start: datetime) -> str:
 def compare_today(*, refresh_backtest: bool = False) -> dict:
     journal = SignalJournal()
     day_start = trading_day_start_utc()
-    journal.reconcile_open_trades(day_start)
     trades_view = journal.resolve_trades_view()
     day_label = trades_view["trading_day"]
     day_start = datetime.fromisoformat(trades_view["trading_day_start_utc"])

@@ -11,6 +11,17 @@ import pandas as pd
 from config.v13_config import EXECUTION_CONFIG
 
 
+def _entry_blocked(now_ts, weak_period_cells) -> bool:
+    """Support static cell list or CycleWeakFilter (.is_blocked)."""
+    if weak_period_cells is None:
+        return False
+    if hasattr(weak_period_cells, "is_blocked"):
+        return bool(weak_period_cells.is_blocked(now_ts))
+    from xgboost_filter_model.time_slot_filter import is_blocked_entry
+
+    return is_blocked_entry(now_ts, weak_period_cells)
+
+
 def _exec_params_from_row(row, df_test, tp: float, sl: float, horizon_minutes: int) -> tuple[float, float, int]:
     """Read per-bar exec_* overrides when present (pattern router)."""
     cols = df_test.columns
@@ -89,9 +100,9 @@ def simulate_v13_core(df_test, tp, sl, horizon_minutes, config=None, weak_period
     Uses real bid/ask columns when available, else synthetic spread.
 
     weak_period_cells: optional list of {session, day, hour} dicts — skip new
-    entries when the signal bar timestamp falls in a blocked slot.
+    entries when the signal bar timestamp falls in a blocked slot. Pass a
+    CycleWeakFilter for walk-forward per-cycle filters.
     """
-    from xgboost_filter_model.time_slot_filter import is_blocked_entry
     if config is None:
         from config.v13_config import EXECUTION_CONFIG as config
     
@@ -168,7 +179,7 @@ def simulate_v13_core(df_test, tp, sl, horizon_minutes, config=None, weak_period
                 )
 
         if active_pos is None and sig != 0:
-            if is_blocked_entry(now_ts, weak_period_cells):
+            if _entry_blocked(now_ts, weak_period_cells):
                 continue
             dynamic_s2 = min(s2_max, s2_base + consecutive_losses * s2_increment)
             s2_p = row["s2_prob"]
@@ -216,7 +227,6 @@ def simulate_hybrid_core(
     - Open pattern position: managed by pattern signals + pattern_config rules.
     - Open energetic position: managed by energetic signals + config (global TP/SL/H).
     """
-    from xgboost_filter_model.time_slot_filter import is_blocked_entry
 
     if config is None:
         from config.v13_config import EXECUTION_CONFIG as config
@@ -351,7 +361,7 @@ def simulate_hybrid_core(
 
         if active_pos is None:
             if pat_sig != 0:
-                if is_blocked_entry(now_ts, weak_period_cells):
+                if _entry_blocked(now_ts, weak_period_cells):
                     continue
                 ep = next_row["open_ask"] if pat_sig == 1 else next_row["open_bid"]
                 use_tp, use_sl, use_h = _exec_params_from_row(row, df_test, tp, sl, horizon_minutes)
@@ -374,7 +384,7 @@ def simulate_hybrid_core(
                 if "matched_pattern" in df_test.columns and pd.notna(row.get("matched_pattern")):
                     active_pos["matched_pattern"] = row["matched_pattern"]
             elif en_sig != 0:
-                if is_blocked_entry(now_ts, weak_period_cells):
+                if _entry_blocked(now_ts, weak_period_cells):
                     continue
                 # Block energetic entry when a pattern position is already open.
                 # This mirrors simulate_hybrid_two_pass's busy-mask logic.
@@ -469,7 +479,6 @@ def simulate_hybrid_two_pass(
     Two-pass hybrid: pattern leg is identical to pattern-only sim; energetic
     fallback only enters when flat (no pattern position) and no pattern signal.
     """
-    from xgboost_filter_model.time_slot_filter import is_blocked_entry
 
     if config is None:
         config = EXECUTION_CONFIG
@@ -587,7 +596,7 @@ def simulate_hybrid_two_pass(
                 )
 
         if active_pos is None and sig != 0:
-            if is_blocked_entry(now_ts, weak_period_cells):
+            if _entry_blocked(now_ts, weak_period_cells):
                 continue
             if pattern_open:
                 continue

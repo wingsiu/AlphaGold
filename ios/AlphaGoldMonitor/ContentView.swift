@@ -144,6 +144,12 @@ struct AccountStatusHeader: View {
                         .foregroundStyle(.orange)
                 }
 
+                if let pending = status.today.pending_pnl_count, pending > 0 {
+                    Text("\(pending) trade(s) awaiting broker PnL")
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                }
+
                 positionRow(status.open_position)
             } else if isLoading {
                 HStack(spacing: 8) {
@@ -221,6 +227,11 @@ struct AccountStatusHeader: View {
                 }
                 if let sl = pos.open_sl {
                     Text("SL \(Int(sl))").font(.caption2)
+                }
+                if let end = pos.expectedHorizonEndISO {
+                    Text("End \(formatTradeTimeHKT(end))")
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
                 }
             }
         } else {
@@ -436,6 +447,13 @@ struct SignalMinuteRow: View {
                 Text("No data")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
+            } else if signal.action == "no_score" {
+                HStack(spacing: 8) {
+                    Text("No signal")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    goldPriceLabel
+                }
             } else {
                 if hasRoutedPattern {
                     patternLine
@@ -448,8 +466,18 @@ struct SignalMinuteRow: View {
                     Text(actionLabel)
                         .font(.caption2.bold())
                         .foregroundStyle(actionColor(signal.action))
+                    goldPriceLabel
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var goldPriceLabel: some View {
+        if let gold = signal.gold_price {
+            Text("Gold: \(String(format: "%.2f", gold))")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
         }
     }
 
@@ -511,22 +539,14 @@ struct SignalMinuteRow: View {
                 Text("No signal")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                if let gold = signal.gold_price {
-                    Text("Gold: \(String(format: "%.2f", gold))")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
+                goldPriceLabel
             }
         } else {
             HStack(spacing: 8) {
                 Text("No signal")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
-                if let gold = signal.gold_price {
-                    Text("Gold: \(String(format: "%.2f", gold))")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
+                goldPriceLabel
             }
         }
     }
@@ -593,6 +613,9 @@ struct TradesView: View {
                                 LabeledContent("Trades", value: "\(s.trade_count)")
                                 LabeledContent("Net PnL", value: String(format: "%+.1f", s.net_pnl))
                                 LabeledContent("Win rate", value: String(format: "%.1f%%", s.win_rate))
+                                if let pending = s.pending_pnl_count, pending > 0 {
+                                    LabeledContent("Pending PnL", value: "\(pending)")
+                                }
                             }
                         }
                         Section("Trades") {
@@ -782,15 +805,7 @@ struct TradeDetailRow: View {
                     .font(.subheadline)
                     .foregroundStyle(sideColor)
                 Spacer()
-                if let pnl = trade.pnl {
-                    Text(String(format: "%+.2f", pnl))
-                        .font(.subheadline.bold())
-                        .foregroundStyle(pnl >= 0 ? .green : .red)
-                } else {
-                    Text(trade.status)
-                        .font(.caption)
-                        .foregroundStyle(.orange)
-                }
+                pnlLabel
             }
             if let pattern = trade.pattern_name, !pattern.isEmpty {
                 Text(pattern)
@@ -798,7 +813,7 @@ struct TradeDetailRow: View {
                     .foregroundStyle(.secondary)
             }
             if let entry = trade.entry_time {
-                tradeLine("Entry", time: entry, price: trade.entry_price)
+                tradeLine("Entry", time: entry, price: trade.effectiveEntryPrice)
             }
             if let exit = trade.exit_time {
                 tradeLine("Exit", time: exit, price: trade.exit_price)
@@ -806,13 +821,42 @@ struct TradeDetailRow: View {
             if let deadline = trade.horizon_deadline {
                 tradeLine("End", time: deadline, price: nil, labelColor: .orange)
             }
-            if let reason = trade.exit_reason, !reason.isEmpty {
-                Text(reason)
+            if let reason = trade.exit_reason, !reason.isEmpty, trade.status == "closed" {
+                Text(exitReasonLabel(reason))
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
             }
         }
         .padding(.vertical, 2)
+    }
+
+    @ViewBuilder
+    private var pnlLabel: some View {
+        if trade.status == "open" {
+            Text("OPEN")
+                .font(.caption.bold())
+                .foregroundStyle(.orange)
+        } else if trade.pnl_confirmed == false {
+            Text("PnL pending")
+                .font(.caption.bold())
+                .foregroundStyle(.orange)
+        } else if let pnl = trade.pnl {
+            Text(String(format: "%+.2f", pnl))
+                .font(.subheadline.bold())
+                .foregroundStyle(pnl >= 0 ? .green : .red)
+        } else {
+            Text("PnL pending")
+                .font(.caption.bold())
+                .foregroundStyle(.orange)
+        }
+    }
+
+    private func exitReasonLabel(_ reason: String) -> String {
+        switch reason {
+        case "pnl_pending": return "Awaiting broker confirmation"
+        case "estimated_ohlc": return "Estimate removed — awaiting broker"
+        default: return reason
+        }
     }
 
     private var sideLabel: String {
@@ -832,7 +876,7 @@ struct TradeDetailRow: View {
                 .font(.caption2.bold())
                 .foregroundStyle(labelColor)
                 .frame(width: 34, alignment: .leading)
-            Text(formatTradeTime(time))
+            Text(formatTradeTimeHKT(time))
                 .font(.caption)
             if let price {
                 Text(String(format: "@ %.2f", price))
@@ -841,18 +885,18 @@ struct TradeDetailRow: View {
             }
         }
     }
+}
 
-    private func formatTradeTime(_ iso: String) -> String {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        guard let d = f.date(from: iso) ?? ISO8601DateFormatter().date(from: iso) else {
-            return iso
-        }
-        let out = DateFormatter()
-        out.timeZone = TimeZone(identifier: "Asia/Hong_Kong")
-        out.dateFormat = "EEE HH:mm"
-        return out.string(from: d) + " HKT"
+private func formatTradeTimeHKT(_ iso: String) -> String {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    guard let d = f.date(from: iso) ?? ISO8601DateFormatter().date(from: iso) else {
+        return iso
     }
+    let out = DateFormatter()
+    out.timeZone = TimeZone(identifier: "Asia/Hong_Kong")
+    out.dateFormat = "EEE HH:mm"
+    return out.string(from: d) + " HKT"
 }
 
 struct SettingsView: View {

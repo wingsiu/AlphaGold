@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -165,7 +166,134 @@ def is_blocked_entry(ts: pd.Timestamp, weak_cells: list[dict] | None) -> bool:
     return any(matches_weak_cell(ts, cell) for cell in weak_cells)
 
 
-def resolve_weak_time_filter_path(project_root: Path | str | None = None) -> str | None:
+def _normalize_start_date(start_date) -> str:
+    if hasattr(start_date, "date"):
+        return start_date.date().isoformat()
+    return str(start_date).split("T")[0]
+
+
+def weak_filter_output_dir(project_root: Path | str | None = None) -> Path:
+    from config.hybrid_config import TIME_FILTER_CONFIG
+
+    root = Path(project_root) if project_root is not None else Path(__file__).resolve().parent.parent
+    return root / TIME_FILTER_CONFIG.get("output_dir", "runtime/bot_assets/wf_time_filters")
+
+
+def weak_filter_cycle_path(
+    cycle: int,
+    start_date,
+    project_root: Path | str | None = None,
+) -> Path:
+    """Per-cycle weak filter JSON (mirrors filter_v14_cycle_{n}_{date}.joblib naming)."""
+    d = _normalize_start_date(start_date)
+    return weak_filter_output_dir(project_root) / f"weak_time_slots_cycle_{cycle}_{d}.json"
+
+
+def weak_filter_bt_end_before_cycle(cycle_start: pd.Timestamp) -> str:
+    """Last calendar day before a WF cycle start (matches model train cutoff)."""
+    from config.hybrid_config import WF_CONFIG
+
+    wf_start = str(WF_CONFIG["wf_start"]).split("T")[0]
+    end = (cycle_start - pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+    return max(end, wf_start)
+
+
+def save_weak_filter_cycle(
+    cells: list[dict],
+    cycle: int,
+    start_date,
+    project_root: Path | str | None = None,
+) -> Path:
+    path = weak_filter_cycle_path(cycle, start_date, project_root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    save_weak_filter(cells, path)
+    return path
+
+
+def publish_current_weak_filter(
+    cycle_path: Path | str,
+    project_root: Path | str | None = None,
+) -> Path:
+    """Symlink runtime/hybrid_weak_time_slots.json → latest cycle file."""
+    from config.hybrid_config import TIME_FILTER_CONFIG
+
+    root = Path(project_root) if project_root is not None else Path(__file__).resolve().parent.parent
+    link = root / TIME_FILTER_CONFIG.get("weak_slots_json", "runtime/hybrid_weak_time_slots.json")
+    link.parent.mkdir(parents=True, exist_ok=True)
+    target = Path(cycle_path).resolve()
+    if link.is_symlink() or link.exists():
+        link.unlink()
+    link.symlink_to(os.path.relpath(target, link.parent))
+    return link
+
+
+def load_weak_filter_for_cycle(
+    cycle: int,
+    start_date,
+    project_root: Path | str | None = None,
+) -> list[dict]:
+    path = weak_filter_cycle_path(cycle, start_date, project_root)
+    if not path.exists():
+        return []
+    return load_weak_filter(path)
+
+
+def load_weak_filter_for_current_cycle(
+    project_root: Path | str | None = None,
+) -> tuple[list[dict], int, pd.Timestamp, Path | None]:
+    """Load weak cells for the active WF cycle; fall back to legacy global JSON."""
+    from xgboost_filter_model.pattern_training import wf_cycle_at
+
+    now = pd.Timestamp.now(tz="UTC")
+    cycle_start, cycle = wf_cycle_at(now)
+    path = weak_filter_cycle_path(cycle, cycle_start.date(), project_root)
+    if path.exists():
+        return load_weak_filter(path), cycle, cycle_start, path
+    fb = resolve_weak_time_filter_path(project_root, prefer_cycle_file=False)
+    if fb and Path(fb).exists():
+        return load_weak_filter(fb), cycle, cycle_start, Path(fb)
+    return [], cycle, cycle_start, None
+
+
+class CycleWeakFilter:
+    """Walk-forward weak filter — each bar uses its WF cycle's blocked cells."""
+
+    def __init__(
+        self,
+        project_root: Path | str | None = None,
+        *,
+        fallback_path: Path | str | None = None,
+    ):
+        self._root = Path(project_root) if project_root is not None else Path(__file__).resolve().parent.parent
+        self._fallback_path = Path(fallback_path) if fallback_path else None
+        self._cache: dict[tuple[int, str], list[dict]] = {}
+
+    def cells_at(self, ts: pd.Timestamp) -> list[dict]:
+        from xgboost_filter_model.pattern_training import wf_cycle_at
+
+        cycle_start, cycle = wf_cycle_at(ts)
+        key = (cycle, cycle_start.date().isoformat())
+        if key in self._cache:
+            return self._cache[key]
+        path = weak_filter_cycle_path(cycle, cycle_start.date(), self._root)
+        if path.exists():
+            cells = load_weak_filter(path)
+        elif self._fallback_path and self._fallback_path.exists():
+            cells = load_weak_filter(self._fallback_path)
+        else:
+            cells = []
+        self._cache[key] = cells
+        return cells
+
+    def is_blocked(self, ts: pd.Timestamp) -> bool:
+        return is_blocked_entry(ts, self.cells_at(ts))
+
+
+def resolve_weak_time_filter_path(
+    project_root: Path | str | None = None,
+    *,
+    prefer_cycle_file: bool = True,
+) -> str | None:
     """Resolve hybrid weak-slot JSON path from env / config."""
     import os
 
@@ -188,6 +316,17 @@ def resolve_weak_time_filter_path(project_root: Path | str | None = None) -> str
         return None
 
     root = Path(project_root) if project_root is not None else Path(__file__).resolve().parent.parent
+    if prefer_cycle_file:
+        try:
+            from xgboost_filter_model.pattern_training import wf_cycle_at
+
+            cycle_start, cycle = wf_cycle_at(pd.Timestamp.now(tz="UTC"))
+            cycle_path = weak_filter_cycle_path(cycle, cycle_start.date(), root)
+            if cycle_path.exists():
+                return str(cycle_path)
+        except Exception:
+            pass
+
     default = root / TIME_FILTER_CONFIG.get(
         "weak_slots_json", "runtime/hybrid_weak_time_slots.json"
     )

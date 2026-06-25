@@ -25,6 +25,8 @@
         <string>/usr/local/bin:/usr/bin:/bin</string>
         <key>PYTHONPATH</key>
         <string>/Users/alpha/AlphaGold</string>
+        <key>IG_REQUEST_CONSUMER</key>
+        <string>bot_trade</string>
     </dict>
 </dict>
 </plist>

@@ -27,6 +27,8 @@
         <string>/Users/alpha/AlphaGold</string>
         <key>IG_SKIP_KEYRING</key>
         <string>1</string>
+        <key>IG_REQUEST_CONSUMER</key>
+        <string>mobile_api</string>
     </dict>
 </dict>
 </plist>

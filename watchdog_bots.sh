@@ -20,7 +20,7 @@ fi
 if ! pgrep -f "oil_live_bot.py" > /dev/null; then
     write_log "oil bot DOWN — restarting..."
     rm -f runtime/oil_live_bot.pid
-    nohup "$VENV_PYTHON" oil_live_bot.py >> /dev/null 2>&1 &
+    IG_REQUEST_CONSUMER=bot_oil nohup "$VENV_PYTHON" oil_live_bot.py >> runtime/oil_live_bot.log 2>&1 &
     write_log "oil bot started (PID $!)"
 fi
 

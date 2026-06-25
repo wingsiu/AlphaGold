@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import time
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -11,8 +12,21 @@ from typing import Any, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB = PROJECT_ROOT / "runtime" / "mobile" / "alphagold.db"
+CLOSE_BRIDGE_PATH = PROJECT_ROOT / "runtime" / "live_trade_closes.json"
 
 TRADING_DAY_CUTOFF_UTC_HOUR = 22  # trading day rolls at 22:00 UTC (= 06:00 HKT)
+IG_RECONCILE_MIN_INTERVAL_SEC = 120.0
+_IG_RECONCILE_LAST_TS = 0.0
+
+# Journal closes with these reasons must not be shown as confirmed live PnL.
+UNRELIABLE_EXIT_REASONS = frozenset({
+    "estimated_ohlc",
+    "broker_not_open",
+    "reconciled",
+    "reconciled_bt",
+    "pnl_pending",
+    "stale_sync",
+})
 
 
 def _utc_now_iso() -> str:
@@ -201,6 +215,13 @@ class SignalJournal:
                 );
                 """
             )
+            self._migrate_signals_table()
+
+    def _migrate_signals_table(self) -> None:
+        with self._conn() as conn:
+            existing = {row[1] for row in conn.execute("PRAGMA table_info(signals)").fetchall()}
+            if "bar_close" not in existing:
+                conn.execute("ALTER TABLE signals ADD COLUMN bar_close REAL")
 
     def record_score(
         self,
@@ -215,15 +236,17 @@ class SignalJournal:
         detail: str | None = None,
         open_source: str | None = None,
         features_json: str | None = None,
+        bar_close: float | None = None,
     ) -> None:
+        self._migrate_signals_table()
         with self._conn() as conn:
             conn.execute(
                 """
                 INSERT INTO signals (
                     bar_time, pattern_name, pattern_side, pattern_prob,
                     energetic_side, energetic_prob, action, detail, open_source,
-                    features_json, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    features_json, bar_close, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     bar_time,
@@ -236,6 +259,7 @@ class SignalJournal:
                     detail,
                     open_source,
                     features_json,
+                    bar_close,
                     _utc_now_iso(),
                 ),
             )
@@ -329,6 +353,36 @@ class SignalJournal:
                 (exit_time, exit_price, pnl, exit_reason, now, deal_id),
             )
 
+    def reopen_trade(self, deal_id: str) -> None:
+        """Undo a false journal close when the broker still has the position open."""
+        now = _utc_now_iso()
+        with self._conn() as conn:
+            conn.execute(
+                """
+                UPDATE trades SET
+                    exit_time=NULL, exit_price=NULL, pnl=NULL, exit_reason=NULL,
+                    status='open', updated_at=?
+                WHERE deal_id=?
+                """,
+                (now, deal_id),
+            )
+
+    @staticmethod
+    def _effective_entry_price(row: dict[str, Any]) -> float | None:
+        rep = row.get("real_entry_price")
+        if rep is not None:
+            return float(rep)
+        ep = row.get("entry_price")
+        return float(ep) if ep is not None else None
+
+    @staticmethod
+    def is_pnl_confirmed(row: dict[str, Any]) -> bool:
+        if row.get("status") == "open":
+            return False
+        if row.get("pnl") is None:
+            return False
+        return str(row.get("exit_reason") or "") not in UNRELIABLE_EXIT_REASONS
+
     def _enrich_trade_row(self, row: dict[str, Any]) -> dict[str, Any]:
         out = dict(row)
         if out.get("meta_json"):
@@ -344,6 +398,18 @@ class SignalJournal:
                     out["backtest_entry_price"] = meta["backtest_entry_price"]
             except Exception:
                 pass
+        out["display_entry_price"] = self._effective_entry_price(out)
+        out["pnl_confirmed"] = self.is_pnl_confirmed(out)
+        if out.get("status") == "open":
+            out["exit_time"] = None
+            out["exit_price"] = None
+            out["pnl"] = None
+            out["exit_reason"] = None
+        elif not out["pnl_confirmed"]:
+            out["pnl"] = None
+            if str(out.get("exit_reason") or "") in UNRELIABLE_EXIT_REASONS:
+                out["exit_time"] = None
+                out["exit_price"] = None
         # Add gold price to recent signal rows
         if out.get("entry_time"):
             try:
@@ -370,6 +436,13 @@ class SignalJournal:
             ).fetchall()
         return [self._enrich_trade_row(dict(r)) for r in rows]
 
+    def _trade_by_deal_id(self, deal_id: str) -> dict[str, Any] | None:
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT * FROM trades WHERE deal_id = ?", (deal_id,)
+            ).fetchone()
+        return self._enrich_trade_row(dict(row)) if row else None
+
     def _latest_trade_timestamp(self) -> str | None:
         with self._conn() as conn:
             row = conn.execute(
@@ -385,11 +458,27 @@ class SignalJournal:
             row = conn.execute("SELECT MAX(created_at) AS latest FROM signals").fetchone()
         return row["latest"] if row and row["latest"] else None
 
-    def resolve_trades_view(self) -> dict[str, Any]:
+    def resolve_trades_view(
+        self, *, hybrid_state: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         today_start = trading_day_start_utc()
-        self.reconcile_open_trades(today_start)
-        self.reconcile_broker_pnl(today_start)
-        self.reconcile_missing_pnl(today_start)
+        state = hybrid_state or {}
+        self.reconcile_with_bot_state(today_start, state)
+        self.reconcile_from_close_bridge(today_start)
+
+        allow_ig = self._ig_reconcile_allowed()
+        if allow_ig:
+            broker_open, broker_ok = self._broker_open_snapshot()
+        else:
+            broker_open, broker_ok = self._open_deals_from_bot_state(state), True
+
+        self.reconcile_unconfirmed_closes(
+            today_start, broker_open, broker_ok, allow_ig=allow_ig
+        )
+        self.reconcile_open_trades(today_start, broker_open, broker_ok, allow_ig=allow_ig)
+        if allow_ig:
+            self.reconcile_broker_pnl(today_start)
+            self.reconcile_missing_pnl(today_start, broker_open, broker_ok)
         meta = {
             "is_fallback": False,
             "source": "journal",
@@ -399,13 +488,19 @@ class SignalJournal:
 
         trades = self._trades_since_day_start(today_start)
         if trades:
-            return {**meta, "trades": trades, "summary": self.trades_summary(trades)}
+            trades, summary = self._align_trades_with_hybrid_state(
+                trades, hybrid_state, self.trades_summary(trades)
+            )
+            return {**meta, "trades": trades, "summary": summary}
 
         latest_ts = self._latest_trade_timestamp()
         if latest_ts:
             day_start = trading_day_for_timestamp(latest_ts)
             trades = self._trades_since_day_start(day_start)
             if trades:
+                trades, summary = self._align_trades_with_hybrid_state(
+                    trades, hybrid_state, self.trades_summary(trades)
+                )
                 return {
                     **meta,
                     "is_fallback": True,
@@ -413,7 +508,7 @@ class SignalJournal:
                     "trading_day": trading_day_label(day_start),
                     "trading_day_start_utc": day_start.isoformat(),
                     "trades": trades,
-                    "summary": self.trades_summary(trades),
+                    "summary": summary,
                 }
 
         day_start = latest_backtest_trading_day_start()
@@ -533,8 +628,11 @@ class SignalJournal:
                 "detail": None,
                 "open_source": None,
                 "created_at": bar_time,
+                "bar_close": None,
             }
             self._enrich_signal_row(result)
+            if self._bar_close_from_features(bar_time) is not None:
+                result["action"] = "no_score"
             return result
 
         score_row = next((r for r in rows if r.get("action") == "score"), None)
@@ -559,17 +657,44 @@ class SignalJournal:
         self._enrich_signal_row(merged)
         return merged
 
-    def _enrich_signal_row(self, row: dict[str, Any]) -> None:
-        """Add live gold price to a signal row (mutates in place)."""
+    def _bar_close_from_features(self, bar_time: str | None) -> float | None:
+        if not bar_time:
+            return None
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT features_json FROM bar_features WHERE bar_time = ?",
+                (bar_time,),
+            ).fetchone()
+        if not row or not row[0]:
+            return None
         try:
-            from pathlib import Path
-            import json as _json
-            bp = Path(__file__).resolve().parent.parent / "runtime" / "live_price.json"
-            if bp.exists():
-                price = _json.loads(bp.read_text(encoding="utf-8"))
-                row["gold_price"] = price.get("close")
+            feat = json.loads(row[0])
+            for key in ("close", "closePrice_ask", "close_ask"):
+                val = feat.get(key)
+                if val is not None:
+                    return float(val)
         except Exception:
-            pass
+            return None
+        return None
+
+    def _enrich_signal_row(self, row: dict[str, Any]) -> None:
+        """Add per-bar close (gold_price) to a signal row (mutates in place)."""
+        price = row.get("bar_close")
+        if price is None:
+            price = self._bar_close_from_features(row.get("bar_time"))
+        if price is None:
+            try:
+                from pathlib import Path
+                import json as _json
+                bp = Path(__file__).resolve().parent.parent / "runtime" / "live_price.json"
+                if bp.exists():
+                    live = _json.loads(bp.read_text(encoding="utf-8"))
+                    price = live.get("close")
+            except Exception:
+                pass
+        if price is not None:
+            row["bar_close"] = float(price)
+            row["gold_price"] = float(price)
 
     def _build_minute_grid(
         self,
@@ -624,9 +749,16 @@ class SignalJournal:
     ) -> dict[str, Any]:
         closed = [t for t in trades if t.get("status") == "closed"]
         open_rows = [t for t in trades if t.get("status") == "open"]
-        pnls = [float(t["pnl"]) for t in closed if t.get("pnl") is not None]
+        confirmed_closed = [t for t in closed if self.is_pnl_confirmed(t)]
+        pnls = [float(t["pnl"]) for t in confirmed_closed if t.get("pnl") is not None]
         wins = sum(1 for p in pnls if p > 0)
         closed_pnl = round(sum(pnls), 2) if pnls else 0.0
+        pending_pnl_count = sum(
+            1
+            for t in closed
+            if t.get("pnl") is None
+            or str(t.get("exit_reason") or "") in UNRELIABLE_EXIT_REASONS
+        )
         open_unrealized = unrealized_pnl
         if open_unrealized is None:
             open_unrealized = sum(
@@ -642,6 +774,7 @@ class SignalJournal:
             "unrealized_pnl": open_unrealized,
             "net_pnl": net_pnl,
             "win_rate": round(100.0 * wins / len(pnls), 1) if pnls else 0.0,
+            "pending_pnl_count": pending_pnl_count,
         }
 
     def _fetch_ig_closed_trade(self, deal_id: str) -> dict[str, Any] | None:
@@ -659,7 +792,7 @@ class SignalJournal:
         """Approximate closed PnL from DB 1m bars when IG history is not available yet."""
         import pandas as pd
 
-        entry_price = trade.get("entry_price")
+        entry_price = self._effective_entry_price(trade)
         entry_time = trade.get("entry_time")
         exit_time = trade.get("exit_time")
         signal_time = trade.get("signal_time")
@@ -738,14 +871,141 @@ class SignalJournal:
             "reason": "estimated_ohlc",
         }
 
-    def reconcile_missing_pnl(self, day_start: datetime | None = None) -> int:
-        """Fill null PnL on closed trades (IG history lag → OHLC estimate)."""
+    @staticmethod
+    def _ig_reconcile_allowed() -> bool:
+        from ig_scripts.ig_request_gate import ig_second_slot_open
+
+        if not ig_second_slot_open("mobile_api"):
+            return False
+        global _IG_RECONCILE_LAST_TS
+        now = time.time()
+        if now - _IG_RECONCILE_LAST_TS < IG_RECONCILE_MIN_INTERVAL_SEC:
+            return False
+        _IG_RECONCILE_LAST_TS = now
+        return True
+
+    @staticmethod
+    def _open_deals_from_bot_state(state: dict[str, Any] | None) -> set[str]:
+        deal_id = str((state or {}).get("open_deal_id") or "").strip()
+        return {deal_id} if deal_id else set()
+
+    def reconcile_with_bot_state(
+        self, day_start: datetime | None, hybrid_state: dict[str, Any] | None
+    ) -> int:
+        """Align journal open/closed rows with the live bot state file (no IG calls)."""
+        state = hybrid_state or {}
+        open_deal = str(state.get("open_deal_id") or "").strip()
+        suspect_broker_closed = False
+        closed_first = state.get("closed_first_seen_at")
+        if open_deal and closed_first:
+            try:
+                age = (
+                    datetime.now(timezone.utc)
+                    - datetime.fromisoformat(str(closed_first))
+                ).total_seconds()
+            except Exception:
+                age = 0.0
+            if age >= 120:
+                suspect_broker_closed = True
+                row = self._trade_by_deal_id(open_deal)
+                if row and row.get("status") == "open":
+                    self.close_trade(
+                        open_deal,
+                        exit_time=None,
+                        exit_price=None,
+                        pnl=None,
+                        exit_reason="pnl_pending",
+                    )
+
         day_start = day_start or trading_day_start_utc()
         updated = 0
         for trade in self._trades_since_day_start(day_start):
-            if trade.get("status") != "closed" or trade.get("pnl") is not None:
+            deal_id = str(trade.get("deal_id") or "")
+            if not deal_id:
+                continue
+            if (
+                open_deal
+                and not suspect_broker_closed
+                and deal_id == open_deal
+                and trade.get("status") == "closed"
+            ):
+                self.reopen_trade(deal_id)
+                updated += 1
+            elif open_deal and trade.get("status") == "open" and deal_id != open_deal:
+                self.close_trade(
+                    deal_id,
+                    exit_time=None,
+                    exit_price=None,
+                    pnl=None,
+                    exit_reason="pnl_pending",
+                )
+                updated += 1
+        return updated
+
+    def reconcile_from_close_bridge(self, day_start: datetime | None = None) -> int:
+        """Apply close events written by the live bot (zero IG calls)."""
+        if not CLOSE_BRIDGE_PATH.exists():
+            return 0
+        day_start = day_start or trading_day_start_utc()
+        try:
+            rows = json.loads(CLOSE_BRIDGE_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            return 0
+        if not isinstance(rows, list):
+            return 0
+        updated = 0
+        day_deals = {
+            str(t.get("deal_id") or "")
+            for t in self._trades_since_day_start(day_start)
+        }
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            deal_id = str(row.get("deal_id") or "").strip()
+            if not deal_id or deal_id not in day_deals:
+                continue
+            trade = next(
+                (
+                    t
+                    for t in self._trades_since_day_start(day_start)
+                    if str(t.get("deal_id") or "") == deal_id
+                ),
+                None,
+            )
+            if trade and self.is_pnl_confirmed(trade):
+                continue
+            pnl = row.get("pnl")
+            self.close_trade(
+                deal_id,
+                exit_time=row.get("exit_time"),
+                exit_price=row.get("exit_price"),
+                pnl=round(float(pnl), 2) if pnl is not None else None,
+                exit_reason=str(row.get("exit_reason") or row.get("reason") or "bot_close"),
+            )
+            updated += 1
+        return updated
+
+    def reconcile_missing_pnl(
+        self,
+        day_start: datetime | None = None,
+        broker_open: set[str] | None = None,
+        broker_ok: bool | None = None,
+    ) -> int:
+        """Fill null PnL on closed trades from IG only (no OHLC estimates)."""
+        day_start = day_start or trading_day_start_utc()
+        if broker_open is None or broker_ok is None:
+            broker_open, broker_ok = self._broker_open_snapshot()
+        updated = 0
+        for trade in self._trades_since_day_start(day_start):
+            if trade.get("status") != "closed":
                 continue
             deal_id = str(trade.get("deal_id") or "")
+            if not deal_id:
+                continue
+            if broker_ok and deal_id in broker_open:
+                continue
+            if trade.get("pnl") is not None and self.is_pnl_confirmed(trade):
+                continue
             closed = self._fetch_ig_closed_trade(deal_id) if deal_id else None
             if closed and closed.get("pnl") is not None:
                 self.close_trade(
@@ -758,18 +1018,6 @@ class SignalJournal:
                     ),
                 )
                 updated += 1
-                continue
-            est = self._estimate_pnl_from_ohlc(trade)
-            if not est or est.get("pnl") is None:
-                continue
-            self.close_trade(
-                deal_id,
-                exit_time=est.get("exit_time") or trade.get("exit_time"),
-                exit_price=est.get("exit_price") or trade.get("exit_price"),
-                pnl=float(est["pnl"]),
-                exit_reason=str(est.get("reason") or "estimated_ohlc"),
-            )
-            updated += 1
         return updated
 
     def reconcile_broker_pnl(self, day_start: datetime | None = None) -> int:
@@ -796,7 +1044,8 @@ class SignalJournal:
             updated += 1
         return updated
 
-    def _broker_open_deal_ids(self) -> set[str]:
+    def _broker_open_snapshot(self) -> tuple[set[str], bool]:
+        """Return (open deal ids, fetch_succeeded). Empty set + False when IG is unavailable."""
         try:
             from ig_scripts.ig_data_api import fetch_open_positions
             from mobile_api.ig_client import create_ig_service
@@ -806,15 +1055,84 @@ class SignalJournal:
                 str(p.get("position", {}).get("dealId") or "").strip()
                 for p in positions
                 if p.get("position", {}).get("dealId")
-            }
+            }, True
         except Exception:
-            return set()
+            return set(), False
 
-    def reconcile_open_trades(self, day_start: datetime | None = None) -> int:
+    def _broker_open_deal_ids(self) -> set[str]:
+        open_ids, _ok = self._broker_open_snapshot()
+        return open_ids
+
+    def reconcile_unconfirmed_closes(
+        self,
+        day_start: datetime | None,
+        broker_open: set[str],
+        broker_ok: bool,
+        *,
+        allow_ig: bool = True,
+    ) -> int:
+        """Re-open false closes and strip unconfirmed estimated PnL."""
+        day_start = day_start or trading_day_start_utc()
+        updated = 0
+        for trade in self._trades_since_day_start(day_start):
+            deal_id = str(trade.get("deal_id") or "")
+            if not deal_id:
+                continue
+            reason = str(trade.get("exit_reason") or "")
+            status = trade.get("status")
+
+            if status == "closed" and broker_ok and deal_id in broker_open:
+                if reason in UNRELIABLE_EXIT_REASONS or trade.get("pnl") is None:
+                    self.reopen_trade(deal_id)
+                    updated += 1
+                continue
+
+            if status != "closed" or reason not in UNRELIABLE_EXIT_REASONS:
+                continue
+
+            closed = self._fetch_ig_closed_trade(deal_id) if allow_ig else None
+            if closed and closed.get("pnl") is not None:
+                self.close_trade(
+                    deal_id,
+                    exit_time=closed.get("exit_time") or trade.get("exit_time"),
+                    exit_price=closed.get("exit_price") or trade.get("exit_price"),
+                    pnl=round(float(closed["pnl"]), 2),
+                    exit_reason=str(closed.get("reason") or "broker_close"),
+                )
+                updated += 1
+                continue
+
+            if trade.get("pnl") is not None or reason == "estimated_ohlc":
+                self.close_trade(
+                    deal_id,
+                    exit_time=None,
+                    exit_price=None,
+                    pnl=None,
+                    exit_reason="pnl_pending",
+                )
+                updated += 1
+        return updated
+
+    def reconcile_open_trades(
+        self,
+        day_start: datetime | None = None,
+        broker_open: set[str] | None = None,
+        broker_ok: bool | None = None,
+        *,
+        allow_ig: bool = True,
+    ) -> int:
         """Close journal rows still marked open when broker/backtest shows them done."""
         import pandas as pd
 
         day_start = day_start or trading_day_start_utc()
+        if broker_open is None or broker_ok is None:
+            if allow_ig:
+                broker_open, broker_ok = self._broker_open_snapshot()
+            else:
+                broker_open, broker_ok = set(), False
+        if not broker_ok or not allow_ig:
+            return 0
+
         open_trades = [
             t
             for t in self._trades_since_day_start(day_start)
@@ -879,9 +1197,20 @@ class SignalJournal:
 
             if pnl is None and deal_id not in broker_open:
                 exit_time = exit_time or _utc_now_iso()
-                exit_reason = exit_reason if closed else "broker_not_open"
+                exit_reason = exit_reason if closed else "pnl_pending"
 
             if pnl is None and deal_id in broker_open:
+                continue
+
+            if pnl is None and not closed:
+                self.close_trade(
+                    deal_id,
+                    exit_time=exit_time,
+                    exit_price=exit_price,
+                    pnl=None,
+                    exit_reason=exit_reason,
+                )
+                closed_n += 1
                 continue
 
             self.close_trade(
@@ -893,6 +1222,44 @@ class SignalJournal:
             )
             closed_n += 1
         return closed_n
+
+    def _align_trades_with_hybrid_state(
+        self,
+        trades: list[dict[str, Any]],
+        hybrid_state: dict[str, Any] | None,
+        summary: dict[str, Any],
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        state = hybrid_state or {}
+        open_deal = str(state.get("open_deal_id") or "").strip()
+        if not open_deal:
+            return trades, summary
+        closed_first = state.get("closed_first_seen_at")
+        if closed_first:
+            try:
+                age = (
+                    datetime.now(timezone.utc)
+                    - datetime.fromisoformat(str(closed_first))
+                ).total_seconds()
+                if age >= 120:
+                    return trades, summary
+            except Exception:
+                pass
+        patched: list[dict[str, Any]] = []
+        changed = False
+        for row in trades:
+            if row.get("deal_id") == open_deal and row.get("status") == "closed":
+                row = dict(row)
+                row["status"] = "open"
+                row["exit_time"] = None
+                row["exit_price"] = None
+                row["pnl"] = None
+                row["exit_reason"] = None
+                row["pnl_confirmed"] = False
+                changed = True
+            patched.append(self._enrich_trade_row(row))
+        if not changed:
+            return trades, summary
+        return patched, self.trades_summary(patched)
 
     def save_daily_compare(
         self, trading_day: str, live: dict[str, Any], backtest: dict[str, Any]
@@ -929,7 +1296,8 @@ class SignalJournal:
         from mobile_api.market_price import get_gold_price_summary
 
         today_start = trading_day_start_utc()
-        trades_view = self.resolve_trades_view()
+        state = hybrid_state or {}
+        trades_view = self.resolve_trades_view(hybrid_state=state)
         signals_view = self.resolve_signals_view(30)
         return {
             "server_time_utc": _utc_now_iso(),
@@ -938,7 +1306,7 @@ class SignalJournal:
             "is_fallback": trades_view["is_fallback"],
             "source": trades_view["source"],
             "today": trades_view["summary"],
-            "open_position": hybrid_state or {},
+            "open_position": state,
             "ig_account": get_ig_account_summary(),
             "gold": get_gold_price_summary(),
             "recent_signals_30m": signals_view["count"] if not signals_view["is_fallback"] else 0,

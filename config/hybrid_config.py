@@ -91,6 +91,7 @@ WF_CONFIG = {
 #   trades > min_trades  AND  total_pnl < max_total_pnl
 TIME_FILTER_CONFIG = {
     "enabled": True,
+    "output_dir": "runtime/bot_assets/wf_time_filters",
     "weak_slots_json": "runtime/hybrid_weak_time_slots.json",
     "min_trades": 3,              # block when trades > this (strictly)
     "min_trades_exclusive": True,  # True → > min_trades; False → >= min_trades (v10)

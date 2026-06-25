@@ -47,7 +47,11 @@ from xgboost_filter_model.pattern_training import (
     prod_model_path,
     wf_anchor_ts,
 )
-from xgboost_filter_model.time_slot_filter import load_weak_filter, resolve_v14_time_filter_path
+from xgboost_filter_model.time_slot_filter import (
+    CycleWeakFilter,
+    load_weak_filter,
+    resolve_v14_time_filter_path,
+)
 from xgboost_filter_model.train_filter_1min import load_price_data
 
 from xgboost_filter_model.train_filter_v14 import prepare_data_v14
@@ -271,10 +275,28 @@ def main():
     sim_df["energetic_side"] = sim_df.get("energetic_side", pd.Series(0, index=sim_df.index)).fillna(0).astype(int)
 
     weak_cells = None
-    _filter_path = resolve_v14_time_filter_path(PROJECT_ROOT)
-    if _filter_path:
+    if not TIME_FILTER_CONFIG.get("enabled"):
+        print("Time filter: disabled in config")
+    elif os.environ.get("V14_NO_TIME_FILTER", "").strip().lower() in ("1", "true", "yes", "on"):
+        print("Time filter: disabled (V14_NO_TIME_FILTER)")
+    elif os.environ.get("V14_TIME_FILTER_JSON", "").strip():
+        _filter_path = os.environ["V14_TIME_FILTER_JSON"].strip()
         weak_cells = load_weak_filter(_filter_path)
         print(f"Time filter: blocking {len(weak_cells)} slots from {_filter_path}")
+    else:
+        _filter_path = resolve_v14_time_filter_path(PROJECT_ROOT)
+        if _filter_path:
+            fallback = Path(_filter_path)
+            weak_cells = CycleWeakFilter(PROJECT_ROOT, fallback_path=fallback)
+            fb_cells = load_weak_filter(fallback) if fallback.exists() else []
+            from xgboost_filter_model.time_slot_filter import weak_filter_output_dir
+
+            print(
+                f"Time filter: per-cycle from {weak_filter_output_dir(PROJECT_ROOT)} "
+                f"(fallback {len(fb_cells)} cells)"
+            )
+        else:
+            print("Time filter: off")
 
     pat_exec_cfg = EXECUTION_CONFIG.copy()
     pat_exec_cfg["close_on_reverse"] = (

@@ -3,7 +3,7 @@
 =================================================================
 Three-leg bot aligned with oil_backtest.py (v29 combined).
 
-Polls every second; fetches IG prices once per minute at :06 (6th second),
+Polls every second; oil fetch+trades @ :08–:10, position sync @ :14–:15 (IG gate).
 after the 1-min bar closes. Initial cache loads from MySQL.
 
 Config (from v29 backtest):
@@ -52,8 +52,12 @@ logging.basicConfig(
 log = logging.getLogger("oil_bot")
 
 # ======================= CONFIG (aligned with oil_backtest.py) ========================
-MINUTE_FETCH_SECOND = 6
+MINUTE_OIL_TRADE_START_SEC = 8   # :08–:10 fetch + score / orders
+MINUTE_OIL_SYNC_START_SEC = 14   # :14–:15 position sync
 FEATURE_WARMUP_DAYS = 90
+STATE_PATH = PROJECT_ROOT / "runtime" / "oil_live_bot_state.json"
+CLOSE_BRIDGE_PATH = PROJECT_ROOT / "runtime" / "live_oil_trade_closes.json"
+OIL_CACHE_PATH = PROJECT_ROOT / "runtime" / "oil_1m_cache.pkl"
 # OIL_EPIC comes from Price.Oil.epic = "CC.D.CL.BMU.IP"
 OIL_TABLE = "oil_prices"
 
@@ -138,6 +142,48 @@ def load_historical_from_db():
     if df.index.tz is None:
         df.index = df.index.tz_localize('UTC')
     return df
+
+
+def merge_bars_into_cache(cached: pd.DataFrame, new_bars: pd.DataFrame) -> pd.DataFrame:
+    if new_bars.empty:
+        return cached
+    for idx, row in new_bars.iterrows():
+        if idx not in cached.index:
+            cached.loc[idx] = row
+    cached = cached[~cached.index.duplicated(keep="last")]
+    cached.sort_index(inplace=True)
+    return cached
+
+
+def save_oil_cache(cached: pd.DataFrame) -> None:
+    if cached.empty:
+        return
+    try:
+        OIL_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        cached.to_pickle(OIL_CACHE_PATH)
+    except Exception as e:
+        log.error(f"Oil cache save failed: {e}")
+
+
+def load_oil_cache_into(cached: pd.DataFrame) -> pd.DataFrame:
+    if not OIL_CACHE_PATH.exists():
+        return cached
+    try:
+        disk_df = pd.read_pickle(OIL_CACHE_PATH)
+        if disk_df.empty:
+            return cached
+        if disk_df.index.tz is None:
+            disk_df.index = disk_df.index.tz_localize("UTC")
+        else:
+            disk_df.index = disk_df.index.tz_convert("UTC")
+        before = len(cached)
+        cached = merge_bars_into_cache(cached, disk_df)
+        added = len(cached) - before
+        if added > 0:
+            log.info(f"Restored {added} oil bar(s) from disk cache (latest={cached.index[-1]})")
+    except Exception as e:
+        log.warning(f"Oil disk cache restore failed: {e}")
+    return cached
 
 
 def fetch_ig_bars_since(last_bar_ts: pd.Timestamp | None):
@@ -338,34 +384,162 @@ class OilState:
         self.open_entry_price: Optional[float] = None
         self.open_tp: Optional[float] = None
         self.open_sl: Optional[float] = None
+        self.closed_first_seen_at: Optional[str] = None
+        self.last_pnl: float = 0.0
         self._last_submitted_bar_ts: Optional[pd.Timestamp] = None
-        self._startup_ts: Optional[pd.Timestamp] = None  # Block entries until fresh bar arrives
-        # WR90 cluster tracking (matches backtest's cluster-end detection)
+        self._startup_ts: Optional[pd.Timestamp] = None
         self._wr90_in_cluster: bool = False
         self._wr90_cv: float = 0.0
         self._wr90_bc: int = 0
+
+    def to_dict(self) -> dict:
+        return {
+            "open_deal_id": self.open_deal_id,
+            "open_side": self.open_side,
+            "open_source": self.open_source,
+            "open_entry_price": self.open_entry_price,
+            "open_tp": self.open_tp,
+            "open_sl": self.open_sl,
+            "closed_first_seen_at": self.closed_first_seen_at,
+            "last_pnl": self.last_pnl,
+        }
+
+    def load_from_dict(self, data: dict) -> None:
+        for key, value in data.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
 
 
 state = OilState()
 
 
+def load_oil_state() -> None:
+    if not STATE_PATH.exists():
+        return
+    try:
+        data = json.loads(STATE_PATH.read_text(encoding="utf-8"))
+        state.load_from_dict(data)
+        log.info(f"Loaded oil state open_deal_id={state.open_deal_id}")
+    except Exception as e:
+        log.warning(f"Oil state load failed: {e}")
+
+
+def save_oil_state() -> None:
+    try:
+        STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        STATE_PATH.write_text(json.dumps(state.to_dict(), indent=2), encoding="utf-8")
+    except Exception as e:
+        log.error(f"Oil state save failed: {e}")
+
+
+def clear_oil_position_state() -> None:
+    state.open_deal_id = None
+    state.open_side = 0
+    state.open_source = None
+    state.open_entry_price = None
+    state.open_tp = None
+    state.open_sl = None
+    state.closed_first_seen_at = None
+    save_oil_state()
+
+
+def append_close_bridge(
+    deal_id: str,
+    *,
+    reason: str,
+    exit_time: str | None = None,
+    exit_price: float | None = None,
+    pnl: float | None = None,
+) -> None:
+    rows: list[dict] = []
+    if CLOSE_BRIDGE_PATH.exists():
+        try:
+            loaded = json.loads(CLOSE_BRIDGE_PATH.read_text(encoding="utf-8"))
+            if isinstance(loaded, list):
+                rows = loaded
+        except Exception:
+            rows = []
+    rows.append({
+        "deal_id": deal_id,
+        "exit_reason": reason,
+        "exit_time": exit_time,
+        "exit_price": exit_price,
+        "pnl": pnl,
+        "written_at_utc": datetime.now(timezone.utc).isoformat(),
+    })
+    CLOSE_BRIDGE_PATH.write_text(json.dumps(rows[-50:], indent=2), encoding="utf-8")
+
+
 # ======================= POSITION SYNC ========================
-def sync_ig_position():
-    """Check if our tracked oil position is still open on IG."""
+def sync_ig_trade_results(journal: OilSignalJournal | None = None) -> None:
+    """Match gold bot: confirm closes at IG and update oil journal."""
+    if not state.open_deal_id:
+        return
+    deal_id = state.open_deal_id
     try:
         positions = fetch_open_positions(ig)
-    except Exception:
-        return
-    # Filter to oil positions only
-    oil_positions = [
-        p for p in positions
-        if p.get("position", {}).get("dealId") == state.open_deal_id
-    ]
-    if state.open_deal_id and not oil_positions:
-        log.info(f"Position {state.open_deal_id} closed — clearing state")
-        state.open_deal_id = None
-        state.open_side = 0
-        state.open_source = None
+        still_open = any(
+            p.get("position", {}).get("dealId") == deal_id for p in positions
+        )
+        if still_open:
+            if state.closed_first_seen_at:
+                state.closed_first_seen_at = None
+                save_oil_state()
+            return
+
+        from ig_scripts.ig_data_api import get_closed_trade_by_deal_id
+
+        closed = get_closed_trade_by_deal_id(ig, deal_id)
+        if closed and closed.get("pnl") is not None:
+            pnl = float(closed["pnl"])
+            log.info(f"Trade {deal_id} closed PnL={pnl:.2f} source={state.open_source}")
+            if journal is not None:
+                try:
+                    journal.close_trade(
+                        deal_id,
+                        exit_time=closed.get("exit_time"),
+                        exit_price=closed.get("exit_price"),
+                        pnl=pnl,
+                        exit_reason=str(closed.get("reason") or "broker_close"),
+                    )
+                except Exception as je:
+                    log.error(f"Oil journal close failed: {je}")
+            append_close_bridge(
+                deal_id,
+                reason=str(closed.get("reason") or "broker_close"),
+                exit_time=closed.get("exit_time"),
+                exit_price=closed.get("exit_price"),
+                pnl=pnl,
+            )
+            state.last_pnl = pnl
+            clear_oil_position_state()
+            return
+
+        now_iso = datetime.now(timezone.utc).isoformat()
+        if not state.closed_first_seen_at:
+            state.closed_first_seen_at = now_iso
+            save_oil_state()
+        elif (
+            datetime.now(timezone.utc) - datetime.fromisoformat(state.closed_first_seen_at)
+        ).total_seconds() > 300:
+            log.warning(f"Force-clearing stale oil open_deal_id {deal_id}")
+            if journal is not None:
+                try:
+                    journal.close_trade(
+                        deal_id,
+                        exit_time=now_iso,
+                        exit_reason="stale_sync",
+                    )
+                except Exception as je:
+                    log.error(f"Oil journal stale close failed: {je}")
+            clear_oil_position_state()
+    except Exception as e:
+        log.error(f"Oil trade sync failed: {e}")
+
+
+def sync_ig_position(journal: OilSignalJournal | None = None):
+    """Legacy wrapper — use full trade sync."""
+    sync_ig_trade_results(journal)
 
 
 # ======================= IG BROKER ========================
@@ -419,27 +593,41 @@ def submit_oil_trade(signal, bar_ts, journal=None):
     result = broker.submit_order(request)
     if result.submitted:
         state._last_submitted_bar_ts = bar_ts
-        state.open_deal_id = result.deal_id
+        deal_id = result.deal_id
+        real_entry_price = entry_price
+        try:
+            os.environ["IG_REQUEST_CONSUMER"] = "bot_oil"
+            pos_wrap = broker.get_position_by_deal_id(deal_id)
+            if pos_wrap:
+                level = pos_wrap.get("position", {}).get("level")
+                if level is not None:
+                    real_entry_price = float(level)
+        except Exception:
+            pass
+        state.open_deal_id = deal_id
         state.open_side = side
         state.open_source = signal['type']
-        state.open_entry_price = entry_price
+        state.open_entry_price = real_entry_price
         state.open_tp = tp
         state.open_sl = sl
-        # Record to journal database so trades appear in alphagold.db
+        state.closed_first_seen_at = None
+        save_oil_state()
         if journal is not None:
             journal.open_trade({
-                'deal_id': result.deal_id,
+                'deal_id': deal_id,
                 'source': signal['type'],
                 'side': side,
                 'entry_time': str(pd.Timestamp(bar_ts).tz_convert('UTC')),
                 'entry_price': entry_price,
+                'backtest_entry_price': entry_price,
+                'real_entry_price': real_entry_price,
                 'tp': tp,
                 'sl': sl,
                 'horizon': None,
                 'probability': float(signal.get('prob', 1.0)),
             })
-        log.info(f"✓ ORDER SUBMITTED: {signal['type']} side={side} @ {entry_price:.1f} "
-                 f"TP={tp} SL={sl} deal_id={result.deal_id}")
+        log.info(f"✓ ORDER SUBMITTED: {signal['type']} side={side} @ {real_entry_price:.1f} "
+                 f"TP={tp} SL={sl} deal_id={deal_id}")
         return True
     else:
         log.error(f"Order failed: {result.reason if hasattr(result, 'reason') else result}")
@@ -483,6 +671,7 @@ def sync_open_position_on_startup():
                     state.open_entry_price = level
                     state.open_tp = LONG_TP
                     state.open_sl = LONG_SL
+                    save_oil_state()
                     return
     except Exception as e:
         log.warning(f"Startup position sync failed: {e}")
@@ -490,6 +679,8 @@ def sync_open_position_on_startup():
 
 def main():
     acquire_pid_lock()
+    os.environ["IG_REQUEST_CONSUMER"] = "bot_oil"
+    load_oil_state()
     sync_open_position_on_startup()
     log.info("=" * 60)
     log.info("  OIL LIVE BOT v29 — WR90 + Short Impulse + Oil Retrace")
@@ -503,10 +694,13 @@ def main():
     log.info("=" * 60)
 
     cached = load_historical_from_db()
+    cached = load_oil_cache_into(cached)
     log.info(f"  Loaded {len(cached):,} bars ({cached.index[0]} → {cached.index[-1]})")
 
     journal = OilSignalJournal()
-    last_minute = None
+    journal.resolve_trades_view(bot_state=state.to_dict(), allow_ig=False)
+    last_trade_minute = None
+    last_sync_minute = None
 
     # Pre-mark latest cached bars as "already processed" to prevent
     # replaying old signals on restart. Only bars arriving fresh from IG
@@ -524,8 +718,15 @@ def main():
             sec = now.second
             minute_key = now.strftime('%Y-%m-%dT%H:%M')
 
-            if sec == MINUTE_FETCH_SECOND and minute_key != last_minute:
-                last_minute = minute_key
+            if sec >= MINUTE_OIL_SYNC_START_SEC and minute_key != last_sync_minute:
+                last_sync_minute = minute_key
+                os.environ["IG_REQUEST_CONSUMER"] = "bot_oil_sync"
+                sync_ig_trade_results(journal)
+                journal.resolve_trades_view(bot_state=state.to_dict(), allow_ig=False)
+
+            if sec >= MINUTE_OIL_TRADE_START_SEC and minute_key != last_trade_minute:
+                last_trade_minute = minute_key
+                os.environ["IG_REQUEST_CONSUMER"] = "bot_oil"
                 last_bar_ts = cached.index[-1] if len(cached) > 0 else None
                 new_bars = fetch_ig_bars_since(last_bar_ts)
                 if new_bars.empty:
@@ -540,9 +741,11 @@ def main():
                         cached.loc[idx] = row
                 cached = cached[~cached.index.duplicated(keep='last')]
                 cached.sort_index(inplace=True)
-
-                # Sync position
-                sync_ig_position()
+                save_oil_cache(cached)
+                log.info(
+                    f"Cache fetch: +{len(new_bars)} bar(s) from IG, "
+                    f"total={len(cached)}, latest={cached.index[-1]}"
+                )
 
                 # Build feature frames every minute
                 d15 = build_15m(cached)

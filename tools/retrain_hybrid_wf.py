@@ -6,11 +6,12 @@ Bi-weekly hybrid retrain (intended workflow).
    Uses all bars strictly BEFORE that cycle start. Older cycle_*.joblib unchanged.
    Training never uses the weak time filter (labels are bar-based).
 
-2. Run hybrid backtest WITHOUT weak filter → trade heatmaps.
+2. Run hybrid backtest WITHOUT weak filter (history before cycle start) → heatmaps.
 
-3. Rebuild runtime/hybrid_weak_time_slots.json from those trades.
+3. Save runtime/bot_assets/wf_time_filters/weak_time_slots_cycle_{n}_{date}.json
+   and symlink runtime/hybrid_weak_time_slots.json → that file.
 
-4. Optional: print filtered backtest summary (verification).
+4. Optional: print filtered backtest summary (verification, per-cycle filters).
 
 Env (defaults):
   V14_WF_TRAIN_MODE=incremental
@@ -28,6 +29,8 @@ import subprocess
 import sys
 from datetime import date
 from pathlib import Path
+
+import pandas as pd
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(_PROJECT_ROOT) not in sys.path:
@@ -54,6 +57,25 @@ def _run_script(label: str, script: Path, extra_env: dict | None = None) -> None
     )
     if res.returncode != 0:
         raise SystemExit(f"{label} failed (exit {res.returncode})")
+
+
+def _weak_filter_targets() -> list[tuple[int, pd.Timestamp]]:
+    from xgboost_filter_model.pattern_training import (
+        iter_wf_cycles,
+        wf_anchor_ts,
+        wf_incremental_train_target,
+        wf_train_as_of,
+        wf_train_mode,
+    )
+
+    pending = wf_incremental_train_target()
+    if pending:
+        return [pending]
+    if wf_train_mode() == "full":
+        anchor = wf_anchor_ts()
+        as_of = wf_train_as_of()
+        return [(c, s) for c, s, _ in iter_wf_cycles(anchor, as_of, anchor)]
+    return []
 
 
 def main() -> None:
@@ -83,8 +105,8 @@ def main() -> None:
             print("Skipping model training.")
             sys.exit(0)
 
-    print("Hybrid WF retrain: incremental models → unfiltered backtest → weak filter")
-    print(f"  Backtest window for weak cells: {date_args[0]} → {date_args[-1]}")
+    print("Hybrid WF retrain: incremental models → unfiltered backtest → per-cycle weak filter")
+    print(f"  Verification backtest window: {date_args[0]} → {date_args[-1]}")
     print(f"  WF train mode: {os.environ.get('V14_WF_TRAIN_MODE', 'incremental')}")
 
     _run_script(
@@ -100,34 +122,31 @@ def main() -> None:
         PROJECT_ROOT / "tools" / "train_patterns.py",
     )
 
-    print("\n=== Weak time filter (from unfiltered hybrid backtest) ===")
-    print("Pass 1: hybrid baseline (no time filter)...")
+    targets = _weak_filter_targets()
+    if not targets:
+        raise SystemExit("No WF cycle target for weak-filter rebuild")
+
+    print("\n=== Weak time filter (unfiltered backtest → per-cycle JSON) ===")
+    last_cycle_path = None
+    for cycle, cycle_start in targets:
+        print(f"\nPass 1: cycle_{cycle} baseline (no time filter)...")
+        cells = rhtf.build_weak_filter_for_cycle(cycle, cycle_start)
+        cycle_path = rhtf.save_weak_filter_cycle(cells, cycle, cycle_start.date())
+        rhtf.publish_current_weak_filter(cycle_path)
+        rhtf.save_weak_filter(cells, rhtf.FILTER_JSON)
+        last_cycle_path = cycle_path
+        print(f"  Blocked slots ({len(cells)}):")
+        rhtf.print_blocked_cells(cells)
+        print(f"  Saved {cycle_path}")
+
+    print("\nPass 2: hybrid with per-cycle weak filters (verification)...")
     t1, wr1, pnl1 = rhtf.run_hybrid(date_args, use_filter=False)
-    print(f"  Baseline: trades={t1}  WR={wr1:.1f}%  PnL={pnl1:+.1f}\n")
-
-    if not rhtf.TRADES_CSV.exists():
-        raise SystemExit(f"Missing {rhtf.TRADES_CSV}")
-
-    import shutil
-
-    shutil.copy(rhtf.TRADES_CSV, rhtf.BASELINE_TRADES_CSV)
-    cells = rhtf.find_bad_slots(
-        rhtf.BASELINE_TRADES_CSV,
-        min_trades=rhtf.MIN_TRADES,
-        min_trades_exclusive=rhtf.MIN_TRADES_EXCLUSIVE,
-        max_total_pnl=rhtf.MAX_TOTAL_PNL,
-        max_win_rate=rhtf.MAX_WIN_RATE,
-        require_low_win_rate=rhtf.REQUIRE_WR,
-    )
-    rhtf.save_weak_filter(cells, rhtf.FILTER_JSON)
-    print(f"Blocked slots ({len(cells)}):")
-    rhtf.print_blocked_cells(cells)
-
-    print("\nPass 2: hybrid with new weak filter (verification)...")
-    t2, wr2, pnl2 = rhtf.run_hybrid(date_args, use_filter=True)
+    t2, wr2, pnl2 = rhtf.run_hybrid(date_args, use_filter=True, per_cycle_filter=True)
+    print(f"  Baseline: trades={t1}  WR={wr1:.1f}%  PnL={pnl1:+.1f}")
     print(f"  Filtered: trades={t2}  WR={wr2:.1f}%  PnL={pnl2:+.1f}")
     print(f"  Delta PnL: {pnl2 - pnl1:+.1f}")
-    print(f"\nSaved {rhtf.FILTER_JSON}")
+    if last_cycle_path:
+        print(f"\nPublished {rhtf.FILTER_JSON} → {last_cycle_path.name}")
 
 
 if __name__ == "__main__":
