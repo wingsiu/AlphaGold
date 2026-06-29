@@ -1,0 +1,7 @@
+label,trades,wr,net,avg
+mom baseline ML only,254,50.0,1776.8,7.0
+mom struct-hold H720 ML only,174,41.4,2793.0,16.05
+dip short ML only,292,51.7,917.8,3.14
+mom H720 ML + dip ML,466,47.9,3710.8,7.96
+mom baseline ML + dip ML,546,50.9,2694.5,4.94
+dip mech only,797,50.1,1216.1,1.53

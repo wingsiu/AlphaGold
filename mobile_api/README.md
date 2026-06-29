@@ -4,7 +4,7 @@
 
 ```
 Mac Mini
-├── trading_bot_hybrid_v15.py   → trades + signals → runtime/mobile/alphagold.db
+├── trading_bot_gold_v16.py     → trades + signals → runtime/mobile/alphagold.db
 └── mobile_api/server.py        → REST API :8765 for iPhone / Watch
 
 iPhone / Watch app  →  http://<mac-mini-ip>:8765/api/v1/...

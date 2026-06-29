@@ -1,0 +1,2 @@
+pre_close_pts,model,prob,signals,trades,wr,net,avg,train_secs
+10.0,logreg,0.5,391,240,44.6,1124.2,4.68,9.3

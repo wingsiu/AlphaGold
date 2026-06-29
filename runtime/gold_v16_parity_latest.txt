@@ -1,0 +1,36 @@
+========================================================================
+  GOLD v16 PARITY — replay vs combined_run backtest
+  Generated: 2026-06-28 23:14 UTC
+  Period: 2026-06-21 → 2026-06-27
+  Stack: hybrid patterns + energetic + momentum + dip short
+========================================================================
+
+  Replay:     11 trades  PnL=+34.3
+  Backtest:   10 trades  PnL=+76.5
+  Matched entries: 9
+
+  ✗ MISMATCH
+
+  Backtest-only (1):
+    v16_dip_short        @ 2026-06-25 13:03:00+00:00
+
+  Replay-only (2):
+    reversal_fvg_long    @ 2026-06-26 14:17:00+00:00
+    v16_momentum         @ 2026-06-26 07:32:00+00:00
+
+--- Replay leg breakdown ---
+  downtrend_retrace        1t  PnL=+1.1
+  energetic                2t  PnL=-13.9
+  reversal_fvg_long        2t  PnL=-26.0
+  uptrend_retrace          1t  PnL=-12.7
+  v16_momentum             5t  PnL=+85.9
+
+--- Backtest leg breakdown ---
+  downtrend_retrace        1t  PnL=+1.1
+  energetic                2t  PnL=-13.9
+  reversal_fvg_long        1t  PnL=-15.0
+  uptrend_retrace          1t  PnL=-12.7
+  v16_dip_short            1t  PnL=+22.3
+  v16_momentum             4t  PnL=+94.7
+
+========================================================================

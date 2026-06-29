@@ -1,0 +1,23 @@
+{
+  "updated_utc": "2026-06-29T06:55:10.436005+00:00",
+  "pid": 38563,
+  "status": "ok",
+  "note": "",
+  "cache_bars": 86509,
+  "cache_latest_1m": "2026-06-29 06:55:00+00:00",
+  "open_deal_id": null,
+  "open_source": null,
+  "wr90_cluster": {
+    "in_cluster": false,
+    "cv": 0.0,
+    "ep": 0
+  },
+  "cascade": {
+    "wr90_until_15m": null,
+    "ret_until_15m": null,
+    "si_until_1m": null
+  },
+  "last_evaluated_15m": "2026-06-29T06:30:00+00:00",
+  "parity_check": "python3 _check_oil_parity.py",
+  "log_tail": "tail -30 runtime/oil_live_bot.log"
+}

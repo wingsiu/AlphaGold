@@ -1,0 +1,37 @@
+trades,wr,net,avg,strategy
+425,57.9,1543.2,3.63,short 2xUP body8 v15 TP30/SL25
+1072,69.0,910.8,0.85,short 1xUP rip ML p>=0.55
+1929,65.0,803.0,0.42,short 1xUP rip mech
+983,68.6,748.4,0.76,short 1xUP rip ML p>=0.58
+864,68.8,625.3,0.72,short 1xUP rip ML p>=0.62
+596,71.8,577.1,0.97,short 2xUP base ML p>=0.55
+672,76.2,563.0,0.84,COMBO short2xUP ML + long body10 ML
+1461,69.1,513.0,0.35,COMBO short2xUP mech + long body10 ML
+566,71.4,498.0,0.88,short 2xUP base ML p>=0.58
+936,70.1,474.8,0.51,short 2xUP wide exit +5/+15
+512,71.9,439.4,0.86,short 2xUP base ML p>=0.62
+425,71.1,403.8,0.95,short 2xUP prev body>=8 mech
+151,80.8,386.6,2.56,short 2xUP prev body>=8 ML p>=0.55
+147,80.3,366.7,2.49,short 2xUP prev body>=8 ML p>=0.58
+630,68.4,344.3,0.55,short 2xUP prev range>=12 mech
+135,80.7,341.2,2.53,short 2xUP prev body>=8 ML p>=0.62
+346,73.1,338.8,0.98,short 2xUP prev range>=12 ML p>=0.58
+362,72.7,323.4,0.89,short 2xUP prev range>=12 ML p>=0.55
+936,65.7,316.7,0.34,short 2xUP base mech
+332,73.5,313.7,0.94,short 2xUP prev range>=12 ML p>=0.62
+100,83.0,209.9,2.1,short 2xUP prev body>=10 ML p>=0.62
+115,77.4,200.1,1.74,short 2xUP prev body>=10 ML p>=0.55
+425,47.5,197.8,0.47,short 2xUP body8 v15 TP20/SL15
+525,75.0,196.3,0.37,long 1xDN body>=10 ML p>=0.58
+108,79.6,192.4,1.78,short 2xUP prev body>=10 ML p>=0.58
+209,68.9,149.5,0.72,short 2xUP minute<5 mech
+332,68.4,148.7,0.45,short 2xUP prev body>=10 mech
+34,58.8,0.8,0.02,short 2xUP minute<5 ML p>=0.55
+31,54.8,-16.7,-0.54,short 2xUP minute<5 ML p>=0.58
+28,53.6,-17.0,-0.61,short 2xUP minute<5 ML p>=0.62
+737,64.5,-65.0,-0.09,burst dual ML wide exit
+1794,70.6,-145.8,-0.08,long 1xDN range>=12 mech
+837,72.0,-163.7,-0.2,long 1xDN body>=10 mech
+839,70.1,-359.7,-0.43,long 2xDN body>=5 mech
+986,69.4,-365.7,-0.37,long 1xDN range>=12 ML p>=0.58
+480,70.0,-412.8,-0.86,long 2xDN body>=5 ML p>=0.58

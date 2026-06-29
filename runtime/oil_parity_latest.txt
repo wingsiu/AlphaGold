@@ -1,0 +1,85 @@
+Data successfully loaded: 87621 rows.
+========================================================================
+  OIL PARITY CHECK — live replay vs backtest ML-filtered entries
+  Generated: 2026-06-26 17:24 UTC
+  Thresholds: WR90≥0.65  Ret≥0.6  SI≥0.55
+========================================================================
+
+--- 2026-06-20 (✓ MATCH) ---
+  Backtest entries : 0
+  Live replay      : 0 (per-leg, matches backtest structure)
+  Matched          : 0
+  (no entries — both agree)
+
+--- 2026-06-21 (✓ MATCH) ---
+  Backtest entries : 0
+  Live replay      : 0 (per-leg, matches backtest structure)
+  Matched          : 0
+  (no entries — both agree)
+
+--- 2026-06-22 (✗ MISMATCH) ---
+  Backtest entries : 0
+  Live replay      : 1 (per-leg, matches backtest structure)
+  Live 1-position  : 1 (single IG slot — may differ)
+  Matched          : 0
+  EXTRA (live replay has, backtest lacks):
+    ret   @ 16:15 HKT
+  Note — 1-position live would EXTRA:
+    ret   @ 16:15 HKT
+
+--- 2026-06-23 (✗ MISMATCH) ---
+  Backtest entries : 0
+  Live replay      : 1 (per-leg, matches backtest structure)
+  Live 1-position  : 1 (single IG slot — may differ)
+  Matched          : 0
+  EXTRA (live replay has, backtest lacks):
+    ret   @ 22:00 HKT
+  Note — 1-position live would EXTRA:
+    ret   @ 22:00 HKT
+
+--- 2026-06-24 (✗ MISMATCH) ---
+  Backtest entries : 2
+  Live replay      : 2 (per-leg, matches backtest structure)
+  Live 1-position  : 1 (single IG slot — may differ)
+  Matched          : 1
+  MISS (backtest has, live replay lacks):
+    wr90  @ 23:30 HKT
+  EXTRA (live replay has, backtest lacks):
+    ret   @ 18:30 HKT
+  Note — 1-position live would MISS:
+    wr90  @ 23:30 HKT
+
+--- 2026-06-25 (✗ MISMATCH) ---
+  Backtest entries : 1
+  Live replay      : 2 (per-leg, matches backtest structure)
+  Live 1-position  : 1 (single IG slot — may differ)
+  Matched          : 1
+  EXTRA (live replay has, backtest lacks):
+    ret   @ 16:15 HKT
+  Note — 1-position live would MISS:
+    wr90  @ 17:15 HKT
+  Note — 1-position live would EXTRA:
+    ret   @ 16:15 HKT
+
+--- 2026-06-26 (✗ MISMATCH) ---
+  Backtest entries : 3
+  Live replay      : 2 (per-leg, matches backtest structure)
+  Live 1-position  : 1 (single IG slot — may differ)
+  Matched          : 1
+  MISS (backtest has, live replay lacks):
+    wr90  @ 18:30 HKT
+    wr90  @ 23:45 HKT
+  EXTRA (live replay has, backtest lacks):
+    ret   @ 16:45 HKT
+  Note — 1-position live would MISS:
+    wr90  @ 18:30 HKT
+    wr90  @ 23:45 HKT
+
+========================================================================
+  OVERALL: MISMATCHES FOUND — check live bot
+========================================================================
+
+Quick checks:
+  cat runtime/oil_bot_health.json     # live bot status (updated each minute)
+  tail -30 runtime/oil_live_bot.log     # recent scoring
+  python3 _check_oil_parity.py          # re-run parity

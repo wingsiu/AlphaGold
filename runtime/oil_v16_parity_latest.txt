@@ -1,0 +1,28 @@
+========================================================================
+  OIL v16 PARITY — replay vs combined_run backtest
+  Generated: 2026-06-28 19:45 UTC
+  Period: 2024-07-01 → 2026-06-30  |  WR90 exit: struct_hold
+  Models: {'wr90': {'model': 'lgb', 'ml_th': 0.55}, 'ret': {'model': 'xgb', 'ml_th': 0.55}, 'ret_short': {'model': 'xgb', 'ml_th': 0.55}, 'long_ret': {'model': 'xgb', 'ml_th': 0.5}, 'si': {'model': 'et', 'ml_th': 0.5}, 'rip': {'model': 'et', 'ml_th': 0.65}}
+========================================================================
+
+  Replay:   1230 trades  PnL=+10565.7
+  Backtest: 1230 trades  PnL=+10565.7
+  Matched entries: 1230
+
+  ✓ FULL MATCH — replay and backtest agree
+
+--- Replay leg breakdown ---
+  long_ret       257t  PnL=+1089.6
+  ret            284t  PnL=+2204.9
+  ret_short      511t  PnL=+1510.5
+  si              94t  PnL=+1477.0
+  wr90            84t  PnL=+4283.7
+
+--- Backtest leg breakdown (merged) ---
+  long_ret       257t  PnL=+1089.6
+  ret            284t  PnL=+2204.9
+  ret_short      511t  PnL=+1510.5
+  si              94t  PnL=+1477.0
+  wr90            84t  PnL=+4283.7
+
+========================================================================

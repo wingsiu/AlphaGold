@@ -23,7 +23,7 @@ for arg in "$@"; do
   esac
 done
 
-chmod +x "$SCRIPT_DIR/run_mobile_api.sh" "$SCRIPT_DIR/run_hybrid_bot.sh" "$SCRIPT_DIR/alphagold_watchdog.sh"
+chmod +x "$SCRIPT_DIR/run_mobile_api.sh" "$SCRIPT_DIR/run_hybrid_bot.sh" "$SCRIPT_DIR/run_gold_bot_v16.sh" "$SCRIPT_DIR/run_oil_bot_v16.sh" "$SCRIPT_DIR/alphagold_watchdog.sh" "$SCRIPT_DIR/install_cron_watchdog.sh" "$ROOT/watchdog_bots.sh"
 mkdir -p "$ROOT/runtime" "$AGENTS_DIR"
 
 bootout_if_loaded() {
@@ -69,7 +69,11 @@ else
   bootstrap_agent "$SCRIPT_DIR/com.alphagold.mobile-api.plist"
 fi
 
-bootstrap_agent "$SCRIPT_DIR/com.alphagold.hybrid-bot.plist"
+bootstrap_agent "$SCRIPT_DIR/com.alphagold.gold-bot-v16.plist"
+bootstrap_agent "$SCRIPT_DIR/com.alphagold.oil-bot-v16.plist"
+# Retire v15 hybrid LaunchAgent if present
+bootout_if_loaded "$GUI_DOMAIN" "com.alphagold.hybrid-bot"
+rm -f "$AGENTS_DIR/com.alphagold.hybrid-bot.plist"
 bootstrap_agent "$SCRIPT_DIR/com.alphagold.watchdog.plist"
 
 sleep 2

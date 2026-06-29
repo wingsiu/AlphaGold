@@ -1,0 +1,22 @@
+variant,type,trades,wr,net,avg,signals,labeled
+2x prev UP short,mech,936,65.7,316.7,0.34,936,
+1x down + prev body>=10,ML p>=0.58,525,75.0,196.3,0.37,837,837.0
+1x down + prev range>=12,mech,1794,70.6,-145.8,-0.08,1794,1794.0
+1x down + prev body>=10,mech,837,72.0,-163.7,-0.2,837,837.0
+2x down + prev range>=12,mech,996,71.0,-180.6,-0.18,996,996.0
+base: 1x prev down,ML p>=0.58,1221,70.3,-208.7,-0.17,2505,2505.0
+2x prev down (two 15m down),mech,1397,69.5,-358.9,-0.26,1397,1397.0
+2x down + prev body>=5,mech,839,70.1,-359.7,-0.43,839,839.0
+1x down + prev range>=12,ML p>=0.58,986,69.4,-365.7,-0.37,1794,1794.0
+2x down + both range>=12,mech,824,70.6,-398.4,-0.48,824,824.0
+base: 1x prev down,mech,2505,69.0,-404.2,-0.16,2505,2505.0
+2x down + prev body>=5,ML p>=0.58,480,70.0,-412.8,-0.86,839,839.0
+2x down + prev range>=12,ML p>=0.58,560,67.9,-495.8,-0.89,996,996.0
+1x down + prev body>=5,ML p>=0.58,885,69.5,-525.6,-0.59,1531,1531.0
+2x prev down (two 15m down),ML p>=0.58,735,68.3,-585.7,-0.8,1397,1397.0
+2x down + both range>=12,ML p>=0.58,479,67.8,-599.7,-1.25,824,824.0
+2x down + prev2 range>=12,mech,959,68.9,-623.7,-0.65,959,959.0
+1x down + prev body>=5,mech,1531,69.4,-640.6,-0.42,1531,1531.0
+2x down + prev2 body>=5,mech,773,68.2,-673.0,-0.87,773,773.0
+2x down + prev2 range>=12,ML p>=0.58,535,67.3,-679.0,-1.27,959,959.0
+2x down + prev2 body>=5,ML p>=0.58,414,63.3,-789.9,-1.91,773,773.0

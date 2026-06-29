@@ -1,0 +1,90 @@
+/Users/alpha/AlphaGold/v16/research/momentum_15m_hold_winner_report.py:59: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  t["month"] = pd.to_datetime(t["entry_time"]).dt.to_period("M").astype(str)
+========================================================================
+  V16 WINNER — FULL STAT REPORT
+========================================================================
+
+CONFIG
+  Pattern:      impulse_1m_15m / pre-close breakout ≤10pt
+  Entry:        next_open after breakout, with-trend structure gate
+  SL:           impulse 1m bar H/L
+  TP:           R=3.0  H=120
+  Struct exit:  always on 15m trend flip
+  ML:           ET  p>=0.50
+  OOS window:   2025-06-01 → 2026-06-25
+  Train from:   2024-01-01
+Data successfully loaded: 397400 rows.
+
+PIPELINE (OOS)
+  Raw signals:           5854
+  Structure gate:        1822
+  Resolved fills:        1226
+  ML scored (OOS):       1058
+  ML passed p>=0.50:       406
+  Traded:                 254
+
+PERFORMANCE
+  Trades:               254
+  Win rate:             53.1%  (135W / 119L)
+  Net PnL:              +1935.8 pt
+  Gross win / loss:     +3241.9 / -1306.0
+  Avg / median trade:   +7.62 / +4.04 pt
+  Avg win / avg loss:   +24.01 / -10.98 pt
+  Payoff ratio:         2.19
+  Profit factor:        2.48
+  Max drawdown:         -134.7 pt
+  Best / worst trade:   +148.3 / -58.1 pt
+  Max win / loss streak:7 / 9
+  Trades / month:       19.9
+  PnL / month:          +151.5 pt
+
+HOLD TIME (minutes)
+  Mean / median:        88.7 / 45.5
+  P25 / P75:            15.0 / 120.0
+
+SL / TP (pts at entry)
+  SL mean / median:     11.7 / 10.4
+  TP mean / median:     35.2 / 31.2
+  R at entry (TP/SL):   3.00
+
+EXIT REASONS
+  reason                 n      %       net      avg    WR%
+  stop_loss            107  42.1%   -1242.0   -11.61   0.0%
+  structure_change      20   7.9%    +228.5   +11.43  90.0%
+  target_hit            76  29.9%   +2372.4   +31.22 100.0%
+  timeout               51  20.1%    +576.9   +11.31  80.4%
+
+BY SIDE
+  side       n    WR%       net      avg
+  LONG     120  50.8%    +669.5    +5.58
+  SHORT    134  55.2%   +1266.3    +9.45
+
+BY ENTRY STYLE
+  breakout_next_open  254  WR=53.1%  net=+1935.8
+
+MONTHLY
+  month      tr    WR%       net     avg
+  2025-11    19   42.1     +87.7   +4.61
+  2025-12    18   50.0     +77.1   +4.28
+  2026-01    34   55.9    +478.3  +14.07
+  2026-02    47   38.3    +274.4   +5.84
+  2026-03    37   54.1    +235.7   +6.37
+  2026-04    33   57.6    +251.9   +7.63
+  2026-05    30   60.0    +195.7   +6.52
+  2026-06    36   66.7    +335.0   +9.31
+
+TOP 5 WINS
+  2026-02-02 13:21:00+00:00  SHORT  +148.3pt  target_hit  hold=160m
+  2026-01-30 16:34:00+00:00  SHORT  +103.8pt  target_hit  hold=59m
+  2026-01-30 13:04:00+00:00  SHORT  +96.7pt  target_hit  hold=118m
+  2026-01-30 20:06:00+00:00  SHORT  +80.5pt  target_hit  hold=49m
+  2026-03-19 12:02:00+00:00  SHORT  +66.9pt  target_hit  hold=41m
+
+TOP 5 LOSSES
+  2026-03-23 11:33:00+00:00  SHORT  -58.1pt  stop_loss  hold=76m
+  2026-03-19 13:02:00+00:00  SHORT  -42.1pt  stop_loss  hold=3m
+  2026-06-24 13:05:00+00:00  SHORT  -31.1pt  stop_loss  hold=37m
+  2026-02-04 13:32:00+00:00  LONG   -28.1pt  stop_loss  hold=58m
+  2026-03-03 15:02:00+00:00  SHORT  -26.6pt  stop_loss  hold=46m
+
+Trades saved → /Users/alpha/AlphaGold/runtime/v16_winner_preclose_et_trades.csv

@@ -19,6 +19,11 @@ def model_path(stype: str, month: str) -> Path:
     return p
 
 
+def clear_model_cache() -> None:
+    """Clear in-process joblib cache after retraining on disk."""
+    _load_model.cache_clear()
+
+
 @lru_cache(maxsize=32)
 def _load_model(path: str):
     return joblib.load(path)

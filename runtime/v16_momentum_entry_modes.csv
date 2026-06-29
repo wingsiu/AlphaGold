@@ -1,0 +1,4 @@
+label,signals,filled,trades,fill_pct,wr,net,avg
+open,5854,5854,1582,100.0,29.9,1399.0,0.88
+pullback,5854,1613,1534,27.6,27.4,577.4,0.38
+breakout,5854,4095,2478,70.0,42.9,11078.5,4.47

@@ -1,4 +1,4 @@
-"""Compare live journal trades vs v15 hybrid backtest for the current trading day."""
+"""Compare live journal trades vs v16 gold hybrid backtest for the current trading day."""
 
 from __future__ import annotations
 
@@ -155,7 +155,7 @@ def _backtest_python() -> str:
 
 
 def run_backtest_for_day(day_start: datetime, *, refresh: bool = False) -> Path:
-    """Run v15 hybrid backtest for trading day (22:00 UTC cutoff) → day snapshot CSV."""
+    """Run v16 gold hybrid backtest for trading day (22:00 UTC cutoff) → day snapshot CSV."""
     snap = _snap_path(day_start)
     if snap.exists() and not refresh:
         age_h = (datetime.now(timezone.utc).timestamp() - snap.stat().st_mtime) / 3600.0
@@ -176,7 +176,7 @@ def run_backtest_for_day(day_start: datetime, *, refresh: bool = False) -> Path:
         subprocess.run(
             [
                 _backtest_python(),
-                str(PROJECT_ROOT / "v15" / "backtest" / "backtest_v15.py"),
+                str(PROJECT_ROOT / "tools" / "run_gold_v16_hybrid_backtest.py"),
                 start_str,
                 end_str,
             ],

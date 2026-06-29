@@ -39,9 +39,14 @@ else
 fi
 sleep 2
 if ! curl -sf -m "$TIMEOUT_SEC" "$HEALTH_URL" >/dev/null 2>&1; then
-  restart_job "$GUI_DOMAIN" "com.alphagold.hybrid-bot" || {
-    if [[ -f "$HOME/Library/LaunchAgents/com.alphagold.hybrid-bot.plist" ]]; then
-      launchctl bootstrap "$GUI_DOMAIN" "$HOME/Library/LaunchAgents/com.alphagold.hybrid-bot.plist" 2>>"$LOG" || true
+  restart_job "$GUI_DOMAIN" "com.alphagold.gold-bot-v16" || {
+    if [[ -f "$HOME/Library/LaunchAgents/com.alphagold.gold-bot-v16.plist" ]]; then
+      launchctl bootstrap "$GUI_DOMAIN" "$HOME/Library/LaunchAgents/com.alphagold.gold-bot-v16.plist" 2>>"$LOG" || true
+    fi
+  }
+  restart_job "$GUI_DOMAIN" "com.alphagold.oil-bot-v16" || {
+    if [[ -f "$HOME/Library/LaunchAgents/com.alphagold.oil-bot-v16.plist" ]]; then
+      launchctl bootstrap "$GUI_DOMAIN" "$HOME/Library/LaunchAgents/com.alphagold.oil-bot-v16.plist" 2>>"$LOG" || true
     fi
   }
 fi

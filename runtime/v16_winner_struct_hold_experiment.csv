@@ -1,0 +1,5 @@
+variant,lane,trades,wr,net,avg,hold_med,struct,tp,sl,to
+baseline_R3_H120,mech,699,33.9,1511.7,2.16,24.0,31,161,441,66
+baseline_R3_H120,ml,254,50.0,1776.8,7.0,44.0,18,73,116,47
+struct_hold_H480,mech,493,22.9,1719.9,3.49,31.0,62,0,375,56
+struct_hold_H480,ml,175,44.6,2780.2,15.89,88.0,39,0,96,40

@@ -1,0 +1,23 @@
+---
+description: V16 research winners — momentum pre-close + dip short rip (two lanes)
+alwaysApply: true
+---
+
+# V16 research winners (two lanes)
+
+Full specs: `v16/V16_WINNERS.md`  
+Registry: `v16/config/v16_config.py` → `V16_RESEARCH_WINNERS`
+
+| Lane | Config constant |
+|------|-----------------|
+| Momentum pre-close | `MOMENTUM_V16_WINNER_PRECLOSE` |
+| Momentum open | `MOMENTUM_V16_WINNER` |
+| Dip short rip | `DIP_SHORT_RIP` |
+
+**3-model portfolio OOS:** ~+4,982 summed (use priority router live; preclose↔open ~58% entry overlap).
+
+**Momentum:** pre-close≤10 breakout, with-trend, **struct-hold** (no TP, H=480–720), ET ML p≥0.50, **v15 14d WF**. No reverse-signal exit.
+
+**Dip short:** slot rip short, mech TP40/SL30/H60, ML p≥0.70 TP35/SL35/H45, scaleout labels.
+
+Production live bot is still v15; these are v16 research lanes to preserve when extending bots or backtests.

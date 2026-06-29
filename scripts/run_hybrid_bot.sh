@@ -1,5 +1,5 @@
 #!/bin/bash
-# Production gold bot (v15). Legacy v14 launcher: archive/v14_legacy/launchd/run_hybrid_bot.sh
+# Production gold bot (v16). Legacy v15: trading_bot_hybrid_v15.py
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -11,4 +11,4 @@ if [[ -f .env ]]; then
   source .env
   set +a
 fi
-exec "$ROOT/.venv/bin/python3" "$ROOT/trading_bot_hybrid_v15.py"
+exec "$ROOT/.venv/bin/python3" "$ROOT/trading_bot_gold_v16.py"

@@ -64,7 +64,7 @@ def trading_day_for_timestamp(ts: datetime | str) -> datetime:
 
 
 def _backtest_csv_path() -> Path:
-    return PROJECT_ROOT / "runtime" / "v15_backtest_trades.csv"
+    return PROJECT_ROOT / "runtime" / "gold_v16_hybrid_backtest_trades.csv"
 
 
 def _load_backtest_df():

@@ -1,0 +1,1125 @@
+#!/usr/bin/env python3
+"""
+AlphaGold v16 Gold Trading Bot
+================================
+Production stack: hybrid patterns + energetic + v16 momentum + dip short.
+
+Usage:
+  python3 trading_bot_gold_v16.py
+  python3 gold_live_bot_v16.py --replay 2025-06-01 2026-06-25
+"""
+from __future__ import annotations
+
+import atexit
+import json
+import logging
+import os
+import subprocess
+import sys
+import time
+from dataclasses import dataclass
+from datetime import date, datetime, timezone
+from pathlib import Path
+from typing import Any, Optional
+
+import pandas as pd
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from brokers.ig_live import IGLiveBrokerAdapter
+from config.hybrid_config import (
+    ENERGETIC_EXECUTION_CONFIG,
+    EXECUTION_CONFIG,
+    HYBRID_CONFIG,
+    WF_CONFIG,
+)
+from brokers.base import OrderRequest
+from ig_scripts.ig_data_api import (
+    API_CONFIG,
+    IGService,
+    Price,
+    fetch_and_store_prices_from_latest,
+    fetch_open_positions,
+    fetch_prices,
+)
+from trading_bot_base import AlphaGoldBaseBot, BotState
+from v16.gold.combined_signal_engine import (
+    GoldV16LegCache,
+    check_momentum_struct_exit,
+    ensure_bid_ask_df,
+    evaluate_combined_minute,
+    gold_decision_to_live_signal,
+)
+from v16.gold.hybrid_live import V16HybridLiveScorer, LiveSignal
+from xgboost_filter_model.pattern_training import wf_cycle_at
+from xgboost_filter_model.time_slot_filter import (
+    is_blocked_entry,
+    load_weak_filter_for_current_cycle,
+)
+from mobile_api.journal import SignalJournal, trading_day_label, trading_day_start_utc
+
+UTC = timezone.utc
+MINUTE_FETCH_START_SEC = 5    # :05–:07 gold IG fetch → cache
+MINUTE_TRADE_START_SEC = 5    # :05–:07 gold score / orders (after fetch)
+MINUTE_SYNC_START_SEC = 10    # :10–:11 gold position sync
+MINUTE_DB_START_SEC = 32      # :32–:37 store gold/oil/aud bars to DB
+GOLD_CACHE_PATH = PROJECT_ROOT / "runtime" / "gold_1m_cache.pkl"
+
+
+@dataclass
+class HybridBotState(BotState):
+    last_trained_wf_cycle: Optional[int] = None
+    open_position_source: Optional[str] = None  # pattern | energetic
+    open_pattern_name: Optional[str] = None
+    open_tp: Optional[float] = None
+    open_sl: Optional[float] = None
+    open_horizon: Optional[int] = None
+    open_side: Optional[int] = None
+    entry_tp: Optional[float] = None
+    entry_horizon: Optional[int] = None
+    open_horizon_deadline: Optional[str] = None
+    open_entry_struct_trend: Optional[int] = None  # v16_momentum struct-hold
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "HybridBotState":
+        known = {f.name for f in cls.__dataclass_fields__.values()}
+        return cls(**{k: v for k, v in data.items() if k in known})
+
+
+class AlphaGoldGoldV16Bot(AlphaGoldBaseBot):
+    """v16 gold combined live bot — hybrid + momentum + dip short (single slot)."""
+
+    def __init__(self):
+        self.logger = self._init_logger()
+        self.logger.info("--- AlphaGold v16 GOLD Bot Startup ---")
+
+        self.state_path = PROJECT_ROOT / "runtime" / "trading_bot_gold_v16_state.json"
+        self.state = self._load_hybrid_state()
+
+        self.logger.info(f"Pattern exec defaults: {json.dumps(EXECUTION_CONFIG, indent=2)}")
+        self.logger.info(f"Energetic exec: {json.dumps(ENERGETIC_EXECUTION_CONFIG, indent=2)}")
+        self.logger.info(
+            f"Hybrid: pattern reverse={HYBRID_CONFIG['pattern_close_on_reverse']}  "
+            f"refresh={HYBRID_CONFIG['pattern_same_dir_refresh']}  "
+            f"energetic reverse={HYBRID_CONFIG['energetic_close_on_reverse']}  "
+            f"refresh={HYBRID_CONFIG['energetic_same_dir_refresh']}"
+        )
+        self.logger.info("Stack: hybrid patterns + energetic + v16 momentum + dip short")
+        self.logger.info("Energetic gate: v16 deterministic (bar_move > 3 & vol > 200, NO HMM)")
+
+        self.service = IGService(
+            api_key=API_CONFIG["api_key"],
+            username=API_CONFIG["username"],
+            password=API_CONFIG["password"],
+            base_url=API_CONFIG["base_url"],
+        )
+        self.broker = IGLiveBrokerAdapter(
+            self.service,
+            instrument=Price.Gold,
+            stop_loss_pct=ENERGETIC_EXECUTION_CONFIG["sl"],
+            take_profit_pct=ENERGETIC_EXECUTION_CONFIG["tp"],
+        )
+
+        self.weak_period_cells: list[dict] = []
+        self._weak_filter_cycle: int | None = None
+        self._weak_filter_path: str | None = None
+        self._load_weak_filter()
+
+        self.scorer = V16HybridLiveScorer(self.logger)
+        self._load_models()
+        self.feature_warmup_days = int(WF_CONFIG.get("feature_warmup_days", 120))
+        self.min_prediction_bars = 400
+        self.last_ts = None
+        self.last_predicted_bar_ts = None
+        self._last_submitted_bar_ts: Optional[pd.Timestamp] = None
+        self.cached_df = pd.DataFrame()
+        self._warmup_cache()
+        self._feature_df: pd.DataFrame | None = None
+        self._feature_df_end: pd.Timestamp | None = None
+        self.journal = SignalJournal()
+        self._last_fetch_minute: str | None = None
+        self._last_trade_minute: str | None = None
+        self._last_sync_minute: str | None = None
+        self._last_db_minute: str | None = None
+        self._restore_price_cache_from_disk()
+        self._v16_leg_cache = GoldV16LegCache()
+        if not self.cached_df.empty:
+            try:
+                self._v16_leg_cache.refresh(self.cached_df)
+                self.logger.info(
+                    f"v16 leg cache: momentum={len(self._v16_leg_cache.momentum)} "
+                    f"dip={len(self._v16_leg_cache.dip)} entries"
+                )
+            except Exception as e:
+                self.logger.warning(f"v16 leg cache init failed: {e}")
+
+    def _load_weak_filter(self) -> None:
+        cells, cycle, cycle_start, path = load_weak_filter_for_current_cycle(PROJECT_ROOT)
+        self.weak_period_cells = cells
+        self._weak_filter_cycle = cycle
+        self._weak_filter_path = str(path) if path else None
+        if cells:
+            src = path.name if path else "unknown"
+            self.logger.info(
+                f"Time slot filter ON: {len(cells)} blocked cells "
+                f"(cycle_{cycle} {cycle_start.date()} from {src})"
+            )
+
+    def _maybe_reload_weak_filter(self) -> None:
+        _, cycle = wf_cycle_at(pd.Timestamp.now(tz=UTC))
+        if cycle != self._weak_filter_cycle:
+            self.logger.info(f"WF cycle changed → reloading time filter (cycle_{cycle})")
+            self._load_weak_filter()
+
+    def _init_logger(self):
+        log = logging.getLogger("AlphaGoldGoldV16")
+        if log.handlers:
+            return log
+        log.setLevel(logging.INFO)
+        fmt = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
+        sh = logging.StreamHandler(sys.stdout)
+        sh.setFormatter(fmt)
+        log.addHandler(sh)
+        log_path = PROJECT_ROOT / "runtime" / "trading_bot_gold_v16.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        fh = logging.FileHandler(log_path)
+        fh.setFormatter(fmt)
+        log.addHandler(fh)
+        return log
+
+    def _load_models(self):
+        self.scorer.reload()
+        self._feature_df = None
+        self._feature_df_end = None
+
+    def _maybe_weekend_retrain(self) -> None:
+        now = datetime.now(UTC)
+        if now.hour != 1:
+            return
+
+        from xgboost_filter_model.pattern_training import wf_incremental_train_target
+
+        pending = wf_incremental_train_target(pd.Timestamp(now))
+        if pending is None:
+            return
+        cycle_num, cycle_start = pending
+        if self.state.last_trained_wf_cycle == cycle_num:
+            return
+
+        self.logger.info(
+            f"WF cycle closed — training cycle_{cycle_num} "
+            f"(start {cycle_start.date()}, data before {cycle_start.date()})…"
+        )
+        retrain_log_dir = PROJECT_ROOT / "runtime" / "retrain_logs"
+        retrain_log_dir.mkdir(parents=True, exist_ok=True)
+        day_tag = now.date().isoformat()
+
+        try:
+            retrain_env = {
+                **os.environ,
+                "V14_WF_TRAIN_MODE": "incremental",
+                "PYTHONPATH": str(PROJECT_ROOT),
+            }
+            wf_end = date.today().strftime("%Y-%m-%d")
+            cmd = [
+                sys.executable,
+                str(PROJECT_ROOT / "tools" / "retrain_hybrid_wf.py"),
+                "2025-06-01",
+                wf_end,
+            ]
+            self.logger.info("Running incremental hybrid retrain + weak-filter rebuild…")
+            res = subprocess.run(cmd, capture_output=True, text=True, env=retrain_env)
+            (retrain_log_dir / f"retrain_hybrid_v16_{day_tag}.log").write_text(
+                f"=== STDOUT ===\n{res.stdout}\n=== STDERR ===\n{res.stderr}\n",
+                encoding="utf-8",
+            )
+            if res.returncode != 0:
+                self.logger.error(f"retrain_hybrid_wf failed: {res.stderr[-2000:]}")
+                return
+            self.logger.info("Hybrid retraining complete — hot-reloading scorer + time filter…")
+            self._load_models()
+            self._load_weak_filter()
+            self.state.last_retrain_date = now.date().isoformat()
+            self.state.last_trained_wf_cycle = cycle_num
+            self._save_state()
+            if not self.cached_df.empty:
+                self._refresh_v16_leg_cache(self.cached_df)
+        except Exception as e:
+            self.logger.error(f"Weekend retrain error: {e}")
+
+    def _load_hybrid_state(self) -> HybridBotState:
+        if self.state_path.exists():
+            try:
+                with open(self.state_path, "r") as f:
+                    return HybridBotState.from_dict(json.load(f))
+            except Exception as e:
+                self.logger.error(f"Failed to load hybrid state: {e}")
+        return HybridBotState()
+
+    def _save_state(self):
+        try:
+            self.state_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.state_path, "w") as f:
+                json.dump(self.state.to_dict(), f, indent=2)
+        except Exception as e:
+            self.logger.error(f"Failed to save state: {e}")
+
+    def _clear_position_state(self):
+        self.state.open_deal_id = None
+        self.state.open_entry_time = None
+        self.state.closed_first_seen_at = None
+        self.state.pending_level_resync_bar = None
+        self.state.open_position_source = None
+        self.state.open_pattern_name = None
+        self.state.open_tp = None
+        self.state.open_sl = None
+        self.state.open_horizon = None
+        self.state.open_side = None
+        self.state.entry_tp = None
+        self.state.entry_horizon = None
+        self.state.open_horizon_deadline = None
+        self.state.open_entry_struct_trend = None
+
+    def _refresh_v16_leg_cache(self, df: pd.DataFrame) -> None:
+        if df.empty:
+            return
+        try:
+            self._v16_leg_cache.refresh(df)
+        except Exception as e:
+            self.logger.warning(f"v16 leg cache refresh failed: {e}")
+
+    def _manage_v16_leg_position(self, df: pd.DataFrame, latest_ts: pd.Timestamp) -> bool:
+        """Struct-hold exit for v16 momentum; returns True if still managing open leg."""
+        if not self.state.open_deal_id:
+            return False
+        source = self.state.open_position_source or ""
+        if source != "v16_momentum":
+            return False
+        side = int(self.state.open_side or 0)
+        if side == 0:
+            return True
+        entry_price = None
+        try:
+            pos_wrap = self.broker.get_position_by_deal_id(self.state.open_deal_id)
+            if pos_wrap:
+                level = pos_wrap.get("position", {}).get("level")
+                if level is not None:
+                    entry_price = float(level)
+        except Exception:
+            pass
+        if entry_price is None and self.state.open_entry_time:
+            entry_price = float(df.loc[latest_ts, "close"]) if latest_ts in df.index else 0.0
+        should_close, reason = check_momentum_struct_exit(
+            df,
+            latest_ts,
+            side=side,
+            entry_price=float(entry_price or 0.0),
+            entry_struct_trend=self.state.open_entry_struct_trend,
+        )
+        if should_close:
+            self.logger.info(f"v16 momentum struct exit: {reason}")
+            self._close_position_market(reason)
+            return True
+        return True
+
+    def _append_close_bridge(
+        self,
+        deal_id: str,
+        *,
+        reason: str,
+        exit_time: str | None = None,
+        exit_price: float | None = None,
+        pnl: float | None = None,
+    ) -> None:
+        bridge_path = PROJECT_ROOT / "runtime" / "live_trade_closes.json"
+        bridge_path.parent.mkdir(parents=True, exist_ok=True)
+        rows: list[dict[str, Any]] = []
+        if bridge_path.exists():
+            try:
+                loaded = json.loads(bridge_path.read_text(encoding="utf-8"))
+                if isinstance(loaded, list):
+                    rows = loaded
+            except Exception:
+                rows = []
+        rows.append(
+            {
+                "deal_id": deal_id,
+                "exit_reason": reason,
+                "exit_time": exit_time,
+                "exit_price": exit_price,
+                "pnl": pnl,
+                "written_at_utc": datetime.now(UTC).isoformat(),
+            }
+        )
+        bridge_path.write_text(json.dumps(rows[-50:], indent=2), encoding="utf-8")
+
+    def _record_journal_close(
+        self,
+        deal_id: str,
+        reason: str,
+        result: dict[str, Any] | None = None,
+    ) -> None:
+        exit_price: float | None = None
+        exit_time: str | None = None
+        if result:
+            raw_price = result.get("close_level")
+            if raw_price is not None:
+                exit_price = float(raw_price)
+            confirm = result.get("confirm") or {}
+            exit_time = confirm.get("date") or result.get("close_time")
+        try:
+            self.journal.close_trade(
+                deal_id,
+                exit_time=exit_time,
+                exit_price=exit_price,
+                pnl=None,
+                exit_reason=reason,
+            )
+        except Exception as je:
+            self.logger.error(f"Journal close failed: {je}")
+        try:
+            self._append_close_bridge(
+                deal_id,
+                reason=reason,
+                exit_time=exit_time,
+                exit_price=exit_price,
+            )
+        except Exception as be:
+            self.logger.error(f"Close bridge write failed: {be}")
+
+    # =====================================================================
+    # (All position management, signal submission, and polling logic is
+    #  identical to v14 — inherited from AlphaGoldBaseBot / copied from
+    #  trading_bot_hybrid_v14.py.  The only v15 change is the scorer.)
+    # =====================================================================
+
+    def _horizon_deadline_ts(self) -> Optional[pd.Timestamp]:
+        if self.state.open_horizon_deadline:
+            ts = pd.Timestamp(self.state.open_horizon_deadline)
+            if ts.tzinfo is None:
+                ts = ts.tz_localize("UTC")
+            return ts
+        if not self.state.open_entry_time:
+            return None
+        entry_ts = pd.Timestamp(self.state.open_entry_time)
+        if entry_ts.tzinfo is None:
+            entry_ts = entry_ts.tz_localize("UTC")
+        horizon_min = float(
+            self.state.open_horizon or ENERGETIC_EXECUTION_CONFIG.get("horizon", 30)
+        )
+        return entry_ts + pd.Timedelta(minutes=horizon_min)
+
+    def _set_horizon_deadline(self, from_ts: pd.Timestamp, horizon_minutes: int) -> None:
+        ts = pd.Timestamp(from_ts)
+        if ts.tzinfo is None:
+            ts = ts.tz_localize("UTC")
+        else:
+            ts = ts.tz_convert("UTC")
+        self.state.open_horizon_deadline = (ts + pd.Timedelta(minutes=horizon_minutes)).isoformat()
+
+    def _refresh_mode_for_source(self, source: str) -> str:
+        if source == "pattern":
+            return str(HYBRID_CONFIG.get("pattern_same_dir_refresh", "entry"))
+        return str(HYBRID_CONFIG.get("energetic_same_dir_refresh", "global"))
+
+    def _apply_same_dir_refresh(
+        self, latest_ts: pd.Timestamp, close_price: float, refresh_mode: str,
+    ) -> bool:
+        if refresh_mode == "none" or not self.state.open_deal_id:
+            return False
+        side = int(self.state.open_side or 0)
+        if side == 0:
+            return False
+        source = self.state.open_position_source or "energetic"
+        if refresh_mode == "entry":
+            tp_dist = float(self.state.entry_tp or self.state.open_tp or EXECUTION_CONFIG["tp"])
+            horizon = int(self.state.entry_horizon or self.state.open_horizon or EXECUTION_CONFIG["horizon"])
+        elif refresh_mode == "global":
+            tp_dist = float(ENERGETIC_EXECUTION_CONFIG["tp"])
+            horizon = int(ENERGETIC_EXECUTION_CONFIG["horizon"])
+        else:
+            self.logger.warning(f"Unsupported live refresh mode: {refresh_mode}")
+            return False
+        self._set_horizon_deadline(latest_ts, horizon)
+        pos_wrap = self.broker.get_position_by_deal_id(self.state.open_deal_id)
+        if not pos_wrap:
+            self._save_state()
+            return True
+        pos = pos_wrap.get("position", {})
+        stop_level = pos.get("stopLevel")
+        current_limit = pos.get("limitLevel")
+        new_limit = float(close_price) + tp_dist if side == 1 else float(close_price) - tp_dist
+        should_amend = False
+        if current_limit is None:
+            should_amend = True
+        else:
+            cur = float(current_limit)
+            if side == 1 and new_limit > cur:
+                should_amend = True
+            elif side == -1 and new_limit < cur:
+                should_amend = True
+        if should_amend and stop_level is not None:
+            try:
+                self.broker.amend_position_levels(
+                    deal_id=self.state.open_deal_id,
+                    stop_level=round(float(stop_level), 2),
+                    limit_level=round(new_limit, 2),
+                )
+                self.logger.info(
+                    f"Same-dir refresh ({refresh_mode}) source={source} side={side} "
+                    f"limit={new_limit:.2f} horizon_reset={horizon}m"
+                )
+            except Exception as e:
+                self.logger.error(f"Same-dir refresh amend failed: {e}")
+        else:
+            self.logger.info(
+                f"Same-dir refresh ({refresh_mode}) source={source} "
+                f"horizon_reset={horizon}m limit_unchanged={current_limit}"
+            )
+        self._save_state()
+        return True
+
+    def _manage_open_position(
+        self, latest_ts: pd.Timestamp, close_price: float,
+        pat_sig: Optional[LiveSignal], en_sig: Optional[LiveSignal],
+    ) -> bool:
+        if not self.state.open_deal_id:
+            return False
+        open_side = int(self.state.open_side or 0)
+        source = self.state.open_position_source or "pattern"
+        pat_side = pat_sig.side if pat_sig else 0
+        en_side = en_sig.side if en_sig else 0
+        sig_side = pat_side if source == "pattern" else en_side
+        if source == "energetic" and pat_sig:
+            closed_ok = self._close_position_market("pattern_priority")
+            if closed_ok:
+                self.logger.info(
+                    "Energetic position closed for pattern_priority — "
+                    "pattern entry will fire on next poll (5s)"
+                )
+            else:
+                self.logger.error(
+                    "CRITICAL: Failed to close energetic position for "
+                    "pattern_priority — BLOCKING pattern entry to prevent double trade"
+                )
+            return True
+        close_on_reverse = (
+            HYBRID_CONFIG.get("pattern_close_on_reverse", False)
+            if source == "pattern"
+            else HYBRID_CONFIG.get("energetic_close_on_reverse", True)
+        )
+        if close_on_reverse and sig_side != 0 and sig_side == -open_side:
+            self._close_position_market("reverse_signal")
+            return True
+        refresh_mode = self._refresh_mode_for_source(source)
+        if sig_side != 0 and sig_side == open_side and refresh_mode != "none":
+            self._apply_same_dir_refresh(latest_ts, close_price, refresh_mode)
+            return True
+        return True
+
+    def _sync_trade_results(self):
+        if not self.state.open_deal_id:
+            try:
+                open_pos = fetch_open_positions(self.service)
+                if open_pos:
+                    ids = [p.get("position", {}).get("dealId") for p in open_pos]
+                    self.logger.warning(
+                        f"Startup reconciliation: state has no open_deal_id "
+                        f"but IG reports {len(open_pos)} position(s) deal_ids={ids}."
+                    )
+            except Exception:
+                pass
+            return
+        try:
+            open_pos = fetch_open_positions(self.service)
+            is_still_open = any(
+                p.get("position", {}).get("dealId") == self.state.open_deal_id for p in open_pos
+            )
+            if not is_still_open:
+                closed = self.broker.get_closed_trade_by_deal_id(self.state.open_deal_id)
+                if closed:
+                    pnl = closed.get("pnl", 0.0) or 0.0
+                    self.logger.info(
+                        f"Trade {self.state.open_deal_id} closed PnL={pnl:.2f} "
+                        f"source={self.state.open_position_source}"
+                    )
+                    try:
+                        self.journal.close_trade(
+                            self.state.open_deal_id,
+                            exit_time=closed.get("exit_time"),
+                            exit_price=closed.get("exit_price"),
+                            pnl=float(pnl),
+                            exit_reason=closed.get("reason") or "broker_close",
+                        )
+                        self._append_close_bridge(
+                            self.state.open_deal_id,
+                            reason=str(closed.get("reason") or "broker_close"),
+                            exit_time=closed.get("exit_time"),
+                            exit_price=closed.get("exit_price"),
+                            pnl=float(pnl),
+                        )
+                    except Exception as je:
+                        self.logger.error(f"Journal close failed: {je}")
+                    self.state.last_pnl = pnl
+                    self.state.consecutive_losses = (
+                        self.state.consecutive_losses + 1 if pnl < 0 else 0
+                    )
+                    self._clear_position_state()
+                    self._save_state()
+                else:
+                    now_iso = datetime.now(UTC).isoformat()
+                    if not self.state.closed_first_seen_at:
+                        self.state.closed_first_seen_at = now_iso
+                        self._save_state()
+                    elif (
+                        datetime.now(UTC) - datetime.fromisoformat(self.state.closed_first_seen_at)
+                    ).total_seconds() > 300:
+                        self.logger.warning("Force-clearing stale open_deal_id")
+                        try:
+                            self.journal.close_trade(
+                                self.state.open_deal_id,
+                                exit_time=datetime.now(UTC).isoformat(),
+                                exit_reason="stale_sync",
+                            )
+                        except Exception as je:
+                            self.logger.error(f"Journal stale close failed: {je}")
+                        self._clear_position_state()
+                        self._save_state()
+            else:
+                if self.state.closed_first_seen_at:
+                    self.state.closed_first_seen_at = None
+                    self._save_state()
+        except Exception as e:
+            self.logger.error(f"Error syncing trade results: {e}")
+
+    def _check_horizon_timeout(self):
+        if not self.state.open_deal_id:
+            return
+        deadline = self._horizon_deadline_ts()
+        if deadline is None:
+            return
+        try:
+            now_ts = pd.Timestamp(datetime.now(UTC))
+            if now_ts < deadline:
+                return
+            pos_wrap = self.broker.get_position_by_deal_id(self.state.open_deal_id)
+            if not pos_wrap:
+                self._sync_trade_results()
+                return
+            pos = pos_wrap.get("position", {})
+            direction = str(pos.get("direction", "")).upper()
+            size = float(pos.get("size") or ENERGETIC_EXECUTION_CONFIG.get("size", 1.0))
+            close_dir = "SELL" if direction == "BUY" else "BUY"
+            elapsed_min = (now_ts - pd.Timestamp(self.state.open_entry_time)).total_seconds() / 60.0 if self.state.open_entry_time else 0
+            self.logger.info(
+                f"HORIZON TIMEOUT source={self.state.open_position_source} "
+                f"elapsed={elapsed_min:.1f}m"
+            )
+            result = self.broker.close_position(
+                deal_id=self.state.open_deal_id, direction=close_dir, size=size
+            )
+            self._record_journal_close(self.state.open_deal_id, "horizon_timeout", result)
+        except Exception as e:
+            self.logger.error(f"Horizon timeout error: {e}")
+
+    def _resync_levels_to_backtest(self, df: pd.DataFrame) -> None:
+        pending = self.state.pending_level_resync_bar
+        if not pending or not self.state.open_deal_id:
+            return
+        try:
+            target_ts = pd.Timestamp(pending)
+            if target_ts.tzinfo is None:
+                target_ts = target_ts.tz_localize("UTC")
+        except Exception:
+            self.state.pending_level_resync_bar = None
+            self._save_state()
+            return
+        if target_ts not in df.index:
+            return
+        pos_wrap = self.broker.get_position_by_deal_id(self.state.open_deal_id)
+        if not pos_wrap:
+            self.state.pending_level_resync_bar = None
+            self._save_state()
+            return
+        direction = str(pos_wrap.get("position", {}).get("direction", "")).upper()
+        side = 1 if direction == "BUY" else -1
+        bar_open_mid = float(df.loc[target_ts, "open"])
+        spread = float(ENERGETIC_EXECUTION_CONFIG.get("spread_default", 0.25))
+        bar_open_ask = bar_open_mid + spread
+        bar_open_bid = bar_open_mid - spread
+        tp = float(self.state.open_tp or ENERGETIC_EXECUTION_CONFIG["tp"])
+        sl = float(self.state.open_sl or ENERGETIC_EXECUTION_CONFIG["sl"])
+        ep = bar_open_ask if side == 1 else bar_open_bid
+        stop_level = ep - sl if side == 1 else ep + sl
+        limit_level = ep + tp if side == 1 else ep - tp
+        try:
+            self.broker.amend_position_levels(
+                deal_id=self.state.open_deal_id,
+                stop_level=round(stop_level, 2),
+                limit_level=round(limit_level, 2),
+            )
+            self.state.pending_level_resync_bar = None
+            self._save_state()
+        except Exception as e:
+            self.logger.error(f"Level resync failed: {e}")
+
+    def _get_feature_df(self) -> pd.DataFrame:
+        if self.cached_df.empty:
+            return pd.DataFrame()
+        end_ts = self.cached_df.index.max()
+        if self._feature_df is not None and self._feature_df_end == end_ts:
+            return self._feature_df
+        self._feature_df = self.scorer.build_feature_df_from_ohlcv(self.cached_df)
+        self._feature_df_end = end_ts
+        return self._feature_df
+
+    def _close_position_market(self, reason: str) -> bool:
+        deal_id = self.state.open_deal_id
+        if not deal_id:
+            return False
+        try:
+            pos_wrap = self.broker.get_position_by_deal_id(deal_id)
+            if not pos_wrap:
+                return False
+            pos = pos_wrap.get("position", {})
+            direction = str(pos.get("direction", "")).upper()
+            size = float(pos.get("size") or ENERGETIC_EXECUTION_CONFIG.get("size", 1.0))
+            close_dir = "SELL" if direction == "BUY" else "BUY"
+            result = self.broker.close_position(
+                deal_id=deal_id, direction=close_dir, size=size
+            )
+            self._record_journal_close(deal_id, reason, result)
+            return True
+        except Exception as e:
+            self.logger.error(f"Close position failed: {e}")
+            return False
+
+    def _submit_signal(
+        self, sig: LiveSignal, latest_ts: pd.Timestamp, entry_price: float, *, df: pd.DataFrame | None = None
+    ) -> None:
+        try:
+            if self._feature_df is not None and latest_ts in self._feature_df.index:
+                row = self._feature_df.loc[latest_ts]
+                features_json = json.dumps(row.to_dict(), default=str)
+            else:
+                features_json = None
+        except Exception:
+            features_json = None
+
+        bar_ts = pd.Timestamp(latest_ts).tz_convert("UTC")
+        if self._last_submitted_bar_ts and bar_ts <= self._last_submitted_bar_ts:
+            self.logger.error(
+                f"CRITICAL: _submit_signal BLOCKED — already submitted for bar {bar_ts}"
+            )
+            return
+
+        try:
+            open_positions = fetch_open_positions(self.service)
+            if open_positions:
+                deal_ids = [p.get("position", {}).get("dealId", "?") for p in open_positions]
+                self.logger.error(
+                    f"CRITICAL: _submit_signal BLOCKED — IG has {len(open_positions)} "
+                    f"open position(s) deal_ids={deal_ids}."
+                )
+                return
+        except Exception as e:
+            self.logger.error(f"_submit_signal: fetch_open_positions failed: {e} — BLOCKING entry")
+            return
+
+        bar_iso = pd.Timestamp(latest_ts).tz_convert("UTC").isoformat()
+        if is_blocked_entry(latest_ts, self.weak_period_cells):
+            self.logger.info(f"Signal blocked by time filter at {latest_ts}")
+            self.journal.record_score(
+                bar_iso,
+                pattern_name=sig.pattern_name,
+                pattern_side=sig.side if sig.source == "pattern" else 0,
+                pattern_prob=sig.probability if sig.source == "pattern" else None,
+                energetic_side=sig.side if sig.source == "energetic" else 0,
+                energetic_prob=sig.probability if sig.source == "energetic" else None,
+                action="blocked_time_filter",
+                open_source=self.state.open_position_source,
+                features_json=features_json,
+                bar_close=float(entry_price),
+            )
+            return
+
+        side_str = "buy" if sig.side == 1 else "sell"
+        self.logger.info(
+            f"Triggering {sig.source} signal {side_str} pattern={sig.pattern_name} "
+            f"tp={sig.tp} sl={sig.sl} h={sig.horizon} prob={sig.probability:.3f}"
+        )
+        request = OrderRequest(
+            symbol="gold",
+            side=side_str,
+            size=float(ENERGETIC_EXECUTION_CONFIG.get("size", 1.0)),
+            signal_time_utc=pd.Timestamp(latest_ts).tz_convert("UTC").isoformat(),
+            entry_time_utc=pd.Timestamp(latest_ts).tz_convert("UTC").isoformat(),
+            entry_price=float(entry_price),
+            probability=float(sig.probability),
+            signal_model_family="v16_gold_combined",
+            metadata={"stop_distance": sig.sl, "limit_distance": sig.tp, "source": sig.source},
+        )
+        exec_res = self.broker.submit_order(request)
+        if exec_res.submitted:
+            self._last_submitted_bar_ts = bar_ts
+            deal_id = exec_res.deal_id
+            self.state.open_deal_id = deal_id
+            signal_ts = pd.Timestamp(latest_ts).tz_convert("UTC")
+            entry_bar_ts = signal_ts + pd.Timedelta(minutes=1)
+            self.state.open_entry_time = signal_ts.isoformat()
+            self.state.open_position_source = sig.source
+            self.state.open_pattern_name = sig.pattern_name
+            self.state.open_tp = sig.tp
+            self.state.open_sl = sig.sl
+            self.state.open_horizon = sig.horizon
+            self.state.open_side = sig.side
+            self.state.entry_tp = sig.tp
+            self.state.entry_horizon = sig.horizon
+            self.state.open_entry_struct_trend = None
+            if sig.source == "v16_momentum" and df is not None:
+                try:
+                    from v16.backtest.position_sim import _structure_trend_arr
+                    from v16.config import v16_config
+                    ba = ensure_bid_ask_df(df)
+                    struct = _structure_trend_arr(ba, v16_config.MOMENTUM_V16_WINNER_PRECLOSE)
+                    if struct is not None and latest_ts in ba.index:
+                        self.state.open_entry_struct_trend = int(struct[ba.index.get_loc(latest_ts)])
+                except Exception as e:
+                    self.logger.warning(f"Could not store entry struct trend: {e}")
+            next_bar = pd.Timestamp(latest_ts) + pd.Timedelta(minutes=1)
+            if next_bar.tzinfo is None:
+                next_bar = next_bar.tz_localize("UTC")
+            self._set_horizon_deadline(next_bar, sig.horizon)
+            self.state.pending_level_resync_bar = next_bar.isoformat()
+            self._save_state()
+            self.logger.info(f"Order submitted deal_id={deal_id} source={sig.source}")
+            try:
+                real_entry_price: float | None = None
+                try:
+                    pos_wrap = self.broker.get_position_by_deal_id(deal_id)
+                    if pos_wrap:
+                        level = pos_wrap.get("position", {}).get("level")
+                        if level is not None:
+                            real_entry_price = float(level)
+                except Exception:
+                    pass
+                self.journal.open_trade({
+                    "deal_id": deal_id, "source": sig.source, "pattern_name": sig.pattern_name,
+                    "side": sig.side, "signal_time": signal_ts.isoformat(),
+                    "entry_time": entry_bar_ts.isoformat(),
+                    "entry_price": float(entry_price),
+                    "backtest_entry_price": float(entry_price),
+                    "real_entry_price": real_entry_price,
+                    "tp": sig.tp, "sl": sig.sl, "horizon": sig.horizon,
+                    "probability": sig.probability,
+                    "horizon_deadline": self.state.open_horizon_deadline,
+                })
+                self.journal.record_score(
+                    bar_iso, pattern_name=sig.pattern_name,
+                    pattern_side=sig.side if sig.source == "pattern" else 0,
+                    energetic_side=sig.side if sig.source == "energetic" else 0,
+                    energetic_prob=sig.probability, action="entry",
+                    detail=f"deal_id={deal_id}", open_source=sig.source,
+                    features_json=features_json,
+                    bar_close=float(entry_price),
+                )
+            except Exception as je:
+                self.logger.error(f"Journal entry failed: {je}")
+        else:
+            self.logger.error(f"Order failed: {exec_res.reason}")
+
+    def _write_live_price_bridge(self, df: pd.DataFrame) -> None:
+        if df.empty:
+            return
+        try:
+            row = df.iloc[-1]
+            ts = pd.Timestamp(df.index[-1]).tz_convert("UTC")
+            close = float(row["close"])
+            spread = float(ENERGETIC_EXECUTION_CONFIG.get("spread_default", 0.25))
+            payload = {
+                "close": close,
+                "bid": round(close - spread / 2, 2),
+                "offer": round(close + spread / 2, 2),
+                "updated_at_utc": ts.strftime("%Y-%m-%d %H:%M:%S+00:00"),
+                "fetched_at_utc": datetime.now(UTC).isoformat(),
+                "source": "bot_bridge",
+            }
+            bridge = PROJECT_ROOT / "runtime" / "live_price.json"
+            bridge.parent.mkdir(parents=True, exist_ok=True)
+            bridge.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        except Exception as e:
+            self.logger.error(f"Price bridge write failed: {e}")
+
+    def _maybe_write_account_bridge(self) -> None:
+        if datetime.now(UTC).minute % 5 != 0:
+            return
+        try:
+            from ig_scripts.ig_data_api import fetch_primary_account_summary
+
+            os.environ["IG_REQUEST_CONSUMER"] = "bot_sync"
+            summary = fetch_primary_account_summary(self.service)
+            payload = {
+                **summary,
+                "fetched_at_utc": datetime.now(UTC).isoformat(),
+                "source": "bot_bridge",
+            }
+            bridge = PROJECT_ROOT / "runtime" / "live_account.json"
+            bridge.parent.mkdir(parents=True, exist_ok=True)
+            bridge.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        except Exception as e:
+            self.logger.error(f"Account bridge write failed: {e}")
+
+    def _prices_to_df(self, prices: list[dict]) -> pd.DataFrame:
+        new_df = pd.DataFrame(prices)
+        new_df.index = pd.to_datetime(new_df["timestamp"], unit="ms", utc=True)
+        return new_df.rename(
+            columns={
+                "openPrice": "open",
+                "highPrice": "high",
+                "lowPrice": "low",
+                "closePrice": "close",
+                "lastTradedVolume": "volume",
+            }
+        ).sort_index()
+
+    def _merge_into_cache(self, new_df: pd.DataFrame) -> int:
+        if new_df.empty:
+            return 0
+        before = len(self.cached_df)
+        self.cached_df = pd.concat([self.cached_df, new_df])
+        self.cached_df = self.cached_df[~self.cached_df.index.duplicated(keep="last")].sort_index()
+        max_ts = self.cached_df.index.max()
+        cutoff = max_ts - pd.Timedelta(days=self.feature_warmup_days)
+        self.cached_df = self.cached_df[self.cached_df.index >= cutoff]
+        added = len(self.cached_df) - before
+        if added > 0:
+            self._feature_df = None
+            self._feature_df_end = None
+        return max(added, 0)
+
+    def _save_price_cache(self) -> None:
+        if self.cached_df.empty:
+            return
+        try:
+            GOLD_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+            self.cached_df.to_pickle(GOLD_CACHE_PATH)
+        except Exception as e:
+            self.logger.error(f"Price cache save failed: {e}")
+
+    def _restore_price_cache_from_disk(self) -> None:
+        if not GOLD_CACHE_PATH.exists():
+            return
+        try:
+            disk_df = pd.read_pickle(GOLD_CACHE_PATH)
+            if disk_df.empty:
+                return
+            if disk_df.index.tz is None:
+                disk_df.index = disk_df.index.tz_localize("UTC")
+            else:
+                disk_df.index = disk_df.index.tz_convert("UTC")
+            added = self._merge_into_cache(disk_df)
+            if added > 0:
+                latest = self.cached_df.index.max()
+                self.logger.info(
+                    f"Restored {added} bar(s) from disk cache (latest={latest})"
+                )
+        except Exception as e:
+            self.logger.warning(f"Disk cache restore failed: {e}")
+
+    def poll_fetch(self) -> None:
+        """Fetch latest gold 1m bars from IG every minute and update cache."""
+        os.environ["IG_REQUEST_CONSUMER"] = "bot_fetch"
+        now = datetime.now(UTC)
+        try:
+            prices = fetch_prices(
+                self.service,
+                Price.Gold,
+                start_time=now - pd.Timedelta(minutes=5),
+                end_time=now,
+            )
+            if not prices:
+                self.logger.warning("IG fetch returned no gold bars")
+                return
+            added = self._merge_into_cache(self._prices_to_df(prices))
+            self._write_live_price_bridge(self.cached_df)
+            self._save_price_cache()
+            latest = self.cached_df.index.max()
+            self.logger.info(
+                f"Cache fetch: +{added} bar(s), total={len(self.cached_df)}, latest={latest}"
+            )
+        except Exception as e:
+            self.logger.error(f"Cache fetch failed: {e}")
+
+    def poll_sync(self) -> None:
+        """Gold position sync / horizon close — IG window :10–:11."""
+        os.environ["IG_REQUEST_CONSUMER"] = "bot_sync"
+        now = datetime.now(UTC)
+        current_label = trading_day_label(trading_day_start_utc(now))
+        last_recon_str = self.state.last_reconciliation_day
+        if last_recon_str and current_label > last_recon_str:
+            recon_cmd = [
+                sys.executable,
+                str(PROJECT_ROOT / "tools" / "daily_reconciliation.py"),
+                last_recon_str,
+            ]
+            try:
+                subprocess.Popen(recon_cmd)
+            except Exception as e:
+                self.logger.error(f"Reconciliation trigger failed: {e}")
+        if self.state.last_reconciliation_day != current_label:
+            self.state.last_reconciliation_day = current_label
+            self._save_state()
+        self._sync_trade_results()
+        self._check_horizon_timeout()
+        self._maybe_write_account_bridge()
+
+    def poll_trade(self) -> None:
+        """Score bars and submit entries — uses cache; IG orders in :05–:07 window."""
+        os.environ["IG_REQUEST_CONSUMER"] = "bot_trade"
+        self._maybe_reload_weak_filter()
+        now = datetime.now(UTC)
+        if self.cached_df.empty:
+            self.logger.warning("Trade tick skipped — price cache empty")
+            return
+        current_minute_floor = pd.Timestamp(now).floor("1min")
+        df = self.cached_df[self.cached_df.index < current_minute_floor].copy()
+        if df.empty:
+            return
+        raw_latest_ts = df.index[-1]
+        self._resync_levels_to_backtest(df)
+        if self.last_predicted_bar_ts == raw_latest_ts:
+            return
+        feat_df = self._get_feature_df()
+        bar_iso = pd.Timestamp(raw_latest_ts).tz_convert("UTC").isoformat()
+        if feat_df.empty or raw_latest_ts not in feat_df.index:
+            self.last_predicted_bar_ts = raw_latest_ts
+            return
+        latest_ts = raw_latest_ts
+        try:
+            snap = self.scorer.bar_score_snapshot(
+                feat_df, latest_ts, consecutive_losses=self.state.consecutive_losses
+            )
+            pat_sig, en_sig = self.scorer.score_bar(
+                feat_df, latest_ts, consecutive_losses=self.state.consecutive_losses
+            )
+            try:
+                row = feat_df.loc[latest_ts]
+                self.journal.record_bar_feature(
+                    pd.Timestamp(latest_ts).tz_convert("UTC").isoformat(),
+                    json.dumps(row.to_dict(), default=str),
+                )
+            except Exception:
+                pass
+        except Exception as e:
+            self.logger.error(f"Score failed at {latest_ts}: {e}")
+            self.last_predicted_bar_ts = raw_latest_ts
+            return
+        self.last_predicted_bar_ts = raw_latest_ts
+        routed = snap.routed_pattern
+        close_price = float(df.loc[latest_ts, "close"])
+        df_ba = ensure_bid_ask_df(df)
+        flat = self.state.open_deal_id is None
+        combined = evaluate_combined_minute(
+            df_ba,
+            latest_ts,
+            pat_sig=pat_sig,
+            en_sig=en_sig,
+            leg_cache=self._v16_leg_cache,
+            flat=flat,
+        )
+        winner = combined.get("winner")
+        mom_flag = combined.get("has_momentum")
+        dip_flag = combined.get("has_dip")
+        win_leg = winner.leg if winner else None
+        self.logger.info(
+            f"[{latest_ts}] pattern={routed or '—'} prob={snap.pattern_prob or '—'} "
+            f"en={en_sig.side if en_sig else 0} mom={mom_flag} dip={dip_flag} "
+            f"winner={win_leg or '—'} open={self.state.open_position_source or 'flat'}"
+        )
+        try:
+            self.journal.record_score(
+                pd.Timestamp(latest_ts).tz_convert("UTC").isoformat(),
+                pattern_name=routed, pattern_side=snap.pattern_side,
+                pattern_prob=snap.pattern_prob,
+                energetic_side=snap.energetic_side,
+                energetic_prob=snap.energetic_prob,
+                action="score", open_source=self.state.open_position_source,
+                bar_close=close_price,
+                detail=f"mom={mom_flag} dip={dip_flag} winner={win_leg}",
+            )
+        except Exception as je:
+            self.logger.error(f"Journal score failed: {je}")
+        if self.state.open_deal_id:
+            src = self.state.open_position_source or ""
+            if src == "v16_momentum":
+                if self._manage_v16_leg_position(df_ba, latest_ts):
+                    return
+            elif src in ("v16_dip_short",):
+                return
+            if self._manage_open_position(latest_ts, close_price, pat_sig, en_sig):
+                return
+            return
+        if winner is None:
+            return
+        entry_sig = gold_decision_to_live_signal(winner)
+        self._submit_signal(entry_sig, latest_ts, close_price, df=df_ba)
+
+    def poll_db(self) -> None:
+        os.environ["IG_REQUEST_CONSUMER"] = "bot_db"
+        import time as _t
+        for inst in [Price.Gold, Price.Oil, Price.AUD]:
+            try:
+                fetch_and_store_prices_from_latest(self.service, inst)
+            except Exception as e:
+                self.logger.error(f"DB store failed for {inst.name}: {e}")
+            _t.sleep(2)
+
+    def run(self):
+        self.logger.info(
+            "v16 Gold bot loop: fetch+trade @ :%02d–:07, sync @ :%02d–:11, DB @ :%02d+",
+            MINUTE_FETCH_START_SEC,
+            MINUTE_SYNC_START_SEC,
+            MINUTE_DB_START_SEC,
+        )
+        while True:
+            try:
+                self._maybe_weekend_retrain()
+                now = datetime.now(UTC)
+                minute_key = now.strftime("%Y-%m-%dT%H:%M")
+                sec = now.second
+                if sec >= MINUTE_FETCH_START_SEC and minute_key != self._last_fetch_minute:
+                    self._last_fetch_minute = minute_key
+                    self.poll_fetch()
+                if sec >= MINUTE_TRADE_START_SEC and minute_key != self._last_trade_minute:
+                    self._last_trade_minute = minute_key
+                    self.poll_trade()
+                if sec >= MINUTE_SYNC_START_SEC and minute_key != self._last_sync_minute:
+                    self._last_sync_minute = minute_key
+                    self.poll_sync()
+                if sec >= MINUTE_DB_START_SEC and minute_key != self._last_db_minute:
+                    self._last_db_minute = minute_key
+                    self.poll_db()
+                time.sleep(0.25)
+            except Exception as e:
+                self.logger.error(f"Error in main loop: {e}")
+                time.sleep(1)
+
+
+if __name__ == "__main__":
+    pid_file = PROJECT_ROOT / "runtime" / "trading_bot_gold_v16.pid"
+    if pid_file.exists():
+        try:
+            old_pid = int(pid_file.read_text().strip())
+            try:
+                os.kill(old_pid, 0)
+                print(f"ERROR: Another instance is already running (PID {old_pid}). Exiting.", file=sys.stderr)
+                sys.exit(1)
+            except OSError:
+                pid_file.unlink()
+        except Exception:
+            pid_file.unlink()
+    pid_file.write_text(str(os.getpid()))
+    atexit.register(lambda: pid_file.unlink() if pid_file.exists() else None)
+    AlphaGoldGoldV16Bot().run()

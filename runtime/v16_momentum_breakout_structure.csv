@@ -1,0 +1,6 @@
+scenario,entry_mode,struct_gate,max_leg_age,signals,after_gate,fills,trades,wr,net,avg
+open,open,False,,5854,5854,5854,1582,29.9,1399.0,0.88
+breakout,breakout,False,,5854,5854,4095,2478,42.9,11078.5,4.47
+open+with_trend,open,True,,5854,1822,1822,757,30.5,1014.7,1.34
+breakout+with_trend,breakout,True,,5854,1822,1296,963,44.4,4738.9,4.92
+breakout+with_trend+leg≤2,breakout,True,2.0,5854,323,218,191,51.3,1220.4,6.39

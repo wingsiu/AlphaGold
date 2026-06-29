@@ -1,0 +1,20 @@
+{
+  "consecutive_losses": 0,
+  "last_pnl": 0.0,
+  "open_deal_id": null,
+  "open_entry_time": null,
+  "closed_first_seen_at": null,
+  "pending_level_resync_bar": null,
+  "last_retrain_date": "2026-06-20",
+  "last_reconciliation_day": "2026-06-28",
+  "last_trained_wf_cycle": 39,
+  "open_position_source": null,
+  "open_pattern_name": null,
+  "open_tp": null,
+  "open_sl": null,
+  "open_horizon": null,
+  "open_side": null,
+  "entry_tp": null,
+  "entry_horizon": null,
+  "open_horizon_deadline": null
+}

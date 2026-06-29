@@ -6,8 +6,9 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-# MySQL table synced via ig_scripts Price.Oil → "prices"
+# MySQL table synced via ig_scripts Price.Oil → "prices" (CC.D.CL.BMU.IP)
 PRICE_TABLE = "prices"
+OIL_IG_EPIC = "CC.D.CL.BMU.IP"
 
 # Model output (do not mix with gold wf_models_v14_patterns)
 PATTERN_MODEL_DIR = PROJECT_ROOT / "runtime" / "bot_assets" / "oil_pattern_models"

@@ -1,0 +1,19 @@
+trades,wr,net,avg,model
+752,49.7,249.5,0.33,dual v15 exit TP30/SL25 H30 (v16 feats)
+521,62.2,124.0,0.24,triclass margin + trend + wide
+418,57.4,84.3,0.2,triclass + trend align
+752,60.8,59.5,0.08,dual_scale (v16 baseline)
+752,66.9,57.6,0.08,dual wide exit (+5/+20 H20)
+1096,64.4,38.3,0.03,triclass wide exit
+807,59.1,-13.4,-0.02,triclass + slot filter
+304,58.9,-33.5,-0.11,trend_gate dual
+577,61.4,-41.4,-0.07,dual v15 feats p>=0.65
+776,66.1,-91.0,-0.12,dual v15 features + wide exit
+694,60.8,-99.2,-0.14,dual v15 feats p>=0.62
+776,49.5,-121.3,-0.16,dual v15 feats + v15 exit
+724,59.9,-139.8,-0.19,dual v15 feats p>=0.6
+844,58.9,-152.7,-0.18,dual v15 feats p>=0.55
+776,59.5,-157.5,-0.2,dual v15 features
+776,59.5,-157.5,-0.2,tight burst + dual v15 feats
+1116,57.8,-259.0,-0.23,triclass v15 features
+1197,57.6,-316.6,-0.26,tight burst + triclass v15

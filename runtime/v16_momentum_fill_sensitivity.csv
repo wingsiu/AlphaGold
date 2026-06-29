@@ -1,0 +1,7 @@
+scenario,fill_mode,after_gate,fills,trades,wr,net,avg
+open,ideal,5854,5854,1582,29.9,1399.0,0.88
+open,conservative,5854,5854,1588,29.3,1072.4,0.68
+open,pessimistic,5854,5854,1588,28.7,848.4,0.53
+breakout+with_trend,ideal,1822,1296,963,44.4,4738.9,4.92
+breakout+with_trend,conservative,1822,1296,655,30.8,926.4,1.41
+breakout+with_trend,pessimistic,1822,1162,598,31.8,954.1,1.6

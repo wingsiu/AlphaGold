@@ -1,0 +1,15 @@
+---
+description: AlphaGold v15 production — v14 folder retired; use canonical paths below
+alwaysApply: true
+---
+
+# AlphaGold production (post-v14 retirement)
+
+- **Live bot:** `trading_bot_hybrid_v15.py`
+- **Gold backtest:** `v15/backtest/backtest_v15.py` or `run_pattern_backtest.py`
+- **Config:** `config/hybrid_config.py`, `config/pattern_registry.py` (not `v14_*` shims)
+- **Simulation:** `backtest/core.py`
+- **WF tools:** `tools/retrain_hybrid_wf.py`, `tools/run_hybrid_time_filter.py`
+- **Launchd:** `scripts/` (not `v14/scripts/`)
+- **Oil backtest:** `oil/backtest/pattern_backtest.py`
+- **No `v14/` folder** — archived under `archive/v14_legacy/source_tree/`

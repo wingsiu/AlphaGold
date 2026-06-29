@@ -26,7 +26,7 @@ load_dotenv(dotenv_path=PROJECT_ROOT / ".env")
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-STATE_PATH = PROJECT_ROOT / "runtime" / "trading_bot_hybrid_v15_state.json"
+STATE_PATH = PROJECT_ROOT / "runtime" / "trading_bot_gold_v16_state.json"
 
 from mobile_api.compare import compare_today  # noqa: E402
 from mobile_api.journal import SignalJournal  # noqa: E402

@@ -1,0 +1,6 @@
+mode,lane,trades,wr,net,avg,struct,reverse,tp,sl,to
+struct_always,mech,699,33.9,1511.7,2.16,31,0,161,441,66
+reverse_always,mech,895,37.8,592.7,0.66,0,321,119,425,30
+struct_and_reverse,mech,895,38.3,698.5,0.78,22,315,119,414,25
+reverse_profit_only,mech,848,42.0,697.9,0.82,0,210,119,483,36
+none,mech,699,31.5,1121.8,1.6,0,0,161,460,78

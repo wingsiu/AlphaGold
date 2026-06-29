@@ -1,0 +1,2 @@
+min_move_pts,change_mode,seq_len,lstm_seq_len,model,prob,signals,trades,wr,net,avg,train_secs
+3.0,body,30,30,logreg,0.52,1645,879,34.5,1625.2,1.85,1.1

@@ -1,0 +1,4 @@
+label,trades,wr,net,avg,hold_med
+default,153,36.6,-787.3,-5.15,480.0
+struct_only,153,37.9,-1345.9,-8.8,480.0
+swing_only,153,30.7,-958.3,-6.26,480.0

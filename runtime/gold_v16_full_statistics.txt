@@ -1,0 +1,1207 @@
+.========================================================================
+  GOLD v16 COMBINED BACKTEST
+  Stack: hybrid + momentum + dip short (single slot)
+========================================================================
+Running hybrid patterns + energetic…
+  Hybrid load 2025-02-01 → 2026-06-25…
+Loading gold_prices from 2025-02-01 to 2026-06-26...
+Data successfully loaded: 398779 rows.
+Data loaded successfully: 398779 rows.
+Features and labels prepared.
+Features prepared (live inference mode — no future labels).
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Adding 15m Price Action features (group=fvg,wick, FVG min_gap=0)...
+Adding pattern features (set=current)…
+Loading gold_prices from 2025-06-01 to 2025-06-08...
+Data successfully loaded: 6895 rows.
+Data loaded successfully: 6895 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Skipping 15m Price Action features
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding new directional features...
+Adding moving average features...
+Warning: Only one class found in target_v14. Adding dummy rows to ensure 2 classes.
+Pattern path: 397540 bars (no HMM/bar_move/volume filter)
+Adding new directional features...
+Adding moving average features...
+Loading gold_prices from 2025-06-01 to 2025-06-08...
+Data successfully loaded: 6895 rows.
+Data loaded successfully: 6895 rows.
+Features and labels prepared.
+Features and labels prepared.
+Adding liquidity zone indicators...
+Adding liquidity zone, recovery, and equal high/low indicators...
+Applying HMM Regime Filter...
+Adding v14 daily range and session features...
+Adding v14 multi-window features (3m, 15m, 60m)...
+Adding Volume Profile features (VWAP, POC)...
+Adding Time features (time_from_15m, time_from_max/min)...
+Skipping 15m Price Action features
+Redefining target with Horizon=30, TP=30.0, SL=25.0...
+Adding new directional features...
+Adding moving average features...
+Warning: Only one class found in target_v14. Adding dummy rows to ensure 2 classes.
+Loading gold_prices from 2025-06-01 to 2026-06-26...
+Data successfully loaded: 379624 rows.
+Data loaded successfully: 379624 rows.
+Loading gold 1m for v16 legs…
+Data successfully loaded: 397400 rows.
+Running v16 momentum + dip short…
+
+--- Pre-merge legs ---
+  hybrid patterns+energetic     722 trades  PnL= +4282.0
+  v16 momentum                  146 trades  PnL=+2492.6
+  v16 dip short                 292 trades  PnL=+917.8
+  raw total                    1160 trades  PnL=+7692.4
+
+  Dropped by merge: 248
+
+============================================================
+  GOLD v16 COMBINED (merged portfolio)
+  Period: 2025-06-01 → 2026-06-25
+============================================================
+  Trades       : 912  (W:483  L:429)
+  Win Rate     : 53.0%
+  Net PnL      : +6906.6
+  Avg Trade    : +7.57
+  Max Drawdown : -262.2
+
+  By pattern:
+    breakthrough_long   :    5 trades  PnL=+246.8  WR=100%  avg=+49.35
+    breakthrough_short  :    3 trades  PnL=+172.5  WR=100%  avg=+57.50
+    downtrend_retrace   :   41 trades  PnL=+702.9  WR=63%  avg=+17.14
+    energetic           :  241 trades  PnL=+729.7  WR=54%  avg=+3.03
+    reversal_fvg_long   :   71 trades  PnL=+395.5  WR=52%  avg=+5.57
+    reversal_fvg_short  :   18 trades  PnL=+231.1  WR=33%  avg=+12.84
+    uptrend_retrace     :  194 trades  PnL=+1596.8  WR=55%  avg=+8.23
+    v16_dip_short       :  221 trades  PnL=+686.3  WR=50%  avg=+3.11
+    v16_momentum        :  118 trades  PnL=+2145.1  WR=50%  avg=+18.18
+
+  By source:
+    energetic           :  241 trades  PnL=+729.7  WR=54%  avg=+3.03
+    pattern             :  332 trades  PnL=+3345.5  WR=55%  avg=+10.08
+    v16_dip_short       :  221 trades  PnL=+686.3  WR=50%  avg=+3.11
+    v16_momentum        :  118 trades  PnL=+2145.1  WR=50%  avg=+18.18
+
+  By matched_pattern:
+    breakthrough_long   :    5 trades  PnL=+246.8  WR=100%  avg=+49.35
+    breakthrough_short  :    3 trades  PnL=+172.5  WR=100%  avg=+57.50
+    downtrend_retrace   :   41 trades  PnL=+702.9  WR=63%  avg=+17.14
+    reversal_fvg_long   :   71 trades  PnL=+395.5  WR=52%  avg=+5.57
+    reversal_fvg_short  :   18 trades  PnL=+231.1  WR=33%  avg=+12.84
+    uptrend_retrace     :  194 trades  PnL=+1596.8  WR=55%  avg=+8.23
+
+  LONG :  402 trades  PnL=+3042.7  WR=54%  avg=+7.57
+  SHORT:  510 trades  PnL=+3863.9  WR=52%  avg=+7.58
+
+  Profit Factor   : 2.25
+  Daily Drawdown  : -183.6
+  Avg Day PnL     : 38.4
+  Positive Days   : 55.0%
+  Trades/Day      : 5.1
+  Avg Duration    : 99.5 min
+
+  Streaks:
+    Max Win Streak   : 14
+    Max Loss Streak  : 13
+
+  Risk-Adjusted:
+    Expectancy/Trade   : 7.57
+    Expectancy/Day     : 38.37
+    Recovery Factor    : 26.343
+    Sharpe  (annualized): 5.40
+    Sortino (annualized): 42.32
+
+  Exit Reason Details:
+    Target Hit   : 0 trades  avg=0.00
+    Reverse Sig  : 0 trades  WR=0.0%  avg=0.00
+    Timeout      : 0 trades  WR=0.0%  avg=0.00
+
+  Target Updates:
+    Mean=0.00  Median=0.00  Max=0
+
+============================================================
+  MONTHLY STATISTICS
+============================================================
+  month  trades  total_pnl  avg_trade win_rate
+2025-06       1     13.950  13.950000   100.0%
+2025-09      15     -5.390  -0.359333    60.0%
+2025-10      82    819.910   9.998902    58.5%
+2025-11      33    167.790   5.084545    54.5%
+2025-12      26    192.640   7.409231    42.3%
+2026-01      94    886.115   9.426755    51.1%
+2026-02     228   2230.075   9.781031    55.7%
+2026-03     256   1979.145   7.731035    55.1%
+2026-04      85    -58.150  -0.684118    38.8%
+2026-05      40    100.990   2.524750    47.5%
+2026-06      52    579.560  11.145385    53.8%
+
+============================================================
+  YEARLY STATISTICS
+============================================================
+ year  trades  total_pnl  avg_trade win_rate
+ 2025     157   1188.900   7.572611    55.4%
+ 2026     755   5717.735   7.573159    52.5%
+
+============================================================
+  RETRAIN CYCLE STATISTICS  (every 14d from WF anchor)
+============================================================
+                      retrain_cycle  trades  total_pnl  avg_trade win_rate
+cycle_12 (2025-06-06 to 2025-06-20)       1     13.950  13.950000   100.0%
+cycle_18 (2025-08-29 to 2025-09-12)       6     23.740   3.956667    83.3%
+cycle_19 (2025-09-12 to 2025-09-26)       5    -11.540  -2.308000    40.0%
+cycle_20 (2025-09-26 to 2025-10-10)      18    -68.980  -3.832222    38.9%
+cycle_21 (2025-10-10 to 2025-10-24)      53    880.490  16.613019    67.9%
+cycle_22 (2025-10-24 to 2025-11-07)      20     27.340   1.367000    50.0%
+cycle_23 (2025-11-07 to 2025-11-21)      22     78.420   3.564545    50.0%
+cycle_24 (2025-11-21 to 2025-12-05)      12     60.330   5.027500    41.7%
+cycle_25 (2025-12-05 to 2025-12-19)      10     -6.970  -0.697000    40.0%
+cycle_26 (2025-12-19 to 2026-01-02)      11    214.790  19.526364    63.6%
+cycle_27 (2026-01-02 to 2026-01-16)      16     59.260   3.703750    31.2%
+cycle_28 (2026-01-16 to 2026-01-30)      77    804.185  10.443961    54.5%
+cycle_29 (2026-01-30 to 2026-02-13)     204   1985.995   9.735270    57.4%
+cycle_30 (2026-02-13 to 2026-02-27)      24    244.080  10.170000    41.7%
+cycle_31 (2026-02-27 to 2026-03-13)      62    377.140   6.082903    54.8%
+cycle_32 (2026-03-13 to 2026-03-27)     173   1593.845   9.212977    57.2%
+cycle_33 (2026-03-27 to 2026-04-10)      83    -64.660  -0.779036    37.3%
+cycle_34 (2026-04-10 to 2026-04-24)      17    -28.720  -1.689412    41.2%
+cycle_35 (2026-04-24 to 2026-05-08)      15     62.500   4.166667    53.3%
+cycle_36 (2026-05-08 to 2026-05-22)      22    104.460   4.748182    45.5%
+cycle_37 (2026-05-22 to 2026-06-05)      16     95.660   5.978750    43.8%
+cycle_38 (2026-06-05 to 2026-06-19)      35    384.820  10.994857    60.0%
+cycle_39 (2026-06-19 to 2026-06-25)      10     76.500   7.650000    40.0%
+
+  Weekday (UTC+2):
+weekday_utc2  trades  total_pnl  avg_trade win_rate_pct
+      Monday     253   2116.415   8.365277        53.0%
+     Tuesday     171    874.670   5.115029        47.4%
+   Wednesday     161   1130.350   7.020807        50.9%
+    Thursday     168   1158.955   6.898542        54.8%
+      Friday     159   1626.245  10.227956        59.1%
+
+  Session Breakdown:
+session  trades  total_pnl  avg_trade  win_rate_pct
+   Asia     490   3756.005   7.665316     52.244898
+     NY     422   3150.630   7.465948     53.791469
+
+============================================================
+  SESSION HEATMAPS
+============================================================
+
+[HKT — Total PnL]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00
+----------------------------------------------------------------------------
+Monday             -   130.1       -       -   104.0       -   212.7   463.0
+Tuesday            -   116.3    18.7    30.9   -30.1    34.3     6.2    71.1
+Wednesday      128.8     7.8     9.9    44.1       -     4.6    -5.2   156.0
+Thursday         9.8   139.9    33.2    35.4    -4.2   106.2     8.1   190.0
+Friday             -    68.3    85.0    31.3       -     9.2    18.6    69.6
+
+[HKT — Win Rate %]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00
+----------------------------------------------------------------------------
+Monday             -     49%       -       -     62%       -     50%     75%
+Tuesday            -     40%     50%     67%      0%     67%     50%     75%
+Wednesday        71%     47%    100%    100%       -     33%      0%     67%
+Thursday         75%     58%     29%     50%     50%     67%     50%     50%
+Friday             -     53%     80%     67%       -    100%     50%     60%
+
+[HKT — Trade Count]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00
+----------------------------------------------------------------------------
+Monday             -      47       -       -       8       -      16      20
+Tuesday            -      20       6       3       2       6       4       4
+Wednesday          7      17       1       3       -       3       1       3
+Thursday           4      12       7       4       2       6       4       8
+Friday             -      15       5       3       -       1       2       5
+
+[LONDON — Total PnL]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00   16:00
+------------------------------------------------------------------------------------
+Monday         278.3    95.7    34.5    29.5   242.3    24.6    74.3    99.7    29.8
+Tuesday        288.4    32.4   -17.9   -60.1    68.6   185.2   110.8    -9.5    42.8
+Wednesday      139.2    75.0   -15.0    77.7    18.8    23.4    24.0   -24.5    88.2
+Thursday       165.8   119.9    -0.5    45.8    63.1    47.7    71.8    -3.2    28.4
+Friday         100.5   167.2   -46.2    53.9   226.1   213.6   158.7   314.3    -4.7
+
+[LONDON — Win Rate %]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00   16:00
+------------------------------------------------------------------------------------
+Monday           45%     50%     56%     40%     67%     40%     56%    100%     55%
+Tuesday          55%     38%      0%     33%     43%     69%     88%     32%     43%
+Wednesday        50%     33%     33%     56%     50%     50%     36%     50%     36%
+Thursday         50%     90%     33%     67%     45%     50%     56%     50%     40%
+Friday           58%     71%      0%     50%     43%     53%     56%     76%     38%
+
+[LONDON — Trade Count]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00   16:00
+------------------------------------------------------------------------------------
+Monday            11      10       9       5      15       5      18       4      11
+Tuesday           11       8       3      12       7      16       8      19       7
+Wednesday         10       6       3       9       8      12      14      12      11
+Thursday          14      10       3       9      11       8       9      10       5
+Friday            12      14       2       4       7      15      25      21       8
+
+[NY — Total PnL]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00
+----------------------------------------------------------------------------
+Monday         206.9    59.0   115.0     9.2    68.2    34.1   107.5    19.4
+Tuesday        196.1    97.5    -3.3    41.7    46.8   -64.6     2.0    15.9
+Wednesday       43.7    62.5   -47.2    98.5   120.5    40.2   144.7    84.7
+Thursday       133.6    35.1   -24.6    72.0    50.6   124.4    20.0   -43.7
+Friday         397.4   165.2   270.4    57.3   -22.3    50.5    50.2    20.1
+
+[NY — Win Rate %]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00
+----------------------------------------------------------------------------
+Monday           54%     56%     83%     33%     53%     50%     50%     25%
+Tuesday          79%     67%     40%     38%     56%     20%     50%     67%
+Wednesday        50%     47%     42%     42%     67%     67%     57%     71%
+Thursday         62%     45%     50%     50%     50%     75%     44%     50%
+Friday           53%     59%     68%     62%     33%     67%     40%     50%
+
+[NY — Trade Count]
+               08:00   09:00   10:00   11:00   12:00   13:00   14:00   15:00
+----------------------------------------------------------------------------
+Monday            13      16       6       3      17       4       8       4
+Tuesday           14       9      20       8       9       5       6       3
+Wednesday         16      15      12      12       6       3      14       7
+Thursday           8      11      10       6       6      12       9       6
+Friday            19      22      22       8       3       6       5       2
+
+────────────────────────────────────────────────────────────
+  ALL TRADES (HKT)
+────────────────────────────────────────────────────────────
+  entry_hkt exit_hkt  dir entry_price exit_price     pnl exit_reason            pattern
+06-21 04:49    06:02   up        None       None  13.950              reversal_fvg_long
+09-01 21:07    21:54 down        None       None  -2.850                  v16_dip_short
+09-03 22:24    23:09 down        None       None   0.670                  v16_dip_short
+09-04 18:09    18:54 down        None       None   4.030                  v16_dip_short
+09-04 21:23    22:24 down        None       None  13.310                  v16_dip_short
+09-06 00:08    00:54 down        None       None   2.330                  v16_dip_short
+09-09 20:09    20:54 down        None       None   6.250                  v16_dip_short
+09-15 23:51    00:38 down        None       None  -5.140                  v16_dip_short
+09-23 17:10    18:09 down        None       None  -3.550                  v16_dip_short
+09-24 00:53    01:39 down        None       None   0.420                  v16_dip_short
+09-25 22:23    23:09 down        None       None   2.660                  v16_dip_short
+09-26 22:03    22:52 down        None       None  -5.930                  v16_dip_short
+09-29 21:39    22:24 down        None       None   1.860                  v16_dip_short
+09-30 18:38    19:23 down        None       None   0.680                  v16_dip_short
+09-30 22:06    22:51 down        None       None -16.010                  v16_dip_short
+09-30 23:25    00:10 down        None       None  -4.120                  v16_dip_short
+10-01 15:52    16:38 down        None       None -15.450                  v16_dip_short
+10-03 21:24    22:09 down        None       None   8.730                  v16_dip_short
+10-03 22:50    23:35 down        None       None  -7.270                  v16_dip_short
+10-06 22:35    23:24 down        None       None   4.550                  v16_dip_short
+10-07 00:21    01:09 down        None       None  -3.900                  v16_dip_short
+10-08 00:24    01:09 down        None       None -10.900                  v16_dip_short
+10-08 23:25    00:10 down        None       None  -4.280                  v16_dip_short
+10-09 03:52    04:39 down        None       None   5.930                  v16_dip_short
+10-09 22:39    23:24 down        None       None  -7.910                  v16_dip_short
+10-10 15:54    16:54 down        None       None -19.310                  v16_dip_short
+10-10 20:19    21:04 down        None       None  12.360                  v16_dip_short
+10-10 21:25    22:21 down        None       None   6.170                  v16_dip_short
+10-11 01:38    02:23 down        None       None -19.710                  v16_dip_short
+10-11 02:24    03:37 down        None       None  -0.400                  v16_dip_short
+10-13 21:55    22:40 down        None       None  -2.320                  v16_dip_short
+10-14 16:03    16:53 down        None       None -11.370                  v16_dip_short
+10-14 18:47    21:15 down        None       None  16.970                   v16_momentum
+10-14 21:37    22:23 down        None       None -18.490                  v16_dip_short
+10-15 00:50    01:54 down        None       None   2.640                  v16_dip_short
+10-15 16:47    16:59   up        None       None  -4.940                   v16_momentum
+10-16 00:47    01:12   up        None       None  -6.270                   v16_momentum
+10-16 01:41    13:41   up        None       None  17.030                   v16_momentum
+10-16 22:53    23:39 down        None       None  -9.420                  v16_dip_short
+10-17 01:37    02:22 down        None       None   8.360                  v16_dip_short
+10-17 06:06    06:09   up        None       None  20.000                uptrend_retrace
+10-17 06:15    06:18   up        None       None  20.000                uptrend_retrace
+10-17 07:02    07:08   up        None       None  20.000                uptrend_retrace
+10-17 07:37    07:50   up        None       None  24.230                uptrend_retrace
+10-17 09:18    10:09 down        None       None  -3.370             reversal_fvg_short
+10-17 10:24    10:31   up        None       None  20.000                uptrend_retrace
+10-17 11:02    11:15   up        None       None  20.000                uptrend_retrace
+10-17 14:35    14:50 down        None       None -11.430              downtrend_retrace
+10-17 15:06    15:20 down        None       None  40.080              downtrend_retrace
+10-17 16:19    17:08 down        None       None   1.140                  v16_dip_short
+10-17 20:33    21:24 down        None       None  -6.560                  v16_dip_short
+10-18 01:56    02:11   up        None       None  20.870                uptrend_retrace
+10-18 03:51    04:37 down        None       None -20.420                  v16_dip_short
+10-20 15:08    15:53 down        None       None -13.840                  v16_dip_short
+10-20 16:10    16:55 down        None       None   4.910                  v16_dip_short
+10-20 20:34    21:19 down        None       None -16.030                  v16_dip_short
+10-21 15:58    16:14 down        None       None  52.850             reversal_fvg_short
+10-21 20:02    20:18 down        None       None  27.000              downtrend_retrace
+10-21 22:04    22:45 down        None       None  79.630             reversal_fvg_short
+10-21 22:50    23:11   up        None       None  35.910                uptrend_retrace
+10-21 23:32    23:55   up        None       None  17.360                uptrend_retrace
+10-22 00:06    00:38 down        None       None  35.000                  v16_dip_short
+10-22 07:51    08:10 down        None       None  90.240             breakthrough_short
+10-22 08:15    08:48   up        None       None  52.560                uptrend_retrace
+10-22 08:56    09:06   up        None       None  27.890                uptrend_retrace
+10-22 09:55    10:13   up        None       None  26.300                uptrend_retrace
+10-22 11:23    11:37   up        None       None  21.390                uptrend_retrace
+10-22 15:58    16:15 down        None       None  58.500              downtrend_retrace
+10-22 18:31    18:43 down        None       None  40.000              downtrend_retrace
+10-22 18:49    19:07 down        None       None  19.790              downtrend_retrace
+10-22 20:39    21:24 down        None       None -11.300                  v16_dip_short
+10-22 21:24    21:39   up        None       None  21.960                uptrend_retrace
+10-22 22:19    22:39 down        None       None  35.000                  v16_dip_short
+10-22 23:49    00:02   up        None       None  -9.020                   v16_momentum
+10-23 00:18    06:15   up        None       None  65.030                   v16_momentum
+10-23 17:02    17:05   up        None       None  -3.380                   v16_momentum
+10-23 17:55    18:40 down        None       None   4.090                  v16_dip_short
+10-23 22:07    23:38 down        None       None   8.110                  v16_dip_short
+10-24 00:32    00:42   up        None       None  -7.650                   v16_momentum
+10-24 01:38    02:24 down        None       None  -5.170                  v16_dip_short
+10-24 20:52    21:07   up        None       None  25.580                uptrend_retrace
+10-24 21:59    22:12   up        None       None  20.470                uptrend_retrace
+10-25 01:32    06:05 down        None       None  40.580                   v16_momentum
+10-27 06:08    06:14 down        None       None -25.000                      energetic
+10-27 06:48    07:18 down        None       None -13.350                      energetic
+10-27 16:56    17:29 down        None       None  -8.730                      energetic
+10-27 18:09    19:24 down        None       None  17.320                  v16_dip_short
+10-28 00:39    01:24 down        None       None  -5.120                  v16_dip_short
+10-28 19:23    20:09 down        None       None  -5.510                  v16_dip_short
+10-28 21:25    22:39 down        None       None -15.020                  v16_dip_short
+10-29 16:01    16:22   up        None       None   5.000              reversal_fvg_long
+10-29 18:24    19:09 down        None       None   3.030                  v16_dip_short
+10-30 01:39    02:36 down        None       None  35.000                  v16_dip_short
+10-30 12:32    12:48   up        None       None  10.790              reversal_fvg_long
+10-30 17:06    17:24   up        None       None   7.160              reversal_fvg_long
+10-30 20:07    20:52 down        None       None   8.180                  v16_dip_short
+10-30 21:06    21:54 down        None       None -14.490                  v16_dip_short
+10-31 20:23    21:08 down        None       None  -8.450                  v16_dip_short
+11-04 03:54    04:39 down        None       None  -3.360                  v16_dip_short
+11-04 16:23    17:08 down        None       None   4.530                  v16_dip_short
+11-04 21:10    21:55 down        None       None  14.240                  v16_dip_short
+11-05 21:24    22:09 down        None       None  -2.330                  v16_dip_short
+11-08 00:35    01:20 down        None       None  23.450                  v16_dip_short
+11-10 20:55    21:40 down        None       None   2.390                  v16_dip_short
+11-10 23:22    00:08 down        None       None   3.870                  v16_dip_short
+11-11 16:07    16:52 down        None       None  -0.610                  v16_dip_short
+11-12 22:09    22:54 down        None       None  -6.020                  v16_dip_short
+11-12 23:17    00:35 down        None       None -26.860                  v16_dip_short
+11-13 16:16    16:46   up        None       None   1.400                      energetic
+11-14 01:51    02:32 down        None       None  35.000                  v16_dip_short
+11-14 03:19    04:24 down        None       None  -7.770                  v16_dip_short
+11-14 19:17    19:40 down        None       None  -9.710                   v16_momentum
+11-14 20:04    07:01 down        None       None  49.500                   v16_momentum
+11-17 19:35    20:22 down        None       None  -4.540                  v16_dip_short
+11-17 22:39    23:24 down        None       None   1.690                  v16_dip_short
+11-18 04:51    05:37 down        None       None  -7.130                  v16_dip_short
+11-18 16:41    17:10   up        None       None  -6.360              reversal_fvg_long
+11-18 21:38    22:11   up        None       None   5.340              reversal_fvg_long
+11-20 01:51    02:37 down        None       None  -3.210                  v16_dip_short
+11-20 17:37    18:22 down        None       None   3.530                  v16_dip_short
+11-20 21:07    23:04 down        None       None  -1.930                  v16_dip_short
+11-21 02:02    07:45   up        None       None  19.110                   v16_momentum
+11-21 17:47    20:00 down        None       None  16.880                   v16_momentum
+11-21 20:32    21:04   up        None       None  -1.040              reversal_fvg_long
+11-22 00:52    01:37 down        None       None  14.890                  v16_dip_short
+11-25 02:48    15:00   up        None       None  31.560                   v16_momentum
+11-25 18:17    18:25   up        None       None  -8.830                   v16_momentum
+11-25 19:17    20:44   up        None       None  -8.480                   v16_momentum
+11-25 21:02    21:45   up        None       None  15.240                   v16_momentum
+11-26 01:34    02:19 down        None       None  11.460                  v16_dip_short
+11-28 22:39    23:24 down        None       None  11.890                  v16_dip_short
+12-01 09:59    10:14   up        None       None  -5.500              reversal_fvg_long
+12-02 09:14    09:44 down        None       None -10.530                      energetic
+12-02 17:17    21:00 down        None       None  -6.800                   v16_momentum
+12-02 22:51    23:25 down        None       None  35.000                  v16_dip_short
+12-03 00:37    01:22 down        None       None  -4.640                  v16_dip_short
+12-04 22:10    22:55 down        None       None  -0.040                  v16_dip_short
+12-11 03:35    04:20 down        None       None -23.920                  v16_dip_short
+12-11 23:52    00:37 down        None       None   0.080                  v16_dip_short
+12-12 03:05    03:51 down        None       None  -3.810                  v16_dip_short
+12-12 18:39    19:24 down        None       None -11.190                  v16_dip_short
+12-15 22:02    00:45 down        None       None  40.500                   v16_momentum
+12-16 02:39    03:24 down        None       None  -2.500                  v16_dip_short
+12-17 01:02    02:22   up        None       None  -7.210                   v16_momentum
+12-17 02:37    03:22 down        None       None   0.570                  v16_dip_short
+12-17 16:52    17:37 down        None       None  -1.070                  v16_dip_short
+12-17 21:17    12:45   up        None       None   1.580                   v16_momentum
+12-22 23:47    11:47   up        None       None  56.300                   v16_momentum
+12-23 23:40    00:25 down        None       None  -8.690                  v16_dip_short
+12-24 03:06    03:51 down        None       None   3.850                  v16_dip_short
+12-25 00:37    01:22 down        None       None  -5.850                  v16_dip_short
+12-26 23:39    00:24 down        None       None   0.420                  v16_dip_short
+12-27 02:47    07:02   up        None       None  17.980                   v16_momentum
+12-29 09:04    09:19   up        None       None   5.510                uptrend_retrace
+12-29 16:32    07:01 down        None       None 139.510                   v16_momentum
+12-31 13:51    14:31 down        None       None  -6.550                      energetic
+12-31 20:40    21:25 down        None       None -10.360                  v16_dip_short
+01-02 21:21    21:51 down        None       None  22.670                      energetic
+01-05 21:47    11:00   up        None       None  41.900                   v16_momentum
+01-07 09:36    09:51 down        None       None  -2.330             reversal_fvg_short
+01-07 21:02    21:56 down        None       None  -5.170                   v16_momentum
+01-07 22:54    23:39 down        None       None  -1.160                  v16_dip_short
+01-08 14:07    14:23 down        None       None  -5.460             reversal_fvg_short
+01-08 16:02    16:09 down        None       None  -2.380                   v16_momentum
+01-09 23:24    00:24 down        None       None   5.740                  v16_dip_short
+01-12 22:21    23:06 down        None       None -16.300                  v16_dip_short
+01-13 22:50    23:35 down        None       None  22.580                  v16_dip_short
+01-14 16:36    17:00 down        None       None  -4.330             reversal_fvg_short
+01-14 18:06    18:58 down        None       None  -0.940             reversal_fvg_short
+01-15 05:52    07:01 down        None       None  -1.730             reversal_fvg_short
+01-15 11:15    11:47 down        None       None  -2.010             reversal_fvg_short
+01-15 22:48    23:35 down        None       None  -4.590                  v16_dip_short
+01-16 23:05    23:27 down        None       None  35.000                  v16_dip_short
+01-17 00:22    01:08 down        None       None   0.440                  v16_dip_short
+01-20 21:47    11:45   up        None       None 110.270                   v16_momentum
+01-21 16:07    16:52 down        None       None   4.890                  v16_dip_short
+01-21 17:34    17:59   up        None       None -10.340                   v16_momentum
+01-21 22:12    00:15 down        None       None  -6.250              downtrend_retrace
+01-22 03:33    09:15 down        None       None  19.050                   v16_momentum
+01-22 22:33    23:24 down        None       None  -2.180                  v16_dip_short
+01-22 23:35    00:21 down        None       None -12.770                  v16_dip_short
+01-23 00:39    01:24 down        None       None  -4.460                  v16_dip_short
+01-23 01:54    02:39 down        None       None -10.180                  v16_dip_short
+01-23 17:47    07:01   up        None       None 102.810                   v16_momentum
+01-26 18:40    19:25 down        None       None   9.840                  v16_dip_short
+01-27 00:02    00:28   up        None       None -13.050                   v16_momentum
+01-27 01:33    02:19 down        None       None   3.630                  v16_dip_short
+01-27 04:52    05:21 down        None       None  35.000                  v16_dip_short
+01-27 18:47    19:09 down        None       None  -5.490                   v16_momentum
+01-27 21:32    22:30 down        None       None  13.890                   v16_momentum
+01-27 23:03    23:50 down        None       None -23.920                  v16_dip_short
+01-28 03:58    04:11   up        None       None  40.000              breakthrough_long
+01-28 04:50    05:39 down        None       None -21.490                  v16_dip_short
+01-28 05:39    07:01   up        None       None  -5.220              reversal_fvg_long
+01-28 09:46    09:59   up        None       None -15.000              reversal_fvg_long
+01-28 10:28    10:57   up        None       None   9.890              reversal_fvg_long
+01-28 13:42    13:58   up        None       None  -3.900              reversal_fvg_long
+01-28 16:01    16:25   up        None       None   4.970              reversal_fvg_long
+01-28 16:31    16:45   up        None       None -15.000              reversal_fvg_long
+01-28 23:24    00:53 down        None       None -19.250                  v16_dip_short
+01-29 01:52    03:09 down        None       None  16.890                  v16_dip_short
+01-29 03:35    03:57 down        None       None -35.000                  v16_dip_short
+01-29 04:19    04:36 down        None       None -35.000                  v16_dip_short
+01-29 05:49    07:01   up        None       None  50.070              breakthrough_long
+01-29 07:03    07:19   up        None       None  49.800              breakthrough_long
+01-29 07:25    07:38   up        None       None  66.900              breakthrough_long
+01-29 08:19    08:20   up        None       None -15.000                uptrend_retrace
+01-29 09:05    09:09   up        None       None -15.000                uptrend_retrace
+01-29 09:15    09:24   up        None       None  33.860                uptrend_retrace
+01-29 11:05    11:35   up        None       None  21.420                      energetic
+01-29 15:29    15:44 down        None       None -11.330              downtrend_retrace
+01-29 16:06    16:24 down        None       None  -2.870              downtrend_retrace
+01-29 16:47    17:32 down        None       None -18.400                      energetic
+01-29 19:49    20:39 down        None       None  -5.540                  v16_dip_short
+01-29 20:49    21:39 down        None       None  16.210                  v16_dip_short
+01-29 22:08    22:54 down        None       None  18.310                  v16_dip_short
+01-30 00:50    00:52 down        None       None  35.000                  v16_dip_short
+01-30 01:18    01:26 down        None       None -35.000                  v16_dip_short
+01-30 01:38    01:56 down        None       None  38.150                  v16_dip_short
+01-30 02:32    03:11 down        None       None  35.000                  v16_dip_short
+01-30 04:48    04:57 down        None       None -35.000                  v16_dip_short
+01-30 09:12    09:14   up        None       None -25.000                      energetic
+01-30 09:17    09:23   up        None       None  20.000                uptrend_retrace
+01-30 09:58    10:00   up        None       None -25.000                      energetic
+01-30 10:25    10:25   up        None       None  20.000                uptrend_retrace
+01-30 10:32    10:36   up        None       None  42.500                uptrend_retrace
+01-30 16:38    17:08   up        None       None -15.000                uptrend_retrace
+01-30 17:16    17:28   up        None       None -15.000                uptrend_retrace
+01-30 17:32    17:38   up        None       None -15.000                uptrend_retrace
+01-30 17:46    17:48   up        None       None  15.430                      energetic
+01-30 17:48    17:49   up        None       None -15.000                uptrend_retrace
+01-30 17:50    17:50   up        None       None -15.000                uptrend_retrace
+01-30 17:53    17:57   up        None       None  22.860                uptrend_retrace
+01-30 17:59    18:00   up        None       None  24.640                uptrend_retrace
+01-30 18:36    18:57 down        None       None -35.000                  v16_dip_short
+01-30 19:34    19:48 down        None       None  35.000                  v16_dip_short
+01-30 19:54    20:46 down        None       None  35.000                  v16_dip_short
+01-30 21:03    21:18 down        None       None  33.020                      energetic
+01-30 21:20    21:23 down        None       None  30.000                      energetic
+01-30 21:25    21:31   up        None       None -15.000                uptrend_retrace
+01-30 21:34    21:49 down        None       None  35.000                  v16_dip_short
+01-30 22:22    22:33 down        None       None -35.000                  v16_dip_short
+01-30 22:34    22:54 down        None       None  54.240                  v16_dip_short
+01-30 22:55    23:02 down        None       None  57.480                      energetic
+01-30 23:03    23:11   up        None       None  44.290                      energetic
+01-30 23:11    23:11   up        None       None  20.000                uptrend_retrace
+01-30 23:12    23:18   up        None       None  20.020                uptrend_retrace
+01-30 23:51    00:02 down        None       None  35.000                  v16_dip_short
+01-31 03:17    03:23 down        None       None  35.000                  v16_dip_short
+01-31 03:53    04:01 down        None       None  35.000                  v16_dip_short
+01-31 04:47    04:55 down        None       None  40.495                  v16_dip_short
+02-02 07:04    07:06   up        None       None -16.730                      energetic
+02-02 07:06    07:10   up        None       None -15.000                uptrend_retrace
+02-02 07:12    07:12   up        None       None  30.000                      energetic
+02-02 07:14    07:14   up        None       None -25.000                      energetic
+02-02 07:19    07:26   up        None       None  37.850                      energetic
+02-02 07:26    07:28   up        None       None -15.000                uptrend_retrace
+02-02 07:29    08:08   up        None       None  71.850                uptrend_retrace
+02-02 09:01    09:01   up        None       None  20.000                uptrend_retrace
+02-02 09:02    09:02   up        None       None  20.000                uptrend_retrace
+02-02 09:04    09:04   up        None       None -15.000                uptrend_retrace
+02-02 09:05    09:06   up        None       None -15.000                uptrend_retrace
+02-02 09:07    09:07   up        None       None -15.000                uptrend_retrace
+02-02 09:08    09:09   up        None       None -15.000              reversal_fvg_long
+02-02 09:10    09:10   up        None       None -15.000              reversal_fvg_long
+02-02 09:11    09:11   up        None       None  30.000                      energetic
+02-02 09:16    09:17   up        None       None  30.000                      energetic
+02-02 09:21    09:21   up        None       None -15.000                uptrend_retrace
+02-02 09:22    09:23   up        None       None -15.000                uptrend_retrace
+02-02 09:24    09:24   up        None       None  20.000                uptrend_retrace
+02-02 09:25    09:25   up        None       None -15.000                uptrend_retrace
+02-02 09:26    09:26   up        None       None  20.000                uptrend_retrace
+02-02 09:27    09:30   up        None       None -15.000                uptrend_retrace
+02-02 09:31    10:32   up        None       None  87.230                uptrend_retrace
+02-02 12:02    12:05   up        None       None -15.000                uptrend_retrace
+02-02 12:06    12:19   up        None       None  72.990                uptrend_retrace
+02-02 12:22    12:39   up        None       None -15.000                uptrend_retrace
+02-02 12:40    12:45   up        None       None  29.950                uptrend_retrace
+02-02 12:47    12:56 down        None       None  30.000                      energetic
+02-02 14:01    14:02   up        None       None -15.000                uptrend_retrace
+02-02 14:03    14:06   up        None       None -15.000                uptrend_retrace
+02-02 14:07    14:08   up        None       None -15.000                uptrend_retrace
+02-02 14:09    14:09   up        None       None  20.000                uptrend_retrace
+02-02 14:10    14:13   up        None       None -15.000                uptrend_retrace
+02-02 14:14    14:17   up        None       None -15.000                uptrend_retrace
+02-02 14:18    14:21 down        None       None  34.180                      energetic
+02-02 14:21    14:38 down        None       None  95.020             reversal_fvg_short
+02-02 14:39    14:43   up        None       None  21.410                      energetic
+02-02 14:43    14:56   up        None       None  63.870                uptrend_retrace
+02-02 14:57    15:01   up        None       None   2.130                      energetic
+02-02 15:01    15:02   up        None       None  20.000                uptrend_retrace
+02-02 15:03    15:09   up        None       None  27.410                      energetic
+02-02 15:10    15:17 down        None       None  14.550                      energetic
+02-02 15:17    15:25   up        None       None  32.060                uptrend_retrace
+02-02 15:27    15:29   up        None       None -15.000                uptrend_retrace
+02-02 15:30    15:31   up        None       None -15.000                uptrend_retrace
+02-02 15:32    15:37   up        None       None  27.460                uptrend_retrace
+02-02 15:39    15:41   up        None       None  26.200                uptrend_retrace
+02-02 15:43    15:45   up        None       None  20.000                uptrend_retrace
+02-02 15:46    16:01 down        None       None  20.980                      energetic
+02-02 16:01    16:09   up        None       None  46.860                uptrend_retrace
+02-02 16:10    16:51 down        None       None -35.000                  v16_dip_short
+02-02 16:55    17:03 down        None       None  35.000                  v16_dip_short
+02-02 17:48    18:36 down        None       None  35.000                  v16_dip_short
+02-02 18:42    18:55 down        None       None -25.000                      energetic
+02-02 19:19    20:24 down        None       None -27.530                  v16_dip_short
+02-02 20:46    21:00 down        None       None  58.890                      energetic
+02-02 21:09    21:11 down        None       None -35.000                  v16_dip_short
+02-02 21:21    00:15 down        None       None  54.550                   v16_momentum
+02-03 01:02    01:07 down        None       None -25.000                      energetic
+02-03 01:08    01:20 down        None       None  30.000                      energetic
+02-03 01:21    01:34 down        None       None  -5.140                      energetic
+02-03 01:34    02:14 down        None       None  46.130                  v16_dip_short
+02-03 03:03    03:40   up        None       None  35.690                uptrend_retrace
+02-03 03:41    03:43 down        None       None -17.570                      energetic
+02-03 03:43    03:51   up        None       None  20.000                uptrend_retrace
+02-03 03:54    04:09 down        None       None  -3.270                      energetic
+02-03 05:01    05:02   up        None       None -15.000                uptrend_retrace
+02-03 05:12    05:51   up        None       None -15.000                uptrend_retrace
+02-03 05:55    07:01   up        None       None  20.000                uptrend_retrace
+02-03 07:03    07:18   up        None       None  30.000                      energetic
+02-03 07:30    07:31   up        None       None -15.000                uptrend_retrace
+02-03 07:32    07:52   up        None       None  44.640                uptrend_retrace
+02-03 07:53    08:04 down        None       None -25.000                      energetic
+02-03 09:01    09:01   up        None       None -15.000                uptrend_retrace
+02-03 09:02    09:02   up        None       None  20.000                uptrend_retrace
+02-03 09:03    09:13 down        None       None -17.120                      energetic
+02-03 09:13    09:44   up        None       None  23.050              reversal_fvg_long
+02-03 09:49    10:27 down        None       None  67.330                      energetic
+02-03 10:27    10:45   up        None       None -15.000                uptrend_retrace
+02-03 10:48    11:04   up        None       None  33.580                uptrend_retrace
+02-03 11:11    11:26   up        None       None -15.000                uptrend_retrace
+02-03 11:28    11:38   up        None       None  36.570                uptrend_retrace
+02-03 14:40    15:10 down        None       None -11.050                      energetic
+02-03 15:15    15:33 down        None       None -25.000                      energetic
+02-03 15:34    16:06 down        None       None  15.710                      energetic
+02-03 16:06    16:12   up        None       None  27.580                uptrend_retrace
+02-03 16:13    16:58   up        None       None -13.490              reversal_fvg_long
+02-03 16:59    17:28 down        None       None  24.910                      energetic
+02-03 17:28    17:39   up        None       None  20.000                uptrend_retrace
+02-03 17:58    18:13   up        None       None  11.230                uptrend_retrace
+02-03 19:01    20:00 down        None       None -25.000                      energetic
+02-03 20:04    20:25 down        None       None  37.455                  v16_dip_short
+02-03 21:02    21:20 down        None       None -11.250                      energetic
+02-03 21:20    21:39   up        None       None  11.820                uptrend_retrace
+02-03 21:41    22:31 down        None       None  19.540                      energetic
+02-03 23:02    23:11   up        None       None  29.370                uptrend_retrace
+02-03 23:12    00:17 down        None       None -25.000                      energetic
+02-04 00:17    01:43 down        None       None  46.025                  v16_dip_short
+02-04 01:48    02:32 down        None       None  35.000                  v16_dip_short
+02-04 03:01    03:23 down        None       None -24.780             reversal_fvg_short
+02-04 03:25    04:03   up        None       None -15.000                uptrend_retrace
+02-04 04:15    05:53   up        None       None  23.790                uptrend_retrace
+02-04 07:06    07:07   up        None       None -15.000                uptrend_retrace
+02-04 07:08    07:12 down        None       None -25.000                      energetic
+02-04 08:38    10:26   up        None       None  69.150              reversal_fvg_long
+02-04 11:03    11:22   up        None       None   5.870                uptrend_retrace
+02-04 18:47    19:12   up        None       None -17.090                   v16_momentum
+02-04 20:06    21:00   up        None       None -17.170                   v16_momentum
+02-04 21:04    21:49 down        None       None  -7.990                  v16_dip_short
+02-04 21:53    22:32 down        None       None  35.000                  v16_dip_short
+02-04 22:33    22:37 down        None       None   5.870                      energetic
+02-04 22:37    23:34 down        None       None  97.250              downtrend_retrace
+02-05 00:01    00:48 down        None       None  57.810              downtrend_retrace
+02-05 00:49    00:51   up        None       None  22.040                      energetic
+02-05 00:51    03:12   up        None       None  59.480                uptrend_retrace
+02-05 03:13    03:22 down        None       None  21.810                      energetic
+02-05 03:22    03:49   up        None       None   9.000                uptrend_retrace
+02-05 03:54    03:55   up        None       None -10.660                      energetic
+02-05 03:55    04:11   up        None       None -15.000                uptrend_retrace
+02-05 04:12    05:22   up        None       None  25.030                uptrend_retrace
+02-05 09:13    09:15 down        None       None  22.440                      energetic
+02-05 09:16    09:35   up        None       None  21.690                      energetic
+02-05 09:36    09:40 down        None       None   8.240                      energetic
+02-05 09:41    10:00   up        None       None -17.010                      energetic
+02-05 10:00    10:14 down        None       None  40.000              downtrend_retrace
+02-05 10:15    10:19   up        None       None  -6.550                      energetic
+02-05 10:19    10:47 down        None       None  47.240              downtrend_retrace
+02-05 10:48    10:51   up        None       None -27.070                      energetic
+02-05 10:51    11:17 down        None       None -12.870              downtrend_retrace
+02-05 11:18    11:36   up        None       None -15.000                uptrend_retrace
+02-05 11:38    12:32   up        None       None  30.980                uptrend_retrace
+02-05 12:38    13:00   up        None       None -15.000                uptrend_retrace
+02-05 13:15    13:32   up        None       None -15.000                uptrend_retrace
+02-05 13:33    13:43   up        None       None  48.340                uptrend_retrace
+02-05 13:44    14:08 down        None       None -25.000                      energetic
+02-05 14:29    14:55 down        None       None  30.000                      energetic
+02-05 15:26    15:41 down        None       None  30.000                      energetic
+02-05 15:42    16:03 down        None       None -25.000                      energetic
+02-05 16:12    16:42 down        None       None  15.070                      energetic
+02-05 17:06    17:15 down        None       None  12.370                      energetic
+02-05 17:15    17:36   up        None       None  14.320                uptrend_retrace
+02-05 17:52    18:11 down        None       None   6.210             reversal_fvg_short
+02-05 20:01    20:28 down        None       None  26.470                      energetic
+02-05 20:28    21:01   up        None       None -15.000                uptrend_retrace
+02-05 21:55    22:33 down        None       None  35.000                  v16_dip_short
+02-05 22:52    23:02 down        None       None  37.475                  v16_dip_short
+02-05 23:40    00:43 down        None       None -35.000                  v16_dip_short
+02-06 00:50    02:02 down        None       None  10.910                  v16_dip_short
+02-06 02:25    02:39 down        None       None   5.050                      energetic
+02-06 02:39    03:05   up        None       None -15.000                uptrend_retrace
+02-06 03:08    03:14   up        None       None -15.000                uptrend_retrace
+02-06 03:15    03:33   up        None       None -15.000                uptrend_retrace
+02-06 03:34    04:06 down        None       None   6.440                      energetic
+02-06 05:35    05:42 down        None       None  -5.220                      energetic
+02-06 05:43    05:50   up        None       None -12.490                      energetic
+02-06 05:50    07:01 down        None       None   8.210              downtrend_retrace
+02-06 07:16    07:46 down        None       None  36.840             breakthrough_short
+02-06 07:47    08:10 down        None       None  30.690              downtrend_retrace
+02-06 09:03    09:03   up        None       None  20.000                uptrend_retrace
+02-06 09:04    09:08 down        None       None -25.000                      energetic
+02-06 09:16    09:23 down        None       None  52.570              downtrend_retrace
+02-06 09:24    09:48   up        None       None  43.420                uptrend_retrace
+02-06 10:31    11:34 down        None       None   6.030                      energetic
+02-06 11:42    12:03   up        None       None  16.830                uptrend_retrace
+02-06 14:00    14:13 down        None       None  30.000                      energetic
+02-06 16:02    16:19 down        None       None -24.200              downtrend_retrace
+02-06 16:20    16:31   up        None       None  20.000                uptrend_retrace
+02-06 17:04    17:34   up        None       None  17.100                      energetic
+02-06 17:39    17:58   up        None       None   7.060                uptrend_retrace
+02-06 21:02    21:32 down        None       None  -2.640                      energetic
+02-06 21:32    21:56   up        None       None  -3.610              reversal_fvg_long
+02-06 22:10    22:23   up        None       None -15.000                uptrend_retrace
+02-06 22:24    22:32   up        None       None  20.240                uptrend_retrace
+02-06 22:38    22:42 down        None       None  17.310                      energetic
+02-06 22:42    23:00   up        None       None  28.810                uptrend_retrace
+02-06 23:02    00:15 down        None       None  10.730                      energetic
+02-07 00:50    01:36 down        None       None  -3.300                  v16_dip_short
+02-09 07:26    08:07   up        None       None  31.200                      energetic
+02-09 09:09    09:36 down        None       None  30.000                      energetic
+02-09 09:37    09:45 down        None       None -25.000                      energetic
+02-09 18:37    19:23 down        None       None  -2.220                  v16_dip_short
+02-09 22:33    23:19 down        None       None   4.930                  v16_dip_short
+02-10 07:24    07:34 down        None       None -11.420                      energetic
+02-10 07:34    07:58   up        None       None  10.760                uptrend_retrace
+02-10 16:21    17:06 down        None       None -10.140                  v16_dip_short
+02-10 21:47    22:47   up        None       None -17.970                   v16_momentum
+02-11 19:10    19:46   up        None       None  17.520              reversal_fvg_long
+02-11 19:48    20:09   up        None       None -15.000              reversal_fvg_long
+02-11 23:02    23:37   up        None       None -20.070                   v16_momentum
+02-12 00:47    01:45   up        None       None  16.360                   v16_momentum
+02-13 01:03    02:09 down        None       None  30.270                  v16_dip_short
+02-13 02:21    02:42   up        None       None  23.480                uptrend_retrace
+02-13 02:45    03:15   up        None       None  -6.230                      energetic
+02-13 03:34    04:38 down        None       None  25.160                  v16_dip_short
+02-13 07:31    07:46   up        None       None  -8.580                uptrend_retrace
+02-13 09:01    09:29   up        None       None  24.500              reversal_fvg_long
+02-13 09:31    10:02   up        None       None   7.690              reversal_fvg_long
+02-13 21:40    22:02 down        None       None   0.110                      energetic
+02-13 22:02    22:25   up        None       None  12.850              reversal_fvg_long
+02-13 22:36    22:41 down        None       None  35.000                  v16_dip_short
+02-13 22:42    22:44 down        None       None -25.000                      energetic
+02-13 22:46    23:31 down        None       None -10.800                      energetic
+02-13 23:37    23:53 down        None       None  35.000                  v16_dip_short
+02-14 00:39    07:06   up        None       None  -2.860                   v16_momentum
+02-17 13:33    13:53 down        None       None -25.000                      energetic
+02-17 19:09    19:54 down        None       None  -3.660                  v16_dip_short
+02-17 20:47    08:00 down        None       None  72.370                   v16_momentum
+02-18 21:17    09:17   up        None       None   6.630                   v16_momentum
+02-19 23:18    00:09 down        None       None  -4.410                  v16_dip_short
+02-20 20:34    21:21 down        None       None  -6.150                  v16_dip_short
+02-20 22:53    23:03   up        None       None -21.750                   v16_momentum
+02-20 23:06    23:10 down        None       None   1.370                      energetic
+02-20 23:11    23:18   up        None       None  30.000                      energetic
+02-20 23:38    07:01   up        None       None  77.600                   v16_momentum
+02-23 16:47    05:00   up        None       None  99.470                   v16_momentum
+02-24 05:01    05:20   up        None       None  -4.270              reversal_fvg_long
+02-24 09:04    09:16 down        None       None  58.890                      energetic
+02-24 09:17    10:10   up        None       None  20.200                      energetic
+02-24 21:40    21:55 down        None       None   7.090             reversal_fvg_short
+02-24 23:06    23:36 down        None       None -10.670                      energetic
+02-25 01:06    01:54 down        None       None  -9.310                  v16_dip_short
+02-25 21:08    21:53 down        None       None   3.110                  v16_dip_short
+02-25 23:37    00:22 down        None       None -17.930                  v16_dip_short
+02-26 16:32    18:05 down        None       None -14.370                   v16_momentum
+02-26 20:02    20:15 down        None       None  -9.640                   v16_momentum
+02-27 00:21    01:06 down        None       None  -1.830                  v16_dip_short
+02-27 22:22    23:08 down        None       None  -2.760                  v16_dip_short
+02-27 23:09    23:54 down        None       None  -0.900                  v16_dip_short
+03-02 07:05    07:07   up        None       None -25.000                      energetic
+03-02 07:08    07:41   up        None       None  43.120                uptrend_retrace
+03-02 09:02    09:04 down        None       None   1.530                      energetic
+03-02 09:04    09:12   up        None       None  20.000                uptrend_retrace
+03-02 09:21    09:29   up        None       None -15.000                uptrend_retrace
+03-02 09:30    10:35   up        None       None  27.280                uptrend_retrace
+03-02 21:38    22:01   up        None       None -20.830                   v16_momentum
+03-02 22:02    22:20 down        None       None  18.300              downtrend_retrace
+03-02 22:26    22:38   up        None       None  14.730                      energetic
+03-02 22:38    22:52   up        None       None -15.000                uptrend_retrace
+03-02 22:55    23:00   up        None       None -15.000                uptrend_retrace
+03-02 23:08    00:00 down        None       None  35.000                  v16_dip_short
+03-03 01:01    01:19   up        None       None  -1.080                uptrend_retrace
+03-03 01:32    02:20 down        None       None  11.210                  v16_dip_short
+03-03 03:10    03:55 down        None       None  -0.120                  v16_dip_short
+03-03 09:04    09:29   up        None       None  13.900              reversal_fvg_long
+03-03 09:31    09:46   up        None       None -15.000              reversal_fvg_long
+03-03 10:03    10:43   up        None       None  17.010                uptrend_retrace
+03-03 16:32    07:01 down        None       None 213.950                   v16_momentum
+03-04 07:19    07:37   up        None       None   8.190                uptrend_retrace
+03-04 09:16    10:13   up        None       None  34.480              reversal_fvg_long
+03-04 11:05    11:20   up        None       None  16.860                uptrend_retrace
+03-04 17:36    19:02 down        None       None -15.430                  v16_dip_short
+03-04 21:21    21:59   up        None       None -16.570                   v16_momentum
+03-04 23:54    00:39 down        None       None   0.470                  v16_dip_short
+03-05 08:50    09:29   up        None       None   0.520              reversal_fvg_long
+03-05 21:34    09:34 down        None       None  26.290                   v16_momentum
+03-06 16:17    21:30 down        None       None  -5.710                   v16_momentum
+03-06 21:31    21:56   up        None       None -25.000                      energetic
+03-06 22:20    22:57   up        None       None  22.810                uptrend_retrace
+03-06 23:04    23:26 down        None       None -25.000                      energetic
+03-09 06:07    06:07 down        None       None  30.000                      energetic
+03-09 06:08    06:10 down        None       None -25.000                      energetic
+03-09 06:16    06:42 down        None       None  20.340                      energetic
+03-09 06:42    07:40 down        None       None  45.420             breakthrough_short
+03-09 07:43    07:44 down        None       None -25.000                      energetic
+03-09 07:45    07:46 down        None       None   5.610                      energetic
+03-09 07:46    07:47   up        None       None -15.000                uptrend_retrace
+03-09 07:48    07:58 down        None       None -15.460                      energetic
+03-09 07:58    08:02   up        None       None -15.000                uptrend_retrace
+03-09 09:01    09:03 down        None       None -25.000                      energetic
+03-09 09:05    09:06 down        None       None -23.400                      energetic
+03-09 09:06    09:17   up        None       None  32.210                uptrend_retrace
+03-09 09:20    09:27 down        None       None   3.160                      energetic
+03-09 09:27    09:44   up        None       None   2.910                uptrend_retrace
+03-09 17:33    18:39 down        None       None  35.680                  v16_dip_short
+03-09 19:00    19:15 down        None       None  -3.450             reversal_fvg_short
+03-10 03:24    04:09 down        None       None  -6.380                  v16_dip_short
+03-10 09:34    10:01   up        None       None  24.020              reversal_fvg_long
+03-10 19:06    20:07 down        None       None  22.380                  v16_dip_short
+03-10 21:01    21:34   up        None       None  18.530              reversal_fvg_long
+03-10 22:20    23:05 down        None       None   0.660                  v16_dip_short
+03-11 02:27    03:03 down        None       None   1.880                      energetic
+03-11 22:47    22:50 down        None       None -12.490                   v16_momentum
+03-11 23:17    01:45 down        None       None  10.260                   v16_momentum
+03-13 04:34    06:01 down        None       None  -7.340                      energetic
+03-13 09:04    09:19   up        None       None  -2.460              reversal_fvg_long
+03-13 16:17    16:30 down        None       None   0.820                   v16_momentum
+03-13 17:06    17:51 down        None       None   3.250                  v16_dip_short
+03-13 20:50    21:10   up        None       None -10.290              reversal_fvg_long
+03-14 00:04    00:34 down        None       None -14.760                      energetic
+03-14 00:52    01:38 down        None       None  -9.870                  v16_dip_short
+03-16 07:23    07:53 down        None       None  -9.030                      energetic
+03-16 09:14    09:29   up        None       None  -7.010              reversal_fvg_long
+03-16 17:52    18:37 down        None       None  -3.070                  v16_dip_short
+03-17 00:08    00:53 down        None       None   4.150                  v16_dip_short
+03-17 14:03    14:33 down        None       None  -3.090                      energetic
+03-17 20:32    21:45   up        None       None   2.520                   v16_momentum
+03-18 19:33    19:58 down        None       None  35.040                  v16_dip_short
+03-18 20:13    20:16 down        None       None   7.300                      energetic
+03-18 20:17    20:23   up        None       None   0.790                      energetic
+03-18 20:24    20:32 down        None       None  14.320                      energetic
+03-18 20:33    20:40   up        None       None  -0.950                      energetic
+03-18 20:41    21:00 down        None       None  27.000                      energetic
+03-18 21:48    22:54 down        None       None  14.230                  v16_dip_short
+03-19 02:33    14:45 down        None       None 100.220                   v16_momentum
+03-19 14:51    15:27   up        None       None   8.550                      energetic
+03-19 15:45    16:14 down        None       None  38.030                      energetic
+03-19 16:23    16:24 down        None       None   2.310                      energetic
+03-19 16:24    17:05 down        None       None  17.260              downtrend_retrace
+03-19 17:14    17:22   up        None       None  30.000                      energetic
+03-19 17:33    18:17 down        None       None  33.090                      energetic
+03-19 19:02    19:46 down        None       None  34.430                      energetic
+03-19 19:46    20:01 down        None       None  19.480              downtrend_retrace
+03-19 20:02    21:30 down        None       None  72.520              downtrend_retrace
+03-19 21:32    21:47 down        None       None  35.000                  v16_dip_short
+03-19 21:52    21:56 down        None       None -35.000                  v16_dip_short
+03-19 23:06    23:32 down        None       None  43.620                  v16_dip_short
+03-20 01:07    01:35   up        None       None   9.320                      energetic
+03-20 01:35    01:52   up        None       None  20.000                uptrend_retrace
+03-20 01:53    02:39 down        None       None  21.040                  v16_dip_short
+03-20 03:01    03:11 down        None       None -25.000                      energetic
+03-20 03:12    03:16 down        None       None   9.340                      energetic
+03-20 03:16    03:25   up        None       None -15.000                uptrend_retrace
+03-20 03:26    04:29   up        None       None  18.220              reversal_fvg_long
+03-20 04:31    06:01   up        None       None  -1.070              reversal_fvg_long
+03-20 09:12    09:12   up        None       None  -3.900                      energetic
+03-20 09:13    09:40 down        None       None -25.000                      energetic
+03-20 11:23    11:38   up        None       None  -5.480              reversal_fvg_long
+03-20 16:21    16:51 down        None       None  37.270                  v16_dip_short
+03-20 19:04    19:54 down        None       None  -6.370                  v16_dip_short
+03-20 20:32    06:01 down        None       None 198.100                   v16_momentum
+03-23 06:02    06:07 down        None       None -25.000                      energetic
+03-23 06:08    06:11 down        None       None   4.950                      energetic
+03-23 06:12    06:14   up        None       None   7.400                      energetic
+03-23 06:15    06:28 down        None       None -25.000                      energetic
+03-23 06:29    06:32 down        None       None  16.990                      energetic
+03-23 06:33    06:36   up        None       None  -9.150                      energetic
+03-23 06:37    07:12 down        None       None  16.290                      energetic
+03-23 07:12    07:36   up        None       None -15.000                uptrend_retrace
+03-23 07:37    08:14 down        None       None  41.350              downtrend_retrace
+03-23 09:01    09:04 down        None       None -30.000              downtrend_retrace
+03-23 09:05    09:08   up        None       None  32.600                uptrend_retrace
+03-23 09:09    09:18   up        None       None  18.600                      energetic
+03-23 09:19    09:21 down        None       None   7.280                      energetic
+03-23 09:21    09:22   up        None       None  20.000                uptrend_retrace
+03-23 09:25    09:30   up        None       None -15.000                uptrend_retrace
+03-23 09:32    09:35 down        None       None   8.820                      energetic
+03-23 09:35    09:46   up        None       None -15.000                uptrend_retrace
+03-23 09:47    09:48   up        None       None -15.000                uptrend_retrace
+03-23 09:49    09:56   up        None       None -15.000                uptrend_retrace
+03-23 09:58    10:37   up        None       None -15.000                uptrend_retrace
+03-23 12:01    12:36   up        None       None   6.450                      energetic
+03-23 12:37    12:52 down        None       None  19.640                      energetic
+03-23 12:53    13:30   up        None       None -25.000                      energetic
+03-23 14:02    14:31 down        None       None  69.050             reversal_fvg_short
+03-23 14:33    14:43   up        None       None -25.000                      energetic
+03-23 14:44    14:47   up        None       None -25.000                      energetic
+03-23 14:48    14:50   up        None       None  47.020                      energetic
+03-23 14:50    15:01   up        None       None -15.000                uptrend_retrace
+03-23 15:02    15:08 down        None       None  55.750              downtrend_retrace
+03-23 15:09    15:10   up        None       None  20.300                      energetic
+03-23 15:10    15:20 down        None       None  55.080              downtrend_retrace
+03-23 15:21    15:29   up        None       None  24.940                      energetic
+03-23 15:29    15:38   up        None       None  63.190                uptrend_retrace
+03-23 15:40    15:41   up        None       None  28.310                uptrend_retrace
+03-23 15:42    15:43   up        None       None  -1.300                      energetic
+03-23 15:43    16:35   up        None       None  77.330                uptrend_retrace
+03-23 16:36    16:38   up        None       None -15.000                uptrend_retrace
+03-23 16:39    16:51   up        None       None -15.000                uptrend_retrace
+03-23 16:52    17:16   up        None       None  50.370                uptrend_retrace
+03-23 17:18    17:39 down        None       None  35.000                  v16_dip_short
+03-23 17:53    18:38 down        None       None  -6.090                  v16_dip_short
+03-23 18:39    18:50   up        None       None  30.520                uptrend_retrace
+03-23 18:51    18:59 down        None       None   7.560                      energetic
+03-23 19:00    19:05   up        None       None  30.000                      energetic
+03-23 19:32    19:57 down        None       None  35.055                  v16_dip_short
+03-23 20:01    20:03   up        None       None -15.000                uptrend_retrace
+03-23 20:04    20:05   up        None       None -15.000                uptrend_retrace
+03-23 20:06    20:10   up        None       None  29.880                uptrend_retrace
+03-23 20:11    20:15 down        None       None   9.050                      energetic
+03-23 20:15    20:17   up        None       None  32.060                uptrend_retrace
+03-23 20:18    20:30   up        None       None -15.000                uptrend_retrace
+03-23 20:31    20:50   up        None       None  86.190                uptrend_retrace
+03-23 20:52    21:30 down        None       None  70.130                      energetic
+03-23 22:02    22:25 down        None       None -35.000                  v16_dip_short
+03-23 22:33    23:17 down        None       None  50.280                  v16_dip_short
+03-24 00:02    00:05   up        None       None -15.000                uptrend_retrace
+03-24 00:06    00:07   up        None       None  13.410                      energetic
+03-24 00:07    00:25   up        None       None -15.000                uptrend_retrace
+03-24 00:26    00:38   up        None       None  16.900                      energetic
+03-24 00:39    00:41 down        None       None   3.150                      energetic
+03-24 00:41    01:11   up        None       None  18.100                uptrend_retrace
+03-24 01:32    02:22 down        None       None  12.040                  v16_dip_short
+03-24 02:22    02:41   up        None       None  40.040                uptrend_retrace
+03-24 02:42    03:13 down        None       None  36.100                      energetic
+03-24 04:01    04:59   up        None       None  22.150                uptrend_retrace
+03-24 06:04    07:01 down        None       None -20.870                      energetic
+03-24 09:01    09:08   up        None       None -15.000                uptrend_retrace
+03-24 09:09    09:32 down        None       None  -9.080             reversal_fvg_short
+03-24 09:35    09:41   up        None       None -15.000                uptrend_retrace
+03-24 09:43    10:30 down        None       None -30.000              downtrend_retrace
+03-24 10:33    10:51 down        None       None   8.900                      energetic
+03-24 10:51    11:36   up        None       None -15.000                uptrend_retrace
+03-24 11:38    12:12   up        None       None   9.350                uptrend_retrace
+03-24 12:13    12:19   up        None       None -15.000                uptrend_retrace
+03-24 12:23    12:53 down        None       None -15.140                      energetic
+03-24 13:17    13:46   up        None       None  22.360                      energetic
+03-24 13:47    13:57 down        None       None  17.120                      energetic
+03-24 13:57    14:22   up        None       None  37.890                uptrend_retrace
+03-24 14:26    14:39 down        None       None   0.310                      energetic
+03-24 14:39    15:00   up        None       None  20.000                uptrend_retrace
+03-24 15:43    15:52   up        None       None  27.500                uptrend_retrace
+03-24 16:03    16:20   up        None       None -15.000                uptrend_retrace
+03-24 16:22    16:55   up        None       None  10.150                uptrend_retrace
+03-24 19:04    19:23 down        None       None   1.110                      energetic
+03-24 19:23    19:53   up        None       None -15.000                uptrend_retrace
+03-24 19:54    19:57 down        None       None -11.930                      energetic
+03-24 19:57    20:12 down        None       None -13.610              downtrend_retrace
+03-24 21:01    22:01 down        None       None -11.820             reversal_fvg_short
+03-24 22:34    23:20 down        None       None   4.340                  v16_dip_short
+03-24 23:38    00:24 down        None       None  -1.180                  v16_dip_short
+03-25 01:51    02:32 down        None       None -35.000                  v16_dip_short
+03-25 04:24    04:24   up        None       None  30.000                      energetic
+03-25 04:26    04:29   up        None       None -25.000                      energetic
+03-25 04:39    04:41   up        None       None -15.000                uptrend_retrace
+03-25 04:43    06:01   up        None       None  21.280              reversal_fvg_long
+03-25 06:06    06:30   up        None       None -25.000                      energetic
+03-25 07:40    07:42   up        None       None  -9.380                      energetic
+03-25 07:42    08:59   up        None       None  26.830              reversal_fvg_long
+03-25 09:07    09:59   up        None       None  26.430              reversal_fvg_long
+03-25 16:02    16:03 down        None       None -11.260                   v16_momentum
+03-25 17:34    18:00 down        None       None   0.030                   v16_momentum
+03-25 19:24    19:31 down        None       None  -1.190                      energetic
+03-25 19:31    19:47   up        None       None -10.990              reversal_fvg_long
+03-25 20:29    20:59 down        None       None  -2.150                      energetic
+03-25 21:04    21:53 down        None       None  11.790                  v16_dip_short
+03-26 01:17    01:27 down        None       None -11.850                   v16_momentum
+03-26 03:02    15:02 down        None       None  78.510                   v16_momentum
+03-26 16:16    16:19 down        None       None  -1.430                      energetic
+03-26 16:19    17:07 down        None       None  10.890              downtrend_retrace
+03-26 17:23    18:08 down        None       None  16.160                  v16_dip_short
+03-26 18:51    19:36 down        None       None  -1.240                  v16_dip_short
+03-26 19:50    19:51 down        None       None   1.330                      energetic
+03-26 19:51    20:22 down        None       None -19.400              downtrend_retrace
+03-26 20:57    21:42 down        None       None  -9.230                      energetic
+03-26 22:35    23:22 down        None       None  22.210                  v16_dip_short
+03-27 04:12    04:13   up        None       None  20.000                uptrend_retrace
+03-27 04:15    04:25 down        None       None  -3.100                      energetic
+03-27 04:25    04:51   up        None       None -15.000                uptrend_retrace
+03-27 04:52    04:53 down        None       None   3.940                      energetic
+03-27 04:54    06:01   up        None       None   7.360                      energetic
+03-27 06:03    06:33 down        None       None -19.770                      energetic
+03-27 06:58    07:08   up        None       None -15.000                uptrend_retrace
+03-27 10:04    10:26   up        None       None  -3.510              reversal_fvg_long
+03-27 16:32    19:15 down        None       None  17.740                   v16_momentum
+03-27 20:39    21:24 down        None       None   4.410                  v16_dip_short
+03-27 22:03    22:47 down        None       None -35.000                  v16_dip_short
+03-27 22:51    22:55 down        None       None -15.040                      energetic
+03-27 22:55    23:14   up        None       None  43.550              reversal_fvg_long
+03-27 23:16    23:21   up        None       None  21.610              reversal_fvg_long
+03-27 23:22    00:09 down        None       None  15.780                  v16_dip_short
+03-28 01:17    01:27   up        None       None -15.000                uptrend_retrace
+03-28 01:28    02:05   up        None       None   5.770                uptrend_retrace
+03-28 02:32    04:49   up        None       None -13.600                   v16_momentum
+03-30 06:13    06:25   up        None       None  18.520                      energetic
+03-30 06:25    06:44   up        None       None -15.000                uptrend_retrace
+03-30 06:45    07:33 down        None       None  32.300                      energetic
+03-30 07:33    09:27 down        None       None   6.350              downtrend_retrace
+03-30 09:28    10:10   up        None       None  15.360                uptrend_retrace
+03-30 19:43    19:47 down        None       None -25.000                      energetic
+03-30 19:51    20:37 down        None       None   2.200                  v16_dip_short
+03-30 21:02    21:35 down        None       None  23.190                      energetic
+03-30 21:36    21:58   up        None       None -25.000                      energetic
+03-31 03:07    03:52 down        None       None  -2.080                  v16_dip_short
+03-31 09:15    09:43   up        None       None  73.250              reversal_fvg_long
+03-31 09:46    09:50   up        None       None -15.000              reversal_fvg_long
+03-31 09:53    10:01   up        None       None -15.000                uptrend_retrace
+03-31 10:02    10:24   up        None       None -10.770                uptrend_retrace
+03-31 19:02    19:10   up        None       None  -7.530                   v16_momentum
+03-31 19:23    20:09 down        None       None -16.140                  v16_dip_short
+03-31 22:01    22:17   up        None       None  -8.480                      energetic
+03-31 22:17    22:47   up        None       None  -2.940              reversal_fvg_long
+03-31 23:06    23:37   up        None       None   0.450                uptrend_retrace
+04-01 01:22    02:09 down        None       None -16.560                  v16_dip_short
+04-01 02:10    02:55 down        None       None  -3.960                  v16_dip_short
+04-01 08:25    08:37   up        None       None -15.000              reversal_fvg_long
+04-01 09:02    09:07   up        None       None  -2.380                      energetic
+04-01 09:07    09:37   up        None       None   5.560                uptrend_retrace
+04-01 09:41    10:11   up        None       None   9.870                      energetic
+04-01 14:49    15:04   up        None       None  -5.170              reversal_fvg_long
+04-01 18:47    20:26   up        None       None  -9.790                   v16_momentum
+04-01 22:02    22:47 down        None       None -18.980                  v16_dip_short
+04-01 23:04    23:54 down        None       None -15.470                  v16_dip_short
+04-02 09:01    09:18 down        None       None  41.820                      energetic
+04-02 09:18    09:32 down        None       None  72.750              downtrend_retrace
+04-02 09:33    09:34   up        None       None  18.780                      energetic
+04-02 09:34    09:36 down        None       None -30.000              downtrend_retrace
+04-02 09:37    10:32   up        None       None -15.000                uptrend_retrace
+04-02 10:33    10:44 down        None       None  -4.020                      energetic
+04-02 10:44    11:02 down        None       None  -3.570              downtrend_retrace
+04-02 13:31    13:49 down        None       None  77.390                      energetic
+04-02 13:50    13:52   up        None       None  11.670                      energetic
+04-02 13:52    14:41 down        None       None   8.850              downtrend_retrace
+04-02 14:45    15:09 down        None       None -25.000                      energetic
+04-02 15:18    16:34 down        None       None -12.830                  v16_dip_short
+04-02 16:50    17:28 down        None       None   4.080                      energetic
+04-02 18:07    18:37 down        None       None  10.190                      energetic
+04-02 18:43    19:25 down        None       None  -2.510                      energetic
+04-02 19:30    19:31 down        None       None   3.300                      energetic
+04-02 19:32    19:53   up        None       None -10.040                      energetic
+04-02 19:53    20:17 down        None       None  -9.500             reversal_fvg_short
+04-02 20:47    21:30 down        None       None  16.610                   v16_momentum
+04-02 21:47    21:57 down        None       None -35.000                  v16_dip_short
+04-02 22:25    23:24 down        None       None  11.850                  v16_dip_short
+04-03 02:47    06:01   up        None       None -14.520                   v16_momentum
+04-06 06:07    06:42   up        None       None   8.550                      energetic
+04-06 06:54    06:54   up        None       None -25.000                      energetic
+04-06 06:55    06:59 down        None       None -14.130                      energetic
+04-06 06:59    07:09   up        None       None -15.000                uptrend_retrace
+04-06 07:27    07:52 down        None       None  -2.510              downtrend_retrace
+04-06 16:05    16:50 down        None       None  -2.070                  v16_dip_short
+04-07 09:11    09:33 down        None       None -25.000                      energetic
+04-07 09:39    10:31 down        None       None  -2.580                      energetic
+04-07 13:31    14:16 down        None       None -19.150                      energetic
+04-07 16:03    16:23 down        None       None -35.000                  v16_dip_short
+04-07 16:32    16:53   up        None       None  -1.080              reversal_fvg_long
+04-07 22:07    22:23 down        None       None -25.000                      energetic
+04-07 23:54    00:39 down        None       None  -5.920                  v16_dip_short
+04-08 01:07    01:52 down        None       None  -8.280                  v16_dip_short
+04-08 03:54    04:49   up        None       None  13.640              reversal_fvg_long
+04-08 04:52    06:01   up        None       None  20.000              reversal_fvg_long
+04-08 06:03    06:04   up        None       None   6.370                      energetic
+04-08 06:04    06:32   up        None       None -15.000                uptrend_retrace
+04-08 06:35    06:42   up        None       None  14.270                      energetic
+04-08 06:42    06:56   up        None       None  40.000              breakthrough_long
+04-08 07:02    07:39   up        None       None  -1.430                uptrend_retrace
+04-08 08:01    08:13 down        None       None   1.260                      energetic
+04-08 08:13    08:25   up        None       None -15.000                uptrend_retrace
+04-08 09:00    09:19   up        None       None -15.000                uptrend_retrace
+04-08 09:20    09:32   up        None       None -15.000                uptrend_retrace
+04-08 21:35    22:08 down        None       None   2.290                      energetic
+04-08 23:01    23:31 down        None       None  -9.280                      energetic
+04-09 03:38    04:23 down        None       None   1.290                  v16_dip_short
+04-09 15:38    16:24 down        None       None  -0.330                  v16_dip_short
+04-09 23:20    00:22 down        None       None -11.190                  v16_dip_short
+04-10 02:17    08:30 down        None       None  28.980                   v16_momentum
+04-10 15:02    15:23 down        None       None -10.460                   v16_momentum
+04-13 06:08    06:25   up        None       None -25.000                      energetic
+04-13 06:26    07:03   up        None       None   9.220                      energetic
+04-13 17:17    19:05 down        None       None  -7.840                   v16_momentum
+04-13 19:17    20:15 down        None       None   4.880                   v16_momentum
+04-13 21:16    21:31   up        None       None  -2.860              reversal_fvg_long
+04-14 18:42    19:12 down        None       None -18.000                      energetic
+04-14 21:17    13:45   up        None       None  30.420                   v16_momentum
+04-15 22:47    23:45 down        None       None  13.620                   v16_momentum
+04-17 20:32    06:01   up        None       None -12.400                   v16_momentum
+04-20 06:07    06:40   up        None       None   0.260                      energetic
+04-20 07:44    08:24 down        None       None -12.340                      energetic
+04-20 21:41    21:56   up        None       None   1.530              reversal_fvg_long
+04-21 20:33    21:40 down        None       None  -7.930                   v16_momentum
+04-22 00:18    08:00 down        None       None -10.270                   v16_momentum
+04-22 20:47    21:43 down        None       None  -5.600                   v16_momentum
+04-22 22:17    00:30 down        None       None  20.620                   v16_momentum
+04-23 16:32    19:59 down        None       None  -7.030                   v16_momentum
+04-28 16:17    16:32 down        None       None -11.940                   v16_momentum
+04-28 22:03    22:36 down        None       None   4.320                      energetic
+04-28 22:42    23:12 down        None       None -10.530                      energetic
+04-29 21:41    22:20 down        None       None -15.180                      energetic
+04-30 00:32    02:45 down        None       None  34.840                   v16_momentum
+04-30 15:02    07:45   up        None       None  41.880                   v16_momentum
+05-01 20:32    20:47   up        None       None  -6.620              reversal_fvg_long
+05-04 23:02    12:00 down        None       None  27.410                   v16_momentum
+05-06 08:25    08:51   up        None       None   7.910              reversal_fvg_long
+05-06 09:01    09:21   up        None       None   0.370              reversal_fvg_long
+05-06 16:51    17:21 down        None       None  -0.510                      energetic
+05-06 21:16    22:04 down        None       None -19.020                      energetic
+05-07 20:47    21:05   up        None       None -13.800                   v16_momentum
+05-08 15:02    15:30 down        None       None  21.810                   v16_momentum
+05-08 21:36    21:55   up        None       None   1.560              reversal_fvg_long
+05-11 16:02    16:11 down        None       None  -5.660                   v16_momentum
+05-11 16:47    17:45 down        None       None   7.790                   v16_momentum
+05-11 21:04    21:36   up        None       None  31.580              reversal_fvg_long
+05-12 01:02    12:55   up        None       None  -7.030                   v16_momentum
+05-12 22:37    22:52 down        None       None   5.590              downtrend_retrace
+05-14 00:47    03:00 down        None       None  13.200                   v16_momentum
+05-15 13:19    14:29 down        None       None   9.200                      energetic
+05-15 21:13    22:15 down        None       None  -1.610                      energetic
+05-15 22:15    22:41   up        None       None   7.710                uptrend_retrace
+05-15 23:17    01:26 down        None       None -12.690                   v16_momentum
+05-16 02:32    02:46 down        None       None  -5.830                   v16_momentum
+05-18 09:01    09:02   up        None       None -11.920                      energetic
+05-18 09:02    09:17 down        None       None  -0.220              downtrend_retrace
+05-18 09:21    09:51   up        None       None  37.410                      energetic
+05-18 16:02    16:33 down        None       None  -5.810                   v16_momentum
+05-18 17:17    19:15 down        None       None   6.980                   v16_momentum
+05-19 00:47    02:58   up        None       None  -8.240                   v16_momentum
+05-19 16:17    06:30 down        None       None  67.320                   v16_momentum
+05-20 09:30    10:08 down        None       None  -7.930                      energetic
+05-20 23:16    23:29   up        None       None -15.000              reversal_fvg_long
+05-22 01:50    02:39 down        None       None   9.470                  v16_dip_short
+05-22 21:47    01:30 down        None       None  -9.850                   v16_momentum
+05-25 06:05    06:35   up        None       None   7.400                      energetic
+05-26 19:47    21:02 down        None       None -11.720                   v16_momentum
+05-26 21:51    06:45 down        None       None  18.420                   v16_momentum
+05-27 21:01    21:11 down        None       None  10.470                      energetic
+05-27 21:11    21:28   up        None       None -15.000              reversal_fvg_long
+05-27 21:31    22:01 down        None       None -20.990                      energetic
+05-27 22:05    22:54 down        None       None  -2.000                  v16_dip_short
+05-28 18:47    19:00 down        None       None   3.750                   v16_momentum
+05-29 22:47    06:01   up        None       None -12.910                   v16_momentum
+06-01 19:33    08:15 down        None       None  23.020                   v16_momentum
+06-03 18:09    18:54 down        None       None   2.290                  v16_dip_short
+06-03 21:43    22:15 down        None       None -17.710                      energetic
+06-04 07:52    08:07   up        None       None  -3.250              reversal_fvg_long
+06-04 09:33    10:14   up        None       None  -2.620              reversal_fvg_long
+06-04 19:32    22:35   up        None       None -10.180                   v16_momentum
+06-05 20:47    06:04 down        None       None 126.690                   v16_momentum
+06-08 09:32    10:04 down        None       None -11.860                      energetic
+06-08 17:03    17:37 down        None       None  -2.690                   v16_momentum
+06-08 19:27    19:48   up        None       None  -6.360              reversal_fvg_long
+06-09 19:02    21:28   up        None       None  -8.360                   v16_momentum
+06-09 22:04    22:36   up        None       None -21.400                      energetic
+06-09 22:37    23:16 down        None       None  11.160                      energetic
+06-10 09:02    09:11 down        None       None   2.170                      energetic
+06-10 09:12    09:42   up        None       None -13.120                      energetic
+06-10 13:49    14:08   up        None       None  15.040              reversal_fvg_long
+06-10 16:02    11:00 down        None       None 106.180                   v16_momentum
+06-12 02:29    02:47   up        None       None  15.520                uptrend_retrace
+06-12 03:40    03:55   up        None       None   3.760                uptrend_retrace
+06-12 07:01    07:03   up        None       None -15.000                uptrend_retrace
+06-12 09:03    09:08 down        None       None   2.570                      energetic
+06-12 09:08    09:27 down        None       None   7.270              downtrend_retrace
+06-12 15:47    18:00   up        None       None  37.430                   v16_momentum
+06-12 21:44    22:09 down        None       None -10.550              downtrend_retrace
+06-12 22:10    22:40 down        None       None   6.010                      energetic
+06-15 06:03    06:58   up        None       None  -0.100                      energetic
+06-15 09:46    10:11   up        None       None   5.150              reversal_fvg_long
+06-15 15:17    04:45   up        None       None  -5.380                   v16_momentum
+06-16 21:17    22:45 down        None       None  17.880                   v16_momentum
+06-17 23:17    02:00   up        None       None  -8.600                   v16_momentum
+06-18 02:23    02:35 down        None       None  18.180                      energetic
+06-18 02:35    02:36   up        None       None  20.000              reversal_fvg_long
+06-18 02:37    02:39 down        None       None  -8.000                      energetic
+06-18 02:39    02:44   up        None       None  20.980                uptrend_retrace
+06-18 02:48    02:55   up        None       None -25.000                      energetic
+06-18 02:56    03:17 down        None       None  53.070                      energetic
+06-18 03:18    03:38   up        None       None -25.000                      energetic
+06-18 03:39    04:11   up        None       None  33.950                      energetic
+06-18 08:04    08:29   up        None       None   9.340              reversal_fvg_long
+06-18 08:31    09:42   up        None       None  14.960              reversal_fvg_long
+06-18 15:47    11:30 down        None       None 129.600                   v16_momentum
+06-19 16:47    19:45 down        None       None  16.020                   v16_momentum
+06-23 13:42    13:57 down        None       None   1.120              downtrend_retrace
+06-23 22:17    22:38   up        None       None -15.000              reversal_fvg_long
+06-23 22:47    23:01 down        None       None  -6.660                   v16_momentum
+06-23 23:24    23:30 down        None       None  -6.310                   v16_momentum
+06-24 01:02    01:13 down        None       None  -5.320                   v16_momentum
+06-24 09:04    09:12 down        None       None -18.140                      energetic
+06-24 09:13    09:31   up        None       None   4.230                      energetic
+06-24 09:31    09:46   up        None       None -12.700                uptrend_retrace
+06-24 15:17    10:15 down        None       None 112.980                   v16_momentum
+06-25 21:03    21:52 down        None       None  22.300                  v16_dip_short
+
+============================================================
+
+
+  CSV: /Users/alpha/AlphaGold/runtime/gold_v16_combined_trades.csv
+DONE.
